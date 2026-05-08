@@ -180,7 +180,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
                     placeholder={status === 'completed' ? "Session completed. Start a new one to continue." : "Enter the full job posting details here to extract target keywords..."}
                   />
                   <button
-                    onClick={handleExtract}
+                    onClick={() => handleExtract()}
                     disabled={isExtracting || !jdText.trim() || status === 'paused' || status === 'completed'}
                     className="w-full mt-8 py-5 rounded-2xl bg-emerald-500 text-white font-bold flex items-center justify-center gap-3 hover:bg-emerald-600 disabled:opacity-50 transition-all shadow-lg shadow-emerald-500/20 text-lg"
                   >
