@@ -783,58 +783,49 @@ async function startServer() {
 
       // STEP 3: Gemini 3.1 Pro (Premium) - Final Generation
       const finalPrompt = `
-        You are a senior executive resume strategist. 
+        You are a senior executive resume strategist for FAANG companies.
         Optimize this structured resume data for the target role: ${targetRole}.
         Audience: ${audience}. Mode: ${mode}.
+        
+        STRICT FAANG RESUME RULES:
+        1. XYZ Formula: "Accomplished [X] by [Z] as measured by [Y]."
+        2. Action: Strong, past-tense verb at start.
+        3. Metrics: Inject conservative, industry-standard metrics.
+        4. Structure: 4 bullets/experience, max 2 lines/bullet.
+        5. Zero Fluff: No adjectives/buzzwords.
+        6. Tech: Integrate tools (Python, GCP, Azure) naturally.
+        7. Maintain titles; include ALL roles/certs.
+
         ${customPrompt ? `Custom Instructions: ${customPrompt}` : ''}
-        ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
+        ${brainDump ? `ADDITIONAL CONTEXT: ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
         
         CORPORATE DNA TAILORING:
-        ${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results". Use terminology from Amazon Leadership Principles.' : ''}
+        ${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results".' : ''}
         ${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale", "Cloud Transformation", and "Collaborative Ecosystems".' : ''}
         ${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design", "Extreme Scale", "Algorithmic Efficiency", and "Google XYZ Formula".' : ''}
         ${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast", "Shipping End-to-End Impact", and "Performance Optimization".' : ''}
         ${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery", "Global Managed Services", and "Cross-functional Deployment".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
         
-        PLAYER-COACH MODE:
-        ${mode === 'Player-Coach' ? `
-          - 60/40 BALANCE: 60% Execution (Azure infra, Site Recovery, Entra ID), 40% Leadership (Mentoring, Agile pods, Architecture reviews).
-          - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized," "Spearheaded."
-          - STRICT NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". Focus entirely on Azure Infrastructure.
-        ` : ''}
+        Return the optimized result as a valid JSON object.
+        RESUME DATA:
+        ${JSON.stringify(optimizedInput)}
 
-        INPUT DATA (Optimized):
-        ${JSON.stringify(optimizedInput, null, 2)}
-        
+        ${mode === 'Player-Coach' ? `
+          * SPECIAL: 60% Execution (Azure), 40% Leadership.
+          * FORBIDDEN: CI/CD, Pipelines, DevOps (Focus purely on Azure Infrastructure).` : ''}
+
         STRICT RULES:
-STRICT RULES:
-        1. TONE & FOCUS: Maintain a professional, concise, executive-level tone suitable for FAANG, Senior Cloud Architect, or Director-level infrastructure roles. Focus heavily on these JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
-        
-        2. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
-        
-        3. INCLUDE ALL ROLES: You MUST include every single role provided in the INPUT DATA. Do not skip any jobs, even very old ones.
-        
-        4. NO HALLUCINATIONS: DO NOT invent, suggest, or add any certifications, skills, metrics, or experience that are not explicitly present in the INPUT DATA. Do not "suggest" certifications if the user doesn't have them.
-        
-        5. BREVITY & DENSITY: Bullet points MUST be dense and achievement-oriented (recommended length: 15-20 words). Prioritize hard skills, tools, and scale metrics over verbose filler jargon.
-        
-        6. RECENT ROLE EXPANSION (Post-2018) - ABSOLUTE REQUIREMENT: You MUST output EXACTLY 5 to 6 bullet points for EVERY single role that occurred after 2018. DO NOT merge, combine, or consolidate the original bullets, even if the role was only a few months long. If the input has 5 bullets for a recent role, you must rewrite and output exactly 5 bullets. No exceptions.
-        
-        7. OLDER ROLE COMPRESSION (Pre-2018): Provide EXACTLY one (1) bullet point maximum for roles and projects that occurred before 2018. Focus on foundational infrastructure experience.
-        
-        8. SOURCE ANCHORING (CRITICAL): Each experience entry contains ORIGINAL BULLETS. You MUST derive new bullets ONLY from that specific role’s original content. Do NOT borrow, reuse, or "hallucinate" content from other roles to fill gaps.
-        
-        9. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
-        
-        10. VERB CONTROL: Avoid forbidden buzzwords like "Spearheaded", "Visionary", "Dynamic", or "Guru". For execution bullets, use allowed verbs: "Deployed", "Maintained", "Utilized", "Provisioned".
-        
-        11. ANTI-DUPLICATION: Avoid semantic repetition across roles. Each role should demonstrate distinct business or technical impact. Do not repeat identical achievement phrasing.
-        
-        12. DEVOPS BAN: The terms "CI/CD", "Pipelines", and "DevOps" are ABSOLUTELY FORBIDDEN. Focus the narrative entirely on Azure Infrastructure, HA/DR, and Governance.
-        
-        13. INCLUDE ALL CERTIFICATIONS: You MUST include every single professional certificate provided in the INPUT DATA. Do not skip any professional certificate, even very old ones.
-        
-        14. SHORT-TENURE EXCEPTION (HCLTech): Because the tenure at HCLTech was only 1 month, you MUST explicitly override Rule 6 for this specific role only. Limit the HCLTech experience to exactly 1 to 2 highly concise bullet points. Focus purely on the immediate impact or onboarding tasks completed during that month without overstating the scope of the role. you can add conduct training for new joiners
+        * Focus on JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
+        * Titles: Never modify. Include ALL roles/certs.
+        * No Hallucinations: Use only provided Input Data.
+        * Brevity: Dense, achievement-oriented bullets (15-20 words).
+        * Recent (Post-2018): 5-6 bullets/role (Exact rewrite).
+        * Older (Pre-2018): Max 1 bullet.
+        * Anchoring: Bullets only based on role's provided context.
+        * IaC: Max 2 bullets (Terraform/IaC).
+        * Allowed Verbs: Deployed, Maintained, Utilized, Provisioned, Architected.
+        * FORBIDDEN: CI/CD, Pipelines, DevOps, "Spearheaded", "Visionary".
+        * Short-Tenure(HCLTech): 1-2 bullets max (Onboarding).
         
         
         OUTPUT SCHEMA (MUST MATCH EXACTLY):

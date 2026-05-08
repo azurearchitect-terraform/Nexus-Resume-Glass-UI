@@ -2809,7 +2809,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
               </div>
           </header>
 
-          <section className={`shrink-0 border-b px-4 py-4 md:px-6 ${isDarkMode ? 'bg-neutral-950 border-white/10' : 'bg-white border-black/10'}`}>
+          <section className={`shrink-0 border-b px-4 py-2 md:px-6 ${isDarkMode ? 'bg-neutral-950 border-white/10' : 'bg-white border-black/10'}`}>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 items-start gap-3">
                 <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
@@ -2825,8 +2825,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   <div className={`text-[11px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-white/35' : 'text-black/40'}`}>
                     {workspaceMeta.eyebrow}
                   </div>
-                  <h1 className="mt-1 text-xl font-bold tracking-tight md:text-2xl">{workspaceMeta.title}</h1>
-                  <p className={`mt-1 max-w-3xl text-sm leading-6 ${isDarkMode ? 'text-white/55' : 'text-black/55'}`}>
+                  <h1 className="text-xl font-bold tracking-tight md:text-2xl">{workspaceMeta.title}</h1>
+                  <p className={`max-w-3xl text-sm leading-6 ${isDarkMode ? 'text-white/55' : 'text-black/55'}`}>
                     {workspaceMeta.description}
                   </p>
                 </div>
@@ -2862,7 +2862,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                 </button>
               </div>
             </div>
-            <div className={`mt-4 h-px w-full overflow-hidden ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+            <div className={`mt-2 h-px w-full overflow-hidden ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
               <motion.div
                 className={`h-full w-1/3 ${
                   workspaceMeta.accent === 'blue' ? 'bg-blue-500' : workspaceMeta.accent === 'slate' ? 'bg-slate-500' : 'bg-emerald-500'

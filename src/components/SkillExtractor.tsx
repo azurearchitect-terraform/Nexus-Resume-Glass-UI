@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Key, Sparkles, Copy, Check, Info, FileText, BrainCircuit, Target, ListChecks, ArrowRight, RefreshCw, Pause, Play, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Key, Sparkles, Copy, Check, Info, FileText, BrainCircuit, Target, ListChecks, ArrowRight, RefreshCw, Pause, Play, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { extractSkillsFromJD } from '../services/geminiService';
+import { RouterConfig } from '../services/aiRouter';
 import masterResume from '../services/master_resume.json';
 
 interface SkillExtractorProps {
@@ -34,7 +35,12 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
     setError(null);
     try {
       const resumeText = typeof resumeData === 'string' ? resumeData : JSON.stringify(resumeData);
-      const result = await extractSkillsFromJD(textToExtract, resumeText, engineConfig);
+      const routerConfig: RouterConfig = {
+        mode: 'production',
+        geminiConfig: engineConfig.gemini,
+        openaiConfig: engineConfig.openai
+      };
+      const result = await extractSkillsFromJD(textToExtract, resumeText, routerConfig);
       if (!result.priority.length && !result.matching.length && !result.missing.length) {
         throw new Error("AI could not extract any meaningful skills. Please try with more descriptive Job Description.");
       }
