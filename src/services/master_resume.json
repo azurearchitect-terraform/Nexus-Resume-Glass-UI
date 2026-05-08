@@ -1,0 +1,78 @@
+{
+  "personal_info": {
+    "name": "Harnish Jariwala",
+    "title": "Cloud Infrastructure & Azure Architecture Leader",
+    "location": "Surat, Gujarat, India",
+    "current_work_location": "Hyderabad, Telangana",
+    "email": "param_jariwala@yahoo.com",
+    "phone": "+91-8980161289",
+    "linkedin": "https://linkedin.com/in/harnishjariwala"
+  },
+  "summary": {
+    "text": "Cloud Infrastructure Leader with 16+ years of experience, including 6+ years in Microsoft Azure. Expertise in defining enterprise architecture, governance standards, and resilient cloud platforms. Proven ability to influence teams, establish architectural guardrails, and drive reliability, security, and cost optimization.",
+    "tags": ["leadership", "architecture", "governance", "enterprise"]
+  },
+  "core_competencies": [
+    { "skill": "Azure Enterprise Architecture", "tags": ["architecture"] },
+    { "skill": "Landing Zones & Platform Design", "tags": ["architecture", "platform"] },
+    { "skill": "Governance & Policy Enforcement", "tags": ["governance"] },
+    { "skill": "HA/DR & Resiliency Engineering", "tags": ["reliability"] },
+    { "skill": "Hybrid Cloud Strategy", "tags": ["architecture"] },
+    { "skill": "Azure Networking", "tags": ["networking"] },
+    { "skill": "Identity & Security (Entra ID, RBAC)", "tags": ["security"] },
+    { "skill": "Observability & Incident Management", "tags": ["operations"] },
+    { "skill": "Cost Optimization (FinOps)", "tags": ["impact"] },
+    { "skill": "Technical Leadership & Hiring", "tags": ["leadership"] }
+  ],
+  "experience": [
+    {
+      "company": "Concentrix",
+      "role": "Cloud & Collaboration Engineer II",
+      "duration": "Sep 2025 - Present",
+      "tags": ["architecture", "leadership", "governance"],
+      "bullets": [
+        { "text": "Act as cloud design authority guiding enterprise Azure architecture decisions.", "tags": ["architecture", "leadership"] },
+        { "text": "Define resiliency and disaster recovery patterns aligned with SLAs.", "tags": ["architecture", "reliability"] },
+        { "text": "Review and shape architecture designs ensuring governance and compliance.", "tags": ["governance"] },
+        { "text": "Standardize architecture patterns and influence engineering teams.", "tags": ["leadership"] }
+      ]
+    },
+    {
+      "company": "M&M Software Development Centre India",
+      "role": "Senior Ops Service Engineer - Azure",
+      "duration": "Jan 2025 - Jul 2025",
+      "tags": ["operations", "leadership"],
+      "bullets": [
+        { "text": "Led Azure operations across enterprise environments ensuring availability.", "tags": ["operations"] },
+        { "text": "Mentored team of 5 engineers improving delivery quality.", "tags": ["leadership"] },
+        { "text": "Reduced MTTR by 40% using observability solutions.", "tags": ["impact"] },
+        { "text": "Defined governance standards for incident and change management.", "tags": ["governance"] }
+      ]
+    },
+    {
+      "company": "Casepoint LLC",
+      "role": "Cloud Engineer - Azure",
+      "duration": "Mar 2022 - Apr 2024",
+      "tags": ["scale", "architecture"],
+      "impact_scope": {
+        "subscriptions": "5+",
+        "virtual_machines": "2500+"
+      },
+      "bullets": [
+        { "text": "Managed Azure environments with 5+ subscriptions and 2500+ VMs.", "tags": ["scale"] },
+        { "text": "Designed landing zones with governance and policy enforcement.", "tags": ["architecture"] },
+        { "text": "Delivered 20% cost savings through optimization.", "tags": ["impact"] }
+      ]
+    }
+  ],
+  "certifications": [
+    "AZ-305 Azure Solutions Architect Expert",
+    "AZ-104 Azure Administrator",
+    "AZ-900 Azure Fundamentals"
+  ],
+  "education": {
+    "degree": "Bachelor of Computer Applications",
+    "institution": "Chandigarh University",
+    "expected_completion": "2027"
+  }
+}

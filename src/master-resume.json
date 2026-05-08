@@ -1,0 +1,222 @@
+{
+  "personal_info": {
+    "name": "Harnish Jariwala",
+    "title": "Cloud Infrastructure & Engineering Leader",
+    "location": "Surat, Gujarat, India",
+    "current_work_location": "Hyderabad, Telangana",
+    "email": "param_jariwala@yahoo.com",
+    "phone": "+91-8980161289",
+    "linkedin": "https://linkedin.com/in/harnishjariwala"
+  },
+  "professional_summary": {
+    "text": "Cloud Infrastructure & Engineering Leader with 16+ years driving enterprise-scale technical strategy, cloud operations, and FinOps governance. Proven expertise in scaling high-performing engineering organizations, aligning multi-million-dollar Azure infrastructure roadmaps with corporate objectives, and mitigating operational risk. A strategic partner to C-level stakeholders, specializing in building resilient, compliant, and cost-optimized global cloud platforms.",
+    "tags": ["executive_leadership", "cloud_strategy", "finops", "enterprise_architecture"]
+  },
+  "core_competencies": [
+    { "skill": "Enterprise IT Strategy & Technical Mentorship", "tags": ["leadership", "strategy"] },
+    { "skill": "Cross-Functional Alignment & Team Scaling", "tags": ["leadership", "operations"] },
+    { "skill": "Cloud Center of Excellence (CCoE) Governance", "tags": ["strategy", "governance"] },
+    { "skill": "Multi-Million Dollar Budget Governance (FinOps)", "tags": ["finops", "impact"] },
+    { "skill": "Vendor Management & Azure ROI Optimization", "tags": ["strategy", "finops"] },
+    { "skill": "Enterprise Architecture Governance", "tags": ["architecture", "governance"] },
+    { "skill": "High-Availability Roadmaps & Resiliency", "tags": ["reliability", "architecture"] },
+    { "skill": "Security Compliance & Policy Enforcement", "tags": ["security", "governance"] },
+    { "skill": "Incident Response Strategy & Observability", "tags": ["reliability", "operations"] }
+  ],
+  "experience": [
+    {
+      "company": "Concentrix",
+      "location": "Hyderabad",
+      "role": "Cloud & Collaboration Engineer II (Microsoft Engagement)",
+      "duration": "Sep 2025 - Present",
+      "tags": ["architecture", "leadership", "governance"],
+      "impact_scope": {
+        "environment": "Enterprise Azure environments",
+        "workloads": "Business-critical customer platforms"
+      },
+      "bullets": [
+        {
+          "text": "Directed enterprise Azure architecture strategy, aligning cloud resiliency roadmaps with executive business objectives.",
+          "tags": ["architecture", "leadership"]
+        },
+        {
+          "text": "Scaled the cloud engineering practice by establishing rigorous technical hiring frameworks and mentoring talent.",
+          "tags": ["leadership", "operations"]
+        },
+        {
+          "text": "Governed HA/DR and risk mitigation strategies, ensuring enterprise platforms met stringent global SLA requirements.",
+          "tags": ["reliability", "governance"]
+        },
+        {
+          "text": "Championed strategic infrastructure investments, successfully securing roadmap alignment from senior leadership stakeholders.",
+          "tags": ["strategy", "leadership"]
+        }
+      ]
+    },
+    {
+      "company": "M&M Software Development Centre India",
+      "location": "Vadodara",
+      "role": "Senior Ops Service Engineer - Azure",
+      "duration": "Jan 2025 - Jul 2025",
+      "tags": ["operations", "leadership", "impact"],
+      "impact_scope": {
+        "environment": "Global production workloads",
+        "team_size": 5
+      },
+      "bullets": [
+        {
+          "text": "Led and scaled a high-performing infrastructure operations organization supporting global business-critical workloads.",
+          "tags": ["leadership", "operations"]
+        },
+        {
+          "text": "Governed enterprise cloud expenditure, enforcing strategic FinOps frameworks without compromising operational performance.",
+          "tags": ["finops", "governance"]
+        },
+        {
+          "text": "Directed incident response strategy, establishing data-driven observability platforms that reduced MTTR by 40%.",
+          "tags": ["reliability", "impact"]
+        }
+      ]
+    },
+    {
+      "company": "ARCHER Transnational Systems Pvt. Ltd.",
+      "location": "Vadodara",
+      "role": "Senior System Administrator (Azure)",
+      "duration": "Sep 2024 - Dec 2024",
+      "tags": ["architecture", "governance"],
+      "bullets": [
+        {
+          "text": "Defined infrastructure governance standards, ensuring highly scalable Azure deployments met strict enterprise compliance.",
+          "tags": ["architecture", "governance"]
+        },
+        {
+          "text": "Orchestrated disaster recovery strategy, securing business continuity and zero data loss for core applications.",
+          "tags": ["reliability", "strategy"]
+        }
+      ]
+    },
+    {
+      "company": "HCLTech",
+      "location": "Hyderabad",
+      "role": "Senior Specialist - Azure Infrastructure",
+      "duration": "Apr 2024 - Jun 2024",
+      "tags": ["operations", "leadership"],
+      "bullets": [
+        {
+          "text": "Directed hybrid cloud migration initiatives, optimizing enterprise infrastructure stability and subscription resource utilization.",
+          "tags": ["architecture", "operations"]
+        },
+        {
+          "text": "Accelerated engineering team productivity by orchestrating structured technical onboarding and knowledge-sharing programs.",
+          "tags": ["leadership"]
+        }
+      ]
+    },
+    {
+      "company": "Casepoint LLC",
+      "location": "Surat",
+      "role": "Cloud Engineer - Azure",
+      "duration": "Mar 2022 - Apr 2024",
+      "tags": ["architecture", "scale", "impact"],
+      "impact_scope": {
+        "subscriptions": "5+",
+        "virtual_machines": "2500+",
+        "environment": "Global enterprise portfolio"
+      },
+      "bullets": [
+        {
+          "text": "Oversaw a massive-scale global Azure portfolio encompassing 5+ enterprise subscriptions and 2500+ virtual machines.",
+          "tags": ["scale", "operations"]
+        },
+        {
+          "text": "Spearheaded enterprise FinOps initiatives, successfully reducing overall cloud operating expenditure by ~20%.",
+          "tags": ["impact", "finops"]
+        },
+        {
+          "text": "Enforced global security and compliance baselines by architecting automated enterprise landing zones and policies.",
+          "tags": ["architecture", "security"]
+        },
+        {
+          "text": "Directed multi-region disaster recovery roadmaps, utilizing Azure Site Recovery to safeguard mission-critical data.",
+          "tags": ["reliability", "strategy"]
+        }
+      ]
+    },
+    {
+      "company": "Sterling Accuris Diagnostics",
+      "location": "Ahmedabad",
+      "role": "Senior Executive - IT",
+      "duration": "Jun 2017 - Feb 2022",
+      "tags": ["operations", "impact"],
+      "bullets": [
+        {
+          "text": "Directed high-availability infrastructure strategy for regulated healthcare systems, reducing operational downtime by 50%.",
+          "tags": ["architecture", "impact"]
+        }
+      ]
+    },
+    {
+      "company": "AGILUS Diagnostics",
+      "location": "Mumbai",
+      "role": "Officer IT cum Logistics",
+      "duration": "Jul 2013 - May 2017",
+      "tags": ["operations"],
+      "bullets": [
+        {
+          "text": "Governed enterprise IT operations and automated disaster recovery processes for 200+ global end-users.",
+          "tags": ["operations", "reliability"]
+        }
+      ]
+    },
+    {
+      "company": "Galaxy Office Automation Pvt. Ltd.",
+      "location": "Mumbai",
+      "role": "Customer Support Engineer",
+      "duration": "Aug 2012 - Jul 2013",
+      "tags": ["operations"],
+      "bullets": [
+        {
+          "text": "Managed enterprise IT hardware deployments and infrastructure support operations to ensure seamless client integration.",
+          "tags": ["operations"]
+        }
+      ]
+    },
+    {
+      "company": "Aegis Global",
+      "location": "Surat",
+      "role": "Field Support Engineer",
+      "duration": "May 2010 - May 2012",
+      "tags": ["operations"],
+      "bullets": [
+        {
+          "text": "Delivered critical technical support for enterprise systems, ensuring high availability and strict SLA compliance.",
+          "tags": ["operations"]
+        }
+      ]
+    }
+  ],
+  "certifications": [
+    "Microsoft Certified: Azure Solutions Architect Expert (AZ-305)",
+    "Microsoft Certified: Azure Administrator Associate (AZ-104)",
+    "Microsoft Certified: Azure Fundamentals (AZ-900)"
+  ],
+  "education": {
+    "degree": "Bachelor of Computer Applications (BCA)",
+    "institution": "Chandigarh University",
+    "expected_completion": "2027"
+  },
+  "strategic_initiatives": [
+    {
+      "name": "Enterprise Cloud Modernization",
+      "duration": "2022-2024",
+      "tags": ["architecture", "strategy", "impact"],
+      "description": "Led the strategic transition of legacy infrastructure to highly scalable Azure cloud environments, driving impactful business transformation."
+    },
+    {
+      "name": "Enterprise FinOps Governance",
+      "duration": "2019-2022",
+      "tags": ["governance", "finops", "impact"],
+      "description": "Established comprehensive cost optimization frameworks, enforcing corporate standards to significantly reduce cloud infrastructure waste."
+    }
+  ]
+}
