@@ -124,7 +124,7 @@ export const CareerQuiz: React.FC<CareerQuizProps> = ({ toolId, title, isDarkMod
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] max-h-[800px] relative">
-      <div className={`sticky top-0 z-10 flex items-center justify-between mb-6 p-4 -mt-4 -mx-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'}`}>
+      <div className={`flex items-center justify-between mb-6 p-4 -mx-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'}`}>
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}

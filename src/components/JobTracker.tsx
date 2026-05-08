@@ -184,7 +184,7 @@ export const JobTracker: React.FC<JobTrackerProps> = ({ isDarkMode, engineConfig
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] max-h-[800px] relative">
-      <div className={`sticky top-0 z-10 flex items-start sm:items-center justify-between -mx-4 -mt-4 p-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'} mb-6 flex-col sm:flex-row gap-4 pt-16`}>
+      <div className={`sticky top-0 z-10 flex items-start sm:items-center justify-between -mx-4 p-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'} mb-6 flex-col sm:flex-row gap-4 pt-16`}>
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}

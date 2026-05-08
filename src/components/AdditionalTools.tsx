@@ -515,7 +515,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
           </button>
         </div>
       ) : (
-        <div className={`sticky top-0 z-10 flex items-center justify-between -mx-4 -mt-4 p-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'} mb-6`}>
+        <div className={`sticky top-0 z-10 flex items-center justify-between -mx-4 p-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'} mb-6`}>
           <button 
             onClick={() => setActiveTab(null)}
             className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
