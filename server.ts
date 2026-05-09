@@ -112,57 +112,75 @@ setInterval(() => {
 // Encryption Setup
 // We use a stable key derived from GEMINI_API_KEY if ENCRYPTION_KEY is not provided.
 // This prevents "bad decrypt" errors after server restarts.
-const getEncryptionKey = () => {
+const getEncryptionKeys = () => {
   const envKey = process.env.ENCRYPTION_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
+  const staticFallback = "4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b";
   
+  const keys: Buffer[] = [];
+
+  // 1. Try Environment Key
   if (envKey) {
     if (envKey.length === 64) {
-      console.log("[Encryption] Using ENCRYPTION_KEY from environment.");
-      return envKey;
+      keys.push(Buffer.from(envKey, 'hex'));
     } else {
-      console.warn("[Encryption] ENCRYPTION_KEY in environment is not 64 characters. Hashing it to ensure 32-byte key.");
-      return crypto.createHash('sha256').update(envKey).digest('hex');
+      keys.push(crypto.createHash('sha256').update(envKey).digest());
     }
   }
   
+  // 2. Try Gemini Key Hash
   if (geminiKey) {
-    console.log("[Encryption] Deriving ENCRYPTION_KEY from GEMINI_API_KEY.");
-    return crypto.createHash('sha256').update(geminiKey).digest('hex');
+    keys.push(crypto.createHash('sha256').update(geminiKey).digest());
   }
   
-  console.warn("[Encryption] No ENCRYPTION_KEY or GEMINI_API_KEY found. Using static fallback key. WARNING: Your encrypted data will be lost if you provide an API key later.");
-  return "4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b"; 
+  // 3. Always include static fallback as a last resort for legacy data
+  keys.push(Buffer.from(staticFallback, 'hex'));
+  
+  return keys;
 };
 
-const ENCRYPTION_KEY = getEncryptionKey();
+const ENCRYPTION_KEYS = getEncryptionKeys();
+const PRIMARY_KEY = ENCRYPTION_KEYS[0];
 const IV_LENGTH = 16;
 
 function encrypt(text: string) {
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+  const cipher = crypto.createCipheriv('aes-256-cbc', PRIMARY_KEY, iv);
   let encrypted = cipher.update(text);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
   return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
 function decrypt(text: string) {
-  try {
-    const textParts = text.split(':');
-    if (textParts.length < 2) throw new Error("Invalid encrypted text format");
-    const iv = Buffer.from(textParts.shift()!, 'hex');
-    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
-  } catch (error: any) {
-    console.error("Decryption Error:", error);
-    if (error.message.includes('bad decrypt') || error.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
-      throw new Error("DECRYPTION_FAILED: The encryption key has changed or the data is corrupted. Please re-save your API keys in your profile.");
+  const textParts = text.split(':');
+  if (textParts.length < 2) throw new Error("Invalid encrypted text format");
+  const iv = Buffer.from(textParts.shift()!, 'hex');
+  const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+
+  let lastError: any = null;
+
+  // Try all potential keys (current, derived, and fallback)
+  for (const key of ENCRYPTION_KEYS) {
+    try {
+      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+      let decrypted = decipher.update(encryptedText);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      return decrypted.toString();
+    } catch (error: any) {
+      lastError = error;
+      // Continue to next key if it's a decrypt error
+      if (error.message.includes('bad decrypt') || error.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
+        continue;
+      }
+      throw error;
     }
-    throw error;
   }
+
+  // If we reach here, all keys failed
+  if (lastError && (lastError.message.includes('bad decrypt') || lastError.code === 'ERR_OSSL_EVP_BAD_DECRYPT')) {
+    throw new Error("DECRYPTION_FAILED: The encryption key has changed or the data is corrupted. Please re-save your API keys in your profile.");
+  }
+  throw lastError || new Error("Decryption failed");
 }
 
 async function startServer() {
@@ -578,6 +596,13 @@ async function startServer() {
       }
       res.json({ keys });
     } catch (error: any) {
+      if (error.message.includes("DECRYPTION_FAILED")) {
+        console.warn(`[Server] Decryption failed for keys. Key mismatch suspected.`);
+        return res.status(401).json({ 
+          error: "DECRYPTION_FAILED",
+          message: "The encryption key has changed. Please re-save your API keys in your profile."
+        });
+      }
       console.error("Decryption Error:", error);
       res.status(500).json({ error: "Failed to decrypt API keys" });
     }

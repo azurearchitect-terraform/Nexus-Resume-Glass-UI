@@ -235,9 +235,8 @@
   .resume-page {
     width: 210mm;
     min-width: 210mm;
-    height: 297mm; /* Fixed height for A4 */
-    max-height: 297mm;
-    overflow: hidden; /* Prevent content from spilling out in UI */
+    min-height: 297mm;
+    overflow: visible; /* Allow content to flow naturally */
     background-color: white;
     padding: 12mm;
     display: flex;

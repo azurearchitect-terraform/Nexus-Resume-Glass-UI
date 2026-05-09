@@ -4375,18 +4375,12 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           >
                           {previewMode === 'standard' ? (
                             <>
-                              {/* Page 1 */}
-                              <div className={`resume-page ${isDownloading ? 'page-break-after-always' : 'mb-8'}`}>
+                              <div className={`resume-page ${isDownloading ? '' : 'mb-8'}`}>
                                 {renderSection('header')}
                                 {renderSection('summary')}
                                 {renderSection('skills')}
                                 {renderSection('certifications')}
-                                {renderSection('experience', (results[activeAudience!]?.experience || data.experience).slice(0, 3))}
-                              </div>
-
-                              {/* Page 2 */}
-                              <div className="resume-page">
-                                {renderSection('experience', (results[activeAudience!]?.experience || data.experience).slice(3), true)}
+                                {renderSection('experience', results[activeAudience!]?.experience || data.experience)}
                                 {renderSection('projects')}
                                 {renderSection('education')}
                               </div>
