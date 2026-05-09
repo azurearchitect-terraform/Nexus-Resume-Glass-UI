@@ -1,134 +1,54 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Syne", sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --font-heading: var(--font-display);
-  --font-body: var(--font-sans);
-
-  /* Dark Glass Design System Colors */
-  --color-bg-deep: #060b1a;
-  --color-cyan-glow: #00e5ff;
-  --color-violet-glow: #a855f7;
-  --color-emerald-glow: #10b981;
-  --color-amber-glow: #f59e0b;
+  /* Hybrid Professional/Tech Palette */
+  --color-slate-900: #0f172a;
+  --color-slate-800: #1e293b;
+  --color-slate-700: #334155;
+  --color-blue-600: #2563eb;
+  --color-blue-500: #3b82f6;
+  --color-blue-400: #60a5fa;
+  --color-emerald-500: #10b981;
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.07);
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
+@layer base {
+  body {
+    @apply font-sans antialiased bg-slate-50 text-slate-900;
+  }
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.07);
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
-}
+@layer components {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.4);
+  }
 
-.glass-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 0.5px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
-  color: rgba(255, 255, 255, 0.95);
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
+  .glass {
+    @apply backdrop-blur-md bg-white/30 border border-white/20;
+  }
+  .glass-dark {
+    @apply backdrop-blur-md bg-black/30 border border-white/10;
+  }
 
-.glass-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
-}
+  .page-break-after-always {
+    page-break-after: always;
+  }
 
-.glass-input:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  border-color: var(--color-violet-glow);
-  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.1);
-}
-
-.btn-gradient {
-  background-image: linear-gradient(to right, var(--color-violet-glow), var(--color-cyan-glow));
-  color: white;
-  font-weight: 700;
-  padding: 0.625rem 1.5rem;
-  border-radius: 10px;
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-.btn-gradient:hover {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-}
-
-.btn-gradient:active {
-  transform: scale(0.98);
-}
-
-.aura-purple {
-  background: radial-gradient(circle at 0% 0%, rgba(168, 85, 247, 0.15) 0%, transparent 50%);
-}
-.aura-cyan {
-  background: radial-gradient(circle at 100% 0%, rgba(0, 229, 255, 0.12) 0%, transparent 50%);
-}
-.aura-green {
-  background: radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-}
-
-.floating-toolbar {
-  background: rgba(20, 20, 30, 0.85);
-  border: 0.5px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  padding: 0.5rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  z-index: 40;
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
-  border-radius: 16px;
-}
-
-.workspace-sidebar {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  border-right-width: 1px;
-  position: relative;
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-  z-index: 20;
-}
-
-.icon-button {
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition-property: all;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-button:active {
-  transform: scale(0.95);
-}
-
-.page-break-after-always {
-  page-break-after: always;
-}
-
-  /* Keep legacy colors for PDF generation */
+  /* Force standard colors for PDF generation to avoid html2canvas oklab/oklch and color-mix errors */
   .legacy-colors {
     color: #1a1a1a; /* Explicitly set to prevent inheriting oklch from body */
     background-color: #ffffff;
@@ -347,3 +267,4 @@
     position: relative;
     width: 100%;
   }
+}

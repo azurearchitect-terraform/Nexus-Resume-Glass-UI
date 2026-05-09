@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
-import { pipelineCache } from "./cacheUtility.ts";
 
 /**
  * Token Optimization Strategy
@@ -15,6 +14,20 @@ export function trimInput(text: string, maxLength: number = 8000): string {
   return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
 }
 
+const cache = new Map<string, any>();
+
+export function clearCache() {
+  cache.clear();
+}
+
+export function saveToCache(key: string, data: any) {
+  cache.set(key, data);
+}
+
+export function getFromCache(key: string) {
+  return cache.get(key);
+}
+
 export async function extractRelevantResumeData(resumeText: string, geminiApiKey: string, openaiApiKey: string = '', pipelineType: string = 'hybrid-gemini') {
   const isHybridOpenAI = pipelineType === 'hybrid-openai' && openaiApiKey;
 
@@ -22,33 +35,40 @@ export async function extractRelevantResumeData(resumeText: string, geminiApiKey
     const openai = new OpenAI({ apiKey: openaiApiKey });
     const trimmedResume = trimInput(resumeText, 15000);
     const prompt = `
-      Extract essential professional data from this resume. 
-      Focus on high-impact achievements and core skills.
+      Extract the FULL structured data from this resume.
+      STRICT RULE: You MUST extract EVERY SINGLE professional role and EVERY SINGLE project mentioned. 
+      Do not skip any roles, even if they are very old.
+      
+      For each role, extract ALL of its original achievement bullets into the "achievements" array.
+
       Return ONLY a JSON object:
       {
-        "personal_info": { "name": "", "location": "", "email": "", "phone": "", "linkedin": "" },
-        "summary": "Brief professional overview",
-        "skills": ["Skill 1", "Skill 2"],
+        "personal_info": { "name": "Extract Full Name", "location": "City, State", "email": "email address", "phone": "phone number", "linkedin": "linkedin profile url" },
+        "summary": "Full professional overview",
+        "skills": {
+          "Technical": ["Skill 1", "Skill 2"],
+          "Tools": ["Tool 1", "Tool 2"],
+          "Management": ["Leadership", "Team Management"]
+        },
         "experience": [
           {
-            "role": "Job Title",
-            "company": "Company Name",
-            "duration": "Dates",
-            "achievements": ["Achievement 1", "Achievement 2"]
-          }
+            "role": "EXACT Job Title",
+            "company": "EXACT Company Name",
+            "duration": "Dates (e.g. June 2020 - Present)",
+            "achievements": ["Original Bullet 1", "Original Bullet 2", "... all other bullets ..."]
+          },
+          ... include ALL other roles here ...
         ],
         "projects": [
-          { "title": "Project Name", "description": "Description" }
+          { "name": "Project Name", "description": "Full Description", "technologies": ["Tech 1", "Tech 2"] }
         ],
-        "education": ["Degree, School"],
+        "education": [ { "school": "University Name", "degree": "Degree Earned", "year": "Year" } ],
         "certifications": [
           { "name": "Cert Name", "issuer": "Issuing Body", "date": "Date" }
         ]
       }
-      STRICT RULE: Extract EVERY SINGLE role present in the resume. Do not skip any jobs, even very old ones.
-      Extract all bullets per role to ensure the next stage has a complete history of experience.
       
-      RESUME:
+      RESUME TEXT:
       ${trimmedResume}
     `;
 
@@ -75,33 +95,39 @@ export async function extractRelevantResumeData(resumeText: string, geminiApiKey
   const trimmedResume = trimInput(resumeText, 15000);
 
   const prompt = `
-    Extract essential professional data from this resume. 
-    Focus on high-impact achievements and core skills.
+    Extract the FULL structured data from this resume.
+    STRICT RULE: You MUST extract EVERY SINGLE professional role and EVERY SINGLE project mentioned. 
+    Do not skip any roles, even if they are very old.
+    
+    For each role, extract ALL of its original achievement bullets into the "achievements" array.
+
     Return ONLY a JSON object:
     {
-      "personal_info": { "name": "", "location": "", "email": "", "phone": "", "linkedin": "" },
-      "summary": "Brief professional overview",
-      "skills": ["Skill 1", "Skill 2"],
+      "personal_info": { "name": "Full Name", "location": "City, State", "email": "email", "phone": "phone", "linkedin": "linkedin url" },
+      "summary": "Professional overview",
+      "skills": {
+        "Technical": ["Skill 1", "Skill 2"],
+        "Soft Skills": ["Skill 1", "Skill 2"]
+      },
       "experience": [
         {
-          "role": "Job Title",
-          "company": "Company Name",
+          "role": "EXACT Job Title",
+          "company": "EXACT Company Name",
           "duration": "Dates",
-          "achievements": ["Achievement 1", "Achievement 2"]
-        }
+          "achievements": ["Bullet 1", "Bullet 2", "... all other bullets ..."]
+        },
+        ... include ALL other roles here ...
       ],
       "projects": [
-        { "title": "Project Name", "description": "Description" }
+        { "name": "Project Name", "description": "Description", "technologies": ["Tech 1"] }
       ],
-      "education": ["Degree, School"],
+      "education": [ { "school": "University", "degree": "Degree", "year": "Year" } ],
       "certifications": [
         { "name": "Cert Name", "issuer": "Issuing Body", "date": "Date" }
       ]
     }
-    STRICT RULE: Extract EVERY SINGLE role present in the resume. Do not skip any jobs, even very old ones.
-    Extract all bullets per role to ensure the next stage has a complete history of experience.
     
-    RESUME:
+    RESUME TEXT:
     ${trimmedResume}
   `;
 
@@ -244,43 +270,55 @@ export async function extractJDKeywords(jobDescription: string, geminiApiKey: st
 }
 
 export function trimContentForAI(resumeData: any, keywords: string[]) {
-  // Remove duplicates from skills and achievements
-  const seenSkills = new Set<string>();
-  const uniqueSkills = (resumeData.skills || []).filter((s: string) => {
-    const normalized = s.toLowerCase().trim();
-    if (seenSkills.has(normalized)) return false;
-    seenSkills.add(normalized);
-    return true;
-  });
+  // Normalize skills
+  let uniqueSkills: string[] = [];
+  if (Array.isArray(resumeData.skills)) {
+    const seenSkills = new Set<string>();
+    uniqueSkills = resumeData.skills.filter((s: string) => {
+      const normalized = s.toLowerCase().trim();
+      if (seenSkills.has(normalized)) return false;
+      seenSkills.add(normalized);
+      return true;
+    });
+  } else if (typeof resumeData.skills === 'object' && resumeData.skills !== null) {
+    // If it's the categorized object we requested
+    Object.values(resumeData.skills).forEach((group: any) => {
+      if (Array.isArray(group)) {
+        group.forEach((s: string) => {
+          if (typeof s === 'string') uniqueSkills.push(s);
+        });
+      }
+    });
+  }
 
   // Ensure we don't exceed reasonable limits but provide enough for Step 3
   return {
     personal_info: resumeData.personal_info || {},
-    // Trim summary to ~100 words (approx 6 char/word = 600 chars)
-    summary: resumeData.summary?.substring(0, 600),
-    skills: uniqueSkills.slice(0, 20),
+    // Trim summary to ~150 words
+    summary: resumeData.summary?.substring(0, 1000),
+    skills: uniqueSkills.slice(0, 30),
     experience: (resumeData.experience || []).map((exp: any, index: number) => {
       const seenBullets = new Set<string>();
       return {
         id: `role_${index + 1}`,
-        role: exp.role,
-        company: exp.company,
-        duration: exp.duration,
-        // Remove duplicate bullets and provide up to 10 for AI selection
-        original_bullets: (exp.achievements || [])
+        role: exp.role || exp.title || '',
+        company: exp.company || exp.employer || '',
+        duration: exp.duration || exp.dates || '',
+        // Remove duplicate bullets and provide up to 20 for AI selection (increased from 10)
+        original_bullets: (exp.achievements || exp.bullets || [])
           .filter((a: string) => {
             const normalized = a.toLowerCase().trim();
             if (seenBullets.has(normalized)) return false;
             seenBullets.add(normalized);
             return true;
           })
-          .slice(0, 10)
+          .slice(0, 20)
       };
     }),
-    projects: (resumeData.projects || []).slice(0, 3),
+    projects: (resumeData.projects || []).slice(0, 6),
     education: resumeData.education,
     certifications: resumeData.certifications,
-    jd_keywords: (keywords || []).slice(0, 12)
+    jd_keywords: (keywords || []).slice(0, 15)
   };
 }
 
@@ -320,15 +358,4 @@ export function enforceFidelity(aiResponse: any, originalInput: any) {
     console.error("[Fidelity] Error enforcing structure:", error);
     return aiResponse; // Fallback to raw if logic fails
   }
-}
-
-/**
- * Cache functions
- */
-export function clearCache() {
-  pipelineCache.clear();
-}
-
-export function saveToCache(key: string, data: any) {
-  pipelineCache.set(key, data);
 }

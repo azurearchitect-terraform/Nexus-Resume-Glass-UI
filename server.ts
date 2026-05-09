@@ -13,8 +13,8 @@ import stream from "stream";
 import fs from "fs";
 import admin from "firebase-admin";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import * as Optimization from "./server/optimization.ts";
-import { renderResumeToHTML } from "./server/resumeTemplate.ts";
+import * as Optimization from "./server/optimization";
+import { renderResumeToHTML } from "./server/resumeTemplate";
 import { pipelineCache } from "./server/cacheUtility";
 import { calculateCost, UsageLog } from "./server/analytics";
 import { runAgents } from "./server/agents";
@@ -26,31 +26,12 @@ import { scrapeJobs } from "./server/jobScraper";
 dotenv.config();
 
 // Initialize Firebase Admin
-const firebaseConfig = JSON.parse(
-  fs.readFileSync(
-    path.join(process.cwd(), "firebase-applet-config.json"),
-    "utf8",
-  ),
-);
-
-const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-let adminConfig: admin.AppOptions = {
-  projectId: firebaseConfig.projectId,
-};
-
-if (serviceAccountKey) {
-  try {
-    const creds = JSON.parse(serviceAccountKey);
-    adminConfig.credential = admin.credential.cert(creds);
-    console.log("[Firebase Admin] Using Service Account credentials.");
-  } catch (e) {
-    console.warn(
-      "[Firebase Admin] GOOGLE_SERVICE_ACCOUNT_KEY is not a valid JSON. Falling back to ADC.",
-    );
-  }
-}
-
-const app = admin.apps.length ? admin.apps[0] : admin.initializeApp(adminConfig);
+const firebaseConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "firebase-applet-config.json"), "utf8"));
+const app = admin.apps.length 
+  ? admin.apps[0] 
+  : admin.initializeApp({
+      projectId: firebaseConfig.projectId,
+    });
 const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 // Helper to get API keys from Firestore securely
@@ -802,49 +783,58 @@ async function startServer() {
 
       // STEP 3: Gemini 3.1 Pro (Premium) - Final Generation
       const finalPrompt = `
-        You are a senior executive resume strategist for FAANG companies.
+        You are a senior executive resume strategist. 
         Optimize this structured resume data for the target role: ${targetRole}.
         Audience: ${audience}. Mode: ${mode}.
-        
-        STRICT FAANG RESUME RULES:
-        1. XYZ Formula: "Accomplished [X] by [Z] as measured by [Y]."
-        2. Action: Strong, past-tense verb at start.
-        3. Metrics: Inject conservative, industry-standard metrics.
-        4. Structure: 4 bullets/experience, max 2 lines/bullet.
-        5. Zero Fluff: No adjectives/buzzwords.
-        6. Tech: Integrate tools (Python, GCP, Azure) naturally.
-        7. Maintain titles; include ALL roles/certs.
-
         ${customPrompt ? `Custom Instructions: ${customPrompt}` : ''}
-        ${brainDump ? `ADDITIONAL CONTEXT: ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
+        ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
         
         CORPORATE DNA TAILORING:
-        ${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results".' : ''}
+        ${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results". Use terminology from Amazon Leadership Principles.' : ''}
         ${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale", "Cloud Transformation", and "Collaborative Ecosystems".' : ''}
         ${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design", "Extreme Scale", "Algorithmic Efficiency", and "Google XYZ Formula".' : ''}
         ${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast", "Shipping End-to-End Impact", and "Performance Optimization".' : ''}
         ${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery", "Global Managed Services", and "Cross-functional Deployment".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
         
-        Return the optimized result as a valid JSON object.
-        RESUME DATA:
-        ${JSON.stringify(optimizedInput)}
-
+        PLAYER-COACH MODE:
         ${mode === 'Player-Coach' ? `
-          * SPECIAL: 60% Execution (Azure), 40% Leadership.
-          * FORBIDDEN: CI/CD, Pipelines, DevOps (Focus purely on Azure Infrastructure).` : ''}
+          - 60/40 BALANCE: 60% Execution (Azure infra, Site Recovery, Entra ID), 40% Leadership (Mentoring, Agile pods, Architecture reviews).
+          - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized," "Spearheaded."
+          - STRICT NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". Focus entirely on Azure Infrastructure.
+        ` : ''}
 
+        INPUT DATA (Optimized):
+        ${JSON.stringify(optimizedInput, null, 2)}
+        
         STRICT RULES:
-        * Focus on JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
-        * Titles: Never modify. Include ALL roles/certs.
-        * No Hallucinations: Use only provided Input Data.
-        * Brevity: Dense, achievement-oriented bullets (15-20 words).
-        * Recent (Post-2018): 5-6 bullets/role (Exact rewrite).
-        * Older (Pre-2018): Max 1 bullet.
-        * Anchoring: Bullets only based on role's provided context.
-        * IaC: Max 2 bullets (Terraform/IaC).
-        * Allowed Verbs: Deployed, Maintained, Utilized, Provisioned, Architected.
-        * FORBIDDEN: CI/CD, Pipelines, DevOps, "Spearheaded", "Visionary".
-        * Short-Tenure(HCLTech): 1-2 bullets max (Onboarding).
+STRICT RULES:
+        1. TONE & FOCUS: Maintain a professional, concise, executive-level tone suitable for FAANG, Senior Cloud Architect, or Director-level infrastructure roles. Focus heavily on these JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
+        
+        2. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
+        
+        3. INCLUDE ALL ROLES: You MUST include every single role provided in the INPUT DATA. Do not skip any jobs, even very old ones.
+        
+        4. NO HALLUCINATIONS: DO NOT invent, suggest, or add any certifications, skills, metrics, or experience that are not explicitly present in the INPUT DATA. Do not "suggest" certifications if the user doesn't have them.
+        
+        5. BREVITY & DENSITY: Bullet points MUST be dense and achievement-oriented (recommended length: 15-20 words). Prioritize hard skills, tools, and scale metrics over verbose filler jargon.
+        
+        6. ROLE EXPANSION (Post-2018): For roles after 2018, provide 3 to 5 high-impact bullet points. Ensure high-density metrics and technical skills are included. Do NOT skip any roles.
+        
+        7. OLDER ROLE COMPRESSION (Pre-2018): For roles before 2018, provide 1 to 2 bullet points maximum. Focus on core contributions.
+        
+        8. SOURCE ANCHORING (CRITICAL): Each experience entry contains ORIGINAL BULLETS. You MUST derive new bullets ONLY from that specific role’s original content. Do NOT borrow, reuse, or "hallucinate" content from other roles to fill gaps.
+        
+        9. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
+        
+        10. VERB CONTROL: Avoid forbidden buzzwords like "Spearheaded", "Visionary", "Dynamic", or "Guru". Use professional verbs: "Deployed", "Maintained", "Utilized", "Provisioned", "Integrated", "Optimized".
+        
+        11. ANTI-DUPLICATION: Avoid semantic repetition across roles. Each role should demonstrate distinct business or technical impact.
+        
+        12. DEVOPS BAN: The terms "CI/CD", "Pipelines", and "DevOps" are ABSOLUTELY FORBIDDEN. Focus the narrative entirely on Azure Infrastructure, HA/DR, and Governance.
+        
+        13. INCLUDE ALL CERTIFICATIONS: You MUST include every single professional certificate provided in the INPUT DATA. Do not skip any professional certificate, even very old ones.
+        
+        14. COMPREHENSION: Ensure EVERY SINGLE role from the input is represented. Skipping the most recent or any middle role is a critical failure.
         
         
         OUTPUT SCHEMA (MUST MATCH EXACTLY):

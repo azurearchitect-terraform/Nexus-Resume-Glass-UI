@@ -250,30 +250,58 @@
       "task": "Improve resiliency and operational continuity through hybrid cloud modernization.",
       "action": "Supported phased Azure migration, backup modernization, and disaster recovery process improvements.",
       "result": "Reduced downtime approximately 50% improving business continuity and infrastructure reliability."
+    },
+    {
+      "bullet": "Provisioned Azure Landing Zones supporting governance, security, resiliency, and subscription management.",
+      "situation": "Rapidly growing cloud footprint led to fragmented governance and security vulnerabilities at Casepoint LLC.",
+      "task": "Establish a scalable, secure, and standardized environment for enterprise workloads.",
+      "action": "Architected and delivered Azure Landing Zones using Management Groups and Azure Policy; standardized networking with Hub-and-Spoke topology.",
+      "result": "Reduced workload onboarding time by 60% while ensuring 100% compliance with security governance frameworks."
+    },
+    {
+      "bullet": "Maintained disaster recovery readiness using Azure Site Recovery, achieving near-zero downtime recovery objectives.",
+      "situation": "Critical Tier-1 legal technology applications lacked a validated, rapid-recovery Disaster Recovery strategy.",
+      "task": "Engineer a robust HA/DR framework capable of meeting strict RTO/RPO requirements.",
+      "action": "Implemented and automated failover orchestration using Azure Site Recovery (ASR) across multiple regions.",
+      "result": "Achieved DR readiness with < 15 minute RTO and near-zero RPO, significantly exceeding business resilience requirements."
+    },
+    {
+      "bullet": "Provisioned workload optimization initiatives, reducing Azure infrastructure costs by approximately 20%.",
+      "situation": "Azure cloud consumption was exceeding budget forecasts due to over-provisioned resources and unmanaged sprawl.",
+      "task": "Optimize resource utilization to reduce monthly spend without impacting application performance.",
+      "action": "Led right-sizing exercises, implemented Azure Reservations, and optimized storage tiers across the enterprise subscription.",
+      "result": "Reduced annual Azure infrastructure costs by 20% ($[X]k savings) while maintaining consistent service performance."
     }
   ],
   "audit_report": {
-    "score": 90,
+    "score": 85,
     "flags": [
       {
         "id": "1",
         "type": "technical_gap",
-        "message": "Limited Kubernetes, containerization, and SRE-related platform engineering exposure.",
-        "fix": "Add AKS, container orchestration, or reliability engineering experience where applicable.",
-        "severity": "high"
+        "message": "Critical gap for FAANG: Lack of production Kubernetes (AKS/EKS) and heavy-weight orchestration experience.",
+        "fix": "Highlight any PoC or learning related to K8s; emphasize Terraform 'Scale' vs just 'Usage'.",
+        "severity": "critical"
       },
       {
         "id": "2",
         "type": "leadership_scale",
-        "message": "Leadership scope visible but large-scale organizational ownership not fully quantified.",
-        "fix": "Add infrastructure scale, subscription count, migration volume, or stakeholder impact metrics.",
+        "message": "Impact metrics are good, but 'Organization-Wide' scale needs better quantification for FAANG levels.",
+        "fix": "Quantify by number of users, subscriptions (e.g., 50+ subscriptions), or total TB/PB of managed data.",
         "severity": "high"
+      },
+      {
+        "id": "3",
+        "type": "automation_focus",
+        "message": "Resume leans too heavily on 'Operations' vs 'Engineering' (Infra-as-Code).",
+        "fix": "Frame migration tasks as 'Automated Migrations' using Terraform/Python rather than just 'Deployment'.",
+        "severity": "medium"
       }
     ],
     "trajectory": {
       "stage": "acceleration",
-      "description": "Profile demonstrates strong progression toward senior cloud infrastructure and management leadership roles.",
-      "recommendation": "Increase visibility around enterprise-scale ownership, governance leadership, and cross-functional cloud transformation initiatives."
+      "description": "Strong candidate for Azure-heavy enterprises; needs 'Engineering' tilt for top-tier tech firms.",
+      "recommendation": "Shift focus from 'Maintaining' to 'Building Scalable Platforms'. Highlight complex problem-solving specifically in distributed Azure networking."
     }
   }
 }

@@ -34,7 +34,7 @@ GLOBAL SYSTEM RULES (STRICT ENFORCEMENT):
 2. TENURE & TIMELINE AWARENESS: 
    - For short tenures (under 6 months): Focus on "Rapid Delivery," "Auditing," or "Assessment." CRITICAL: Do NOT alter the job title or append the word "(Contract)" to short roles. Leave the title exactly as provided.
 3. BREVITY & DENSITY CONSTRAINT: FAANG recruiters skim. Bullet points MUST be concise and dense. Do NOT exceed 15 words per bullet point. Prioritize hard skills, tools, and metrics over verbose corporate jargon.
-4. CRITICAL BULLET COUNT RULE: You MUST NOT generate more bullet points than what is provided in the source ROLE DATA, and respect caps for top jobs (1st: 4 max, 2nd: 4 max, 3rd: 4 max, 4th: 3 max).
+4. CRITICAL BULLET COUNT RULE: You MUST generate high-impact bullet points. Follow these caps: 1st job: 5-6 bullets, 2nd job: 4-5 bullets, 3rd job: 3-4 bullets, 4th+ jobs: 1-2 bullets.
 5. THE BALANCED IaC RULE: Terraform/IaC is permitted, but strictly limited to 2 bullet points TOTAL across the entire resume. Use only execution-focused verbs: "Deployed," "Maintained," "Utilized," or "Provisioned."
 6. OLDER ROLE COMPRESSION: For any role before 2018, generate EXACTLY one (1) high-impact bullet point.
 7. GLOBAL NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps", "Kubernetes", "Ansible", "GitOps". These terms MUST NOT appear anywhere in the output. Focus descriptions entirely on Azure Migration, FinOps, HA/DR, and Governance.
