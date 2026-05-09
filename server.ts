@@ -26,12 +26,31 @@ import { scrapeJobs } from "./server/jobScraper";
 dotenv.config();
 
 // Initialize Firebase Admin
-const firebaseConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "firebase-applet-config.json"), "utf8"));
-const app = admin.apps.length 
-  ? admin.apps[0] 
-  : admin.initializeApp({
-      projectId: firebaseConfig.projectId,
-    });
+const firebaseConfig = JSON.parse(
+  fs.readFileSync(
+    path.join(process.cwd(), "firebase-applet-config.json"),
+    "utf8",
+  ),
+);
+
+const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+let adminConfig: admin.AppOptions = {
+  projectId: firebaseConfig.projectId,
+};
+
+if (serviceAccountKey) {
+  try {
+    const creds = JSON.parse(serviceAccountKey);
+    adminConfig.credential = admin.credential.cert(creds);
+    console.log("[Firebase Admin] Using Service Account credentials.");
+  } catch (e) {
+    console.warn(
+      "[Firebase Admin] GOOGLE_SERVICE_ACCOUNT_KEY is not a valid JSON. Falling back to ADC.",
+    );
+  }
+}
+
+const app = admin.apps.length ? admin.apps[0] : admin.initializeApp(adminConfig);
 const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 // Helper to get API keys from Firestore securely

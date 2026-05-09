@@ -107,23 +107,7 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
   const idToken = await auth.currentUser?.getIdToken();
   let keyToDecrypt = encryptedKey;
 
-  // Fallback: If no key provided for current user, check 'users/admin' in Firestore
-  if (!keyToDecrypt && auth.currentUser) {
-    try {
-      console.log("[GeminiService] No user key. Checking 'users/admin' fallback...");
-      const adminDoc = await getDoc(doc(db, 'users', 'admin'));
-      if (adminDoc.exists()) {
-        const data = adminDoc.data();
-        if (data.encryptedApiKey) {
-          keyToDecrypt = data.encryptedApiKey;
-          console.log("[GeminiService] Found shared key in 'users/admin'.");
-        }
-      }
-    } catch (e) {
-      console.warn("[GeminiService] Failed to fetch admin fallback key:", e);
-    }
-  }
-
+  // Fallback: If no key provided for current user, check backend fallback
   if (!keyToDecrypt) return process.env.GEMINI_API_KEY || '';
   if (!keyToDecrypt.includes(':')) return keyToDecrypt;
 

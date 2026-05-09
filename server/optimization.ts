@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
+import { pipelineCache } from "./cacheUtility.ts";
 
 /**
  * Token Optimization Strategy
@@ -319,4 +320,15 @@ export function enforceFidelity(aiResponse: any, originalInput: any) {
     console.error("[Fidelity] Error enforcing structure:", error);
     return aiResponse; // Fallback to raw if logic fails
   }
+}
+
+/**
+ * Cache functions
+ */
+export function clearCache() {
+  pipelineCache.clear();
+}
+
+export function saveToCache(key: string, data: any) {
+  pipelineCache.set(key, data);
 }

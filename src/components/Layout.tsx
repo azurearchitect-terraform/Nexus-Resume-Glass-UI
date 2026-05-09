@@ -6,7 +6,16 @@ export const Layout = ({ children, isDarkMode, setIsDarkMode, isFocusMode, setIs
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   return (
-    <div className={`h-screen flex flex-col ${isDarkMode ? 'dark bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'} transition-colors`}>
+    <div className={`h-screen flex flex-col relative overflow-hidden ${isDarkMode ? 'dark bg-[#060b1a] text-white/95' : 'bg-neutral-50 text-neutral-900'} transition-colors`}>
+      {/* Background Auras */}
+      {isDarkMode && (
+        <>
+          <div className="absolute top-0 left-0 w-full h-full aura-purple pointer-events-none opacity-50" />
+          <div className="absolute top-0 right-0 w-full h-full aura-cyan pointer-events-none opacity-30" />
+          <div className="absolute bottom-0 left-0 w-full h-full aura-green pointer-events-none opacity-20" />
+        </>
+      )}
+      
       {/* Mobile-friendly header */}
       <header className="flex items-center justify-between p-4 border-b">
         <h1 className="font-bold">NEXUS AI</h1>
@@ -30,7 +39,7 @@ export const Layout = ({ children, isDarkMode, setIsDarkMode, isFocusMode, setIs
           fixed inset-0 z-50 transition-transform md:relative md:translate-x-0
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Sidebar />
             <button 
                 className="md:hidden absolute top-4 right-4"
                 onClick={() => setIsSidebarOpen(false)}
