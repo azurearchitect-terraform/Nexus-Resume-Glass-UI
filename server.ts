@@ -790,14 +790,14 @@ async function startServer() {
         STRICT PROFESSIONAL RESUME RULES:
         1. Impact Formula: "Accomplished [X] by [Z] as measured by [Y]."
         2. Action: Strong, past-tense verb at start.
-        3. Metrics: Inject conservative, industry-standard metrics.
-        4. Structure: 4 bullets/experience, max 2 lines/bullet.
-        5. Zero Fluff: No adjectives/buzzwords.
-        6. Tech: Integrate tools (Python, GCP, Azure) naturally.
+        3. Metrics: Inject reasonable, industry-standard metrics where appropriate based on source data.
+        4. Structure: Use as many bullets as needed to convey the full scope of the role, maintaining scannability.
+        5. Clarity: Professional and clear language.
+        6. Tech: Integrate all relevant tools and technologies naturally.
         7. Maintain titles; include ALL roles/certs.
 
         ${customPrompt ? `Custom Instructions: ${customPrompt}` : ''}
-        ${brainDump ? `ADDITIONAL CONTEXT: ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
+        ${brainDump ? `ADDITIONAL CONTEXT: ${brainDump}\nSift through this raw data and include relevant achievements that were missing from the original resume.` : ''}
         
         CORPORATE DNA TAILORING:
         ${targetCompany ? `Tailor appropriately for ${targetCompany}. Focus on specific impacts and technologies relevant to their industry.` : ''}
@@ -806,22 +806,14 @@ async function startServer() {
         RESUME DATA:
         ${JSON.stringify(optimizedInput)}
 
-        ${mode === 'Player-Coach' ? `
-          * SPECIAL: 60% Execution (Azure), 40% Leadership.
-          * FORBIDDEN: CI/CD, Pipelines, DevOps (Focus purely on Azure Infrastructure).` : ''}
-
         STRICT RULES:
         * Focus on JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
         * Titles: Never modify. Include ALL roles/certs.
         * No Hallucinations: Use only provided Input Data.
-        * Brevity: Dense, achievement-oriented bullets (15-20 words).
-        * Recent (Post-2018): 5-6 bullets/role (Exact rewrite).
-        * Older (Pre-2018): Max 1 bullet.
-        * Anchoring: Bullets only based on role's provided context.
-        * IaC: Max 2 bullets (Terraform/IaC).
-        * Allowed Verbs: Deployed, Maintained, Utilized, Provisioned, Architected.
-        * FORBIDDEN: CI/CD, Pipelines, DevOps, "Spearheaded", "Visionary".
-        * Short-Tenure(HCLTech): 1-2 bullets max (Onboarding).
+        * Achievement focus: Achievement-oriented bullets.
+        * Comprehensive: Ensure every role provided in the input is represented appropriately.
+        * Anchoring: Bullets only based on role's provided context and brain dump.
+        * Allowed Verbs: Use strong action verbs (Led, Developed, Architected, Managed, etc.).
         
         
         OUTPUT SCHEMA (MUST MATCH EXACTLY):

@@ -17,12 +17,13 @@ export async function extractRelevantResumeData(resumeText: string, geminiApiKey
   const prompt = `
     Extract the most important information from this resume for a job application.
     Focus on:
-    1. Key skills (technical and soft)
-    2. Most recent 3-4 professional experiences (Role, Company, Key Achievements)
-    3. Education summary
+    1. All technical and soft skills
+    2. Every professional experience listed (Role, Company, Key Achievements)
+    3. Education history
     4. Certifications
     
-    Return the data as a clean, structured JSON object.
+    STRICT RULE: Extract EVERY SINGLE role present in the resume. Do not skip any jobs.
+    Extract all bullets per role to ensure complete experience history.
     
     RESUME:
     ${resumeText}
@@ -83,11 +84,17 @@ export async function extractJDKeywords(jobDescription: string, geminiApiKey: st
  * Step 2: Trim and structure content to minimize tokens for the expensive AI call
  */
 export function trimContentForAI(structuredData: any, keywords: string[]): any {
-  // Limit bullets per job to save tokens
+  // Remove redundant or low-value fields if they exist
+  const seenBullets = new Set<string>();
   if (structuredData.experience && Array.isArray(structuredData.experience)) {
     structuredData.experience = structuredData.experience.map((exp: any) => ({
       ...exp,
-      achievements: exp.achievements ? exp.achievements.slice(0, 5) : []
+      achievements: exp.achievements ? exp.achievements.filter((a: string) => {
+        const normalized = a.toLowerCase().trim();
+        if (seenBullets.has(normalized)) return false;
+        seenBullets.add(normalized);
+        return true;
+      }).slice(0, 50) : []
     }));
   }
 

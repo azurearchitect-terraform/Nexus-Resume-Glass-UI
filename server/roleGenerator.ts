@@ -29,11 +29,11 @@ GLOBAL SYSTEM RULES (STRICT ENFORCEMENT):
 1. ZERO-SHOT ANTI-HALLUCINATION: Use ONLY the provided role data. Do NOT invent numbers, percentages, budgets, or metrics.
 2. TENURE & TIMELINE AWARENESS: 
    - For short tenures (under 6 months): Focus on "Rapid Delivery," "Auditing," or "Assessment." CRITICAL: Do NOT alter the job title or append the word "(Contract)" to short roles. Leave the title exactly as provided.
-3. BREVITY & DENSITY CONSTRAINT: Recruiters skim. Bullet points MUST be concise and dense. Do NOT exceed 15 words per bullet point. Prioritize hard skills, tools, and metrics over verbose corporate jargon.
-4. CRITICAL BULLET COUNT RULE: You MUST NOT generate more bullet points than what is provided in the source ROLE DATA, and respect caps for top jobs (1st: 4 max, 2nd: 4 max, 3rd: 4 max, 4th: 3 max).
-5. THE BALANCED IaC RULE: Terraform/IaC is permitted, but strictly limited to 2 bullet points TOTAL across the entire resume. Use only execution-focused verbs: "Deployed," "Maintained," "Utilized," or "Provisioned."
-6. OLDER ROLE COMPRESSION: For any role before 2018, generate EXACTLY one (1) high-impact bullet point.
-7. GLOBAL NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps", "Kubernetes", "Ansible", "GitOps". These terms MUST NOT appear anywhere in the output. Focus descriptions entirely on Azure Migration, FinOps, HA/DR, and Governance.
+3. BREVITY & DENSITY: Recruiters skim. Bullet points should be concise and impactful. Prioritize hard skills, tools, and metrics.
+4. COMPREHENSIVE DETAIL: Include all significant achievements provided in the source ROLE DATA. Do not arbitrarily cap the number of bullet points unless necessary for layout (aim for high impact).
+5. CLOUD & INFRASTRUCTURE: Use professional terminology naturally.
+6. NO ARBITRARY COMPRESSION: Older roles should still be accurately represented with multiple bullet points if the source data contains them.
+7. ACCURATE TERMINOLOGY: Include all relevant technical skills and tools (e.g., CI/CD, DevOps, Cloud Platforms) as they appear in the source data.
 8. PLAYER-COACH MODE: ONLY IF mode is 'Player-Coach':
    - BALANCE: 60% Execution (Azure infra), 40% Leadership (Mentoring, Architecture reviews).
    - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized."

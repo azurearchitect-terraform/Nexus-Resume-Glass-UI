@@ -411,9 +411,12 @@ export async function optimizeResume(
         if (data.intermediateData) parsed._intermediateData = data.intermediateData;
         
         // Apply UI formatting
+        // Skills must be grouped into categories.
         const skillCategories = Object.keys(parsed.skills || {});
         const formattedSkills: Record<string, string[]> = {};
-        skillCategories.slice(0, 4).forEach(cat => {
+        
+        // Use all categories provided by AI
+        skillCategories.forEach(cat => {
           formattedSkills[cat] = parsed.skills[cat];
         });
         const defaultCats = isLeadershipRole 
@@ -550,12 +553,12 @@ OUTPUT SCHEMA (MUST MATCH EXACTLY):
           parsed.baseline_score = parseInt(parsed.baseline_score) || 50;
         }
 
-        // Skills must be grouped into 4 categories. We'll use the keys from the AI response.
+        // Skills must be grouped into categories.
         const skillCategories = Object.keys(parsed.skills || {});
         const formattedSkills: Record<string, string[]> = {};
         
-        // Ensure we have exactly 4 categories for the UI grid
-        skillCategories.slice(0, 4).forEach(cat => {
+        // Use all categories provided by the AI
+        skillCategories.forEach(cat => {
           formattedSkills[cat] = parsed.skills[cat];
         });
 

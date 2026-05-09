@@ -253,35 +253,35 @@ export function trimContentForAI(resumeData: any, keywords: string[]) {
     return true;
   });
 
-  // Ensure we don't exceed reasonable limits but provide enough for Step 3
-  return {
-    personal_info: resumeData.personal_info || {},
-    // Trim summary to ~100 words (approx 6 char/word = 600 chars)
-    summary: resumeData.summary?.substring(0, 600),
-    skills: uniqueSkills.slice(0, 20),
-    experience: (resumeData.experience || []).map((exp: any, index: number) => {
-      const seenBullets = new Set<string>();
-      return {
-        id: `role_${index + 1}`,
-        role: exp.role,
-        company: exp.company,
-        duration: exp.duration,
-        // Remove duplicate bullets and provide up to 10 for AI selection
-        original_bullets: (exp.achievements || [])
-          .filter((a: string) => {
-            const normalized = a.toLowerCase().trim();
-            if (seenBullets.has(normalized)) return false;
-            seenBullets.add(normalized);
-            return true;
-          })
-          .slice(0, 10)
-      };
-    }),
-    projects: (resumeData.projects || []).slice(0, 3),
-    education: resumeData.education,
-    certifications: resumeData.certifications,
-    jd_keywords: (keywords || []).slice(0, 12)
-  };
+    // Ensure we don't exceed reasonable limits but provide enough for Step 3
+    return {
+      personal_info: resumeData.personal_info || {},
+      // Trim summary to reasonable length for prompt safety
+      summary: resumeData.summary?.substring(0, 1200),
+      skills: uniqueSkills.slice(0, 100),
+      experience: (resumeData.experience || []).map((exp: any, index: number) => {
+        const seenBullets = new Set<string>();
+        return {
+          id: `role_${index + 1}`,
+          role: exp.role,
+          company: exp.company,
+          duration: exp.duration,
+          // Remove duplicate bullets and provide more context for AI selection
+          original_bullets: (exp.achievements || [])
+            .filter((a: string) => {
+              const normalized = a.toLowerCase().trim();
+              if (seenBullets.has(normalized)) return false;
+              seenBullets.add(normalized);
+              return true;
+            })
+            .slice(0, 50)
+        };
+      }),
+      projects: (resumeData.projects || []).slice(0, 20),
+      education: resumeData.education,
+      certifications: resumeData.certifications,
+      jd_keywords: (keywords || []).slice(0, 30)
+    };
 }
 
 export function enforceFidelity(aiResponse: any, originalInput: any) {
