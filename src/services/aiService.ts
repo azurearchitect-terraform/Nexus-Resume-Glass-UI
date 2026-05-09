@@ -48,14 +48,14 @@ export const improveTextWithAI = async (
     const modelName = context?.aiEngine || "gemini-3-flash-preview";
     
     const prompt = `
-      You are a senior FAANG resume strategist.
+      You are a professional resume strategist.
       
       Tasks:
       1. Rewrite tailored to the job description.
-      2. BREVITY & LEADERSHIP: Focus on short, punchy bullet points (<1.5 lines). Use more, smaller bullet points to drive impact. Include leadership impact (mentoring, leading cross-functional teams) alongside metric-driven results.
-      3. GOOGLE XYZ FORMULA: Follow "Accomplished [X] by [Y] through [Z]". Ensure every bullet conveys either hard outcome metrics OR demonstrated leadership.
-      4. ACTION VERBS: Start with strong verbs (Spearheaded, Architected, Mentored, Optimized).
-      5. No fluff: Replace "Responsible for..." or "Helped with..." with high-impact accomplishments.
+      2. LEADERSHIP & IMPACT: Focus on clear, impactful bullet points. Include leadership contributions (mentoring, leading teams) alongside measurable results.
+      3. ACHIEVEMENT FOCUS: Follow the pattern "Accomplished [Outcome] through [Actions]". Ensure every bullet conveys clear impact.
+      4. ACTION VERBS: Start with strong verbs (Led, Developed, Managed, Optimized).
+      5. No fluff: Replace vague responsibilities with high-impact accomplishments.
       6. TITLE PRESERVATION (CRITICAL): STRICTLY preserve exact role titles (e.g., preserve "Officer IT cum Logistics").
       
       Output:
@@ -93,14 +93,14 @@ export const rewriteSectionWithAI = async (
     const modelName = context?.aiEngine || "gemini-3-flash-preview";
 
     const prompt = `
-      You are a senior FAANG resume strategist.
+      You are a professional resume strategist.
       
       Tasks:
       1. Rewrite tailored to the job description.
-      2. BREVITY & LEADERSHIP: Focus on short, punchy bullet points (<1.5 lines). Use more, smaller bullet points to drive impact. Include leadership impact (mentoring, leading cross-functional teams) alongside metric-driven results.
-      3. GOOGLE XYZ FORMULA: Follow "Accomplished [X] by [Y] through [Z]". Ensure every bullet conveys either hard outcome metrics OR demonstrated leadership.
-      4. ACTION VERBS: Start with strong verbs (Spearheaded, Architected, Mentored, Optimized).
-      5. No fluff: Replace "Responsible for..." or "Helped with..." with high-impact accomplishments.
+      2. LEADERSHIP & IMPACT: Focus on clear, impactful bullet points. Include leadership contributions (mentoring, leading teams) alongside measurable results.
+      3. ACHIEVEMENT FOCUS: Follow the pattern "Accomplished [Outcome] through [Actions]". Ensure every bullet conveys clear impact.
+      4. ACTION VERBS: Start with strong verbs (Led, Developed, Managed, Optimized).
+      5. No fluff: Replace vague responsibilities with high-impact accomplishments.
       6. TITLE PRESERVATION (CRITICAL): STRICTLY preserve exact role titles (e.g., preserve "Officer IT cum Logistics").
       
       Output:

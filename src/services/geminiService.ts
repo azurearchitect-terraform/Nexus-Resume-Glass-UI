@@ -293,15 +293,15 @@ export async function evaluateSuitability(
 You are an expert technical recruiter screening a candidate's resume against a job description.
 The current date is ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.
 Your goal is to quickly evaluate if the candidate is a good fit, a stretch, or not recommended.
-Additionally, perform a focus "Red Team" Audit identifying flaws in wording, metrics, and alignment.
+Additionally, perform a focus Audit identifying flaws in wording, metrics, and alignment.
 
-CRITICAL INSTRUCTIONS FOR AUDIT (FAANG STANDARDS):
-1. XYZ Formula: Audit every bullet point. Do they follow "Accomplished [X] as measured by [Y], by doing [Z]"? If not, flag it.
-2. Metrics: Every achievement SHOULD have a hard metric (%, $, time, scale). Flag any achievements that are vague.
-3. Action Verbs: Ensure bullets start with strong, high-impact action verbs. Flag "soft" starts like "Participated in", "Responsible for", or "Helped with".
-4. Dates: A "Present" or "Current" end date in experience is perfectly valid and is NOT a "future date" or "typo". Do not flag current roles as having date errors unless they actually start in the future.
-5. Scoring: The matchScore represents technical alignment with the JD. The readinessScore represents overall resume professionality and polish (weighted heavily on FAANG-standard impact metrics).
-6. Critique: Be harsh and specific. Point out exactly which bullets lack metrics or are too wordy.
+CRITICAL INSTRUCTIONS FOR AUDIT:
+1. Impact: Audit every bullet point. Do they convey clear impact? If not, flag it.
+2. Metrics: Achievements should ideally have a metric (%, $, time, scale) or clear outcome. Flag any achievements that are vague.
+3. Action Verbs: Ensure bullets start with strong action verbs. Flag passive language like "Participated in" or "Helped with".
+4. Dates: A "Present" or "Current" end date in experience is perfectly valid. Do not flag current roles as having date errors.
+5. Scoring: The matchScore represents alignment with the JD. The readinessScore represents overall resume professionality and polish.
+6. Critique: Be specific. Point out exactly which bullets lack impact or are too wordy.
 
 RESUME:
 ${resumeText}
@@ -452,34 +452,34 @@ export async function optimizeResume(
   }
 
   const prompt = `
-ROLE: Senior FAANG Executive Resume Strategist.
+ROLE: Professional Resume Strategist.
 THE CURRENT DATE: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-${recruiterSimulationMode ? 'TASK: Critical Hiring Manager Review. Provide rejection reasons based on lack of impact/metrics.' : 'TASK: Rewrite resume into a top-tier FAANG-ready document.'}
+${recruiterSimulationMode ? 'TASK: Critical Hiring Manager Review. Provide rejection reasons based on lack of impact/metrics.' : 'TASK: Rewrite resume into a top-tier professional document.'}
 
 ${customPrompt ? `CUSTOM: ${customPrompt}` : ''}
 ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
 
 CORPORATE DNA TAILORING:
-${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results". Use terminology from Amazon Leadership Principles.' : ''}
-${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale", "Cloud Transformation", and "Collaborative Ecosystems".' : ''}
-${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design", "Extreme Scale", "Algorithmic Efficiency", and "Google XYZ Formula".' : ''}
-${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast", "Shipping End-to-End Impact", and "Performance Optimization".' : ''}
-${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery", "Global Managed Services", and "Cross-functional Deployment".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
+${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership" and "Bias for Action".' : ''}
+${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale" and "Cloud Transformation".' : ''}
+${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design" and "Innovation".' : ''}
+${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast" and "Shipping Engineering Impact".' : ''}
+${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery" and "Managed Services".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
 
-STRICT FAANG GUIDELINES:
-- BREVITY & VOLUME: Optimize for scannability. Increase bullet point frequency while reducing length (~1-1.5 lines per bullet, max). Use more bullet points per role to breakdown complex achievements.
-- THE XYZ FORMULA + LEADERSHIP: Every bullet point MUST follow either the Google XYZ formula ("Accomplished [X] by [Y] through [Z]") OR highlight leadership impact (mentoring, team scaling, cross-functional driving). 
-- MANDATORY METRICS: Every achievement bullet MUST include at least one hard metric (%, $, time, scale). If metrics are impossible, include leadership impact (e.g., "Led team of 5", "Drove cross-functional project").
-- ACTION VERBS: Start every bullet with high-impact verbs: Architected, Orchestrated, Engineered, Spearheaded, Optimized, Scaled, Developed, Mentored, Championed.
-- IMPACT & LEADERSHIP OVER TASKS: Never list responsibilities. Focus solely on accomplishments, business outcomes, and leadership contributions.
-- HALLUCINATION PREVENTION: DO NOT invent, fabricate, suggest, or add any certifications, projects, experience, employers, or skills that are not explicitly present in the original resume text. Specifically, do not suggest or add certifications like AZ-305 unless they are originally listed.
+STRICT PROFESSIONAL GUIDELINES:
+- SCANNABILITY: Optimize for quick reading. Use clear bullet points.
+- ACHIEVEMENT FOCUS: Every bullet point should highlight an achievement or leadership impact (mentoring, team scaling, cross-functional driving). 
+- METRICS & OUTCOMES: Achievement bullets should include metrics (%, $, time, scale) where possible. If metrics are unavailable, include clear leadership impact.
+- ACTION VERBS: Start every bullet with high-impact verbs: Led, Developed, Managed, Optimized, Scaled, Spearheaded.
+- IMPACT OVER TASKS: Focus solely on accomplishments and business outcomes.
+- HALLUCINATION PREVENTION: DO NOT invent, fabricate, suggest, or add any certifications, projects, experience, employers, or skills that are not explicitly present in the original resume text.
 - PRESERVE TITLES: Do not change job titles. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
 - INCLUDE ALL ROLES: You MUST include EVERY single role present in the input resume.
 - MAX 2 PAGES: Content must fit A4 layout.
 
 ADVANCED FEATURES:
-1. STAR METHOD BRIDGE: For every high-impact experience bullet point, generate a companion STAR story.
-2. AUDIT & TRAJECTORY: Perform a "Red Flag" audit and evaluate "Career Velocity" (Trajectory). Identify if the candidate looks stagnant or is showing increasing complexity and scope.
+1. STAR METHOD: For high-impact experiences, generate a companion STAR story (Situation, Task, Action, Result).
+2. AUDIT: Identify any weak areas in the resume.
 
 INPUT:
 RESUME: ${resumeText}
@@ -668,13 +668,13 @@ export async function analyzeResumeCritique(
 ): Promise<{ score: number, critique: { category: string, feedback: string, severity: 'low' | 'medium' | 'high' }[] }> {
   const routedConfig = routeTask('extract_skills', config);
   const prompt = `
-      You are a brutal but constructive FAANG Recruiter. Audit this resume against the Job Description.
-      Be hyper-critical. Find flaws in wording, metrics (or lack thereof), layout hints, and alignment.
+      You are an expert career counselor. Audit this resume against the Job Description.
+      Be constructive and thorough. Find areas for improvement in wording, impact, and alignment.
       
       STRICT AUDIT CRITERIA:
-      1. XYZ FORMULA: Are achievements written as "Accomplished X by Y through Z"?
-      2. METRIC DENSITY: Does every role have at least 2 hard metrics?
-      3. ACTION VERBS: Are the verbs weak (led, helped) or strong (spearheaded, architected)?
+      1. IMPACT: Do achievements clearly convey the result of the actions taken?
+      2. OUTCOMES: Does the resume highlight measurable outcomes or positive changes?
+      3. ACTION VERBS: Are the verbs strong and professional?
       
       Return a JSON object:
       {

@@ -226,7 +226,7 @@ export const NexusProInsights: React.FC<NexusProInsightsProps> = ({ isDarkMode, 
                     }`}>
                       <CheckCircle2 className="w-6 h-6 text-emerald-500 mb-2" />
                       <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">0 Red Flags Detected</p>
-                      <p className="text-[9px] opacity-50 mt-1">Your resume aligns with FAANG vetting standards.</p>
+                      <p className="text-[9px] opacity-50 mt-1">Your resume aligns with professional industry standards.</p>
                     </div>
                   ) : (
                     auditReport.flags.map((flag) => (

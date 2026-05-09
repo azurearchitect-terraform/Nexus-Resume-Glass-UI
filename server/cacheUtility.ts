@@ -37,6 +37,11 @@ class CacheManager {
     console.log(`[Cache] Hit for key: ${key}`);
     return entry.data as T;
   }
+
+  clear(): void {
+    console.log("[Cache] Clearing all entries.");
+    this.cache.clear();
+  }
 }
 
 export const pipelineCache = new CacheManager();
