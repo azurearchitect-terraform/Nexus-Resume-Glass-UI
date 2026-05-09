@@ -1,78 +1,283 @@
 {
   "personal_info": {
     "name": "Harnish Jariwala",
-    "title": "Cloud Infrastructure & Azure Architecture Leader",
     "location": "Surat, Gujarat, India",
-    "current_work_location": "Hyderabad, Telangana",
     "email": "param_jariwala@yahoo.com",
     "phone": "+91-8980161289",
-    "linkedin": "https://linkedin.com/in/harnishjariwala"
+    "linkedin": "HarnishJariwala",
+    "linkedinText": "linkedin.com/in/harnishjariwala",
+    "summary": "Cloud Infrastructure and Azure Architecture professional with 16+ years of experience leading enterprise infrastructure modernization, hybrid cloud transformation, operational resiliency, and Azure platform operations. Proven expertise delivering scalable cloud infrastructure, improving operational maturity, strengthening disaster recovery readiness, optimizing cloud costs, and supporting enterprise production environments."
   },
-  "summary": {
-    "text": "Cloud Infrastructure Leader with 16+ years of experience, including 6+ years in Microsoft Azure. Expertise in defining enterprise architecture, governance standards, and resilient cloud platforms. Proven ability to influence teams, establish architectural guardrails, and drive reliability, security, and cost optimization.",
-    "tags": ["leadership", "architecture", "governance", "enterprise"]
+  "skills": {
+    "Cloud & Infrastructure": [
+      "Microsoft Azure",
+      "Hybrid Cloud",
+      "Azure Landing Zones",
+      "Azure Site Recovery",
+      "Azure Backup",
+      "Azure Networking",
+      "Virtual Networks",
+      "Enterprise Infrastructure"
+    ],
+    "Governance & Security": [
+      "Azure Policy",
+      "RBAC",
+      "MFA",
+      "Identity Federation",
+      "Entra ID",
+      "Cloud Governance",
+      "Business Continuity",
+      "Disaster Recovery"
+    ],
+    "Operations & Reliability": [
+      "Azure Monitor",
+      "Log Analytics",
+      "Grafana",
+      "Incident Management",
+      "Operational Resiliency",
+      "Infrastructure Reliability",
+      "Performance Optimization",
+      "Cost Optimization"
+    ],
+    "Tools & Platforms": [
+      "Windows Server",
+      "PowerShell",
+      "Terraform",
+      "Azure Database Migration Service",
+      "DNS",
+      "DHCP",
+      "Active Directory",
+      "Azure Automation"
+    ]
   },
-  "core_competencies": [
-    { "skill": "Azure Enterprise Architecture", "tags": ["architecture"] },
-    { "skill": "Landing Zones & Platform Design", "tags": ["architecture", "platform"] },
-    { "skill": "Governance & Policy Enforcement", "tags": ["governance"] },
-    { "skill": "HA/DR & Resiliency Engineering", "tags": ["reliability"] },
-    { "skill": "Hybrid Cloud Strategy", "tags": ["architecture"] },
-    { "skill": "Azure Networking", "tags": ["networking"] },
-    { "skill": "Identity & Security (Entra ID, RBAC)", "tags": ["security"] },
-    { "skill": "Observability & Incident Management", "tags": ["operations"] },
-    { "skill": "Cost Optimization (FinOps)", "tags": ["impact"] },
-    { "skill": "Technical Leadership & Hiring", "tags": ["leadership"] }
-  ],
   "experience": [
     {
-      "company": "Concentrix",
+      "id": "1",
       "role": "Cloud & Collaboration Engineer II",
-      "duration": "Sep 2025 - Present",
-      "tags": ["architecture", "leadership", "governance"],
+      "company": "Concentrix (Microsoft Engagement)",
+      "duration": "Sep 2025 – Present",
       "bullets": [
-        { "text": "Act as cloud design authority guiding enterprise Azure architecture decisions.", "tags": ["architecture", "leadership"] },
-        { "text": "Define resiliency and disaster recovery patterns aligned with SLAs.", "tags": ["architecture", "reliability"] },
-        { "text": "Review and shape architecture designs ensuring governance and compliance.", "tags": ["governance"] },
-        { "text": "Standardize architecture patterns and influence engineering teams.", "tags": ["leadership"] }
+        "Deployed Azure HA/DR assessments across enterprise compute, networking, monitoring, identity, and recovery environments.",
+        "Validated resiliency readiness using Azure Backup, Site Recovery, Availability Zones, and failover planning strategies.",
+        "Reviewed Azure Landing Zone governance, subscription alignment, operational readiness, and cloud maturity standards.",
+        "Maintained platform resiliency metrics impacting business continuity, SLA alignment, and stability across production environments.",
+        "Utilized infrastructure data to plan remediation initiatives, improving reliability and operational standards for platform teams."
       ]
     },
     {
+      "id": "2",
+      "role": "Senior Ops Service Engineer – Cloud (Azure)",
       "company": "M&M Software Development Centre India",
-      "role": "Senior Ops Service Engineer - Azure",
-      "duration": "Jan 2025 - Jul 2025",
-      "tags": ["operations", "leadership"],
+      "duration": "Jan 2025 – Jul 2025",
       "bullets": [
-        { "text": "Led Azure operations across enterprise environments ensuring availability.", "tags": ["operations"] },
-        { "text": "Mentored team of 5 engineers improving delivery quality.", "tags": ["leadership"] },
-        { "text": "Reduced MTTR by 40% using observability solutions.", "tags": ["impact"] },
-        { "text": "Defined governance standards for incident and change management.", "tags": ["governance"] }
+        "Deployed enterprise infrastructure operations across development, staging, and production Azure workload environments.",
+        "Managed and mentored cloud engineering teams, improving operational consistency, quality, and delivery performance.",
+        "Utilized Azure Monitor and Grafana observability solutions, reducing mean-time-to-resolution by approximately 40%.",
+        "Provisioned incident response, escalation handling, and operational governance standards across Azure environments.",
+        "Maintained architecture readiness reviews, cloud optimization initiatives, and infrastructure stability through performance improvements."
       ]
     },
     {
-      "company": "Casepoint LLC",
-      "role": "Cloud Engineer - Azure",
-      "duration": "Mar 2022 - Apr 2024",
-      "tags": ["scale", "architecture"],
-      "impact_scope": {
-        "subscriptions": "5+",
-        "virtual_machines": "2500+"
-      },
+      "id": "3",
+      "role": "Senior System Administrator (Azure)",
+      "company": "ARCHER Transnational Systems Pvt. Ltd.",
+      "duration": "Sep 2024 – Dec 2024",
       "bullets": [
-        { "text": "Managed Azure environments with 5+ subscriptions and 2500+ VMs.", "tags": ["scale"] },
-        { "text": "Designed landing zones with governance and policy enforcement.", "tags": ["architecture"] },
-        { "text": "Delivered 20% cost savings through optimization.", "tags": ["impact"] }
+        "Maintained secure Azure infrastructure environments supporting enterprise workload availability and operational stability.",
+        "Deployed Azure networking controls including subnet segmentation, routing, and access governance.",
+        "Provisioned Azure Backup policies and testing to support business continuity and recovery requirements.",
+        "Utilized compliance teams to align governance, firewall controls, and infrastructure security standards.",
+        "Maintained infrastructure documentation and runbooks improving support readiness and operational consistency."
+      ]
+    },
+    {
+      "id": "4",
+      "role": "Senior Specialist – Azure Infrastructure",
+      "company": "HCLTech",
+      "duration": "Apr 2024 – Jun 2024",
+      "bullets": [
+        "Deployed Azure infrastructure support, monitoring, and operational optimization for enterprise customer environments.",
+        "Maintained hybrid migration hubs, subscription management, and resource optimization across complex cloud environments.",
+        "Managed technical enablement and standard operating procedure documentation for on-prem to cloud transition.",
+        "Provisioned cloud monitoring tools and performance tracking dashboards for mission-critical workloads."
+      ]
+    },
+    {
+      "id": "5",
+      "role": "Cloud Engineer – Azure",
+      "company": "Casepoint LLC",
+      "duration": "Mar 2022 – Apr 2024",
+      "bullets": [
+        "Architected landing zone architectures and platform governance for massive-scale Azure deployments (2500+ VMs).",
+        "Orchestrated cloud migration strategies, ensuring zero-downtime transitions for complex business applications.",
+        "Enforced governance, policy enforcement, and RBAC standards across enterprise-grade global subscriptions.",
+        "Leveraged Azure Site Recovery and failover simulation to maintain 99.99% availability metrics.",
+        "Managed resource rightsizing and architectural optimization, delivering 20% cloud spend reduction."
+      ]
+    },
+    {
+      "id": "6",
+      "role": "Senior Executive – IT",
+      "company": "Sterling Accuris Diagnostics",
+      "duration": "Jun 2017 – Feb 2022",
+      "bullets": [
+        "Directed infrastructure modernization initiatives including physical-to-virtual and cloud migration phases.",
+        "Maintained healthcare-compliant storage and compute environments ensuring 24/7 diagnostic platform availability.",
+        "Provisioned automated backup workflows and DR verification protocols across hybrid environments.",
+        "Managed network infrastructure stability and security across decentralized clinical locations."
+      ]
+    },
+    {
+      "id": "7",
+      "role": "Officer – IT & Logistics",
+      "company": "AGILUS Diagnostics (Formerly SRL Ltd.)",
+      "duration": "Jul 2013 – May 2017",
+      "bullets": [
+        "Maintained AD/DNS/DHCP services and Windows Server infrastructure for enterprise diagnostic operations.",
+        "Orchestrated technical logistics and hardware lifecycle management across multiple state regions.",
+        "Provisioned IT support and incident resolution for hundreds of distributed clinical endpoints."
+      ]
+    },
+    {
+      "id": "8",
+      "role": "Customer Support Engineer",
+      "company": "Galaxy Office Automation Pvt. Ltd.",
+      "duration": "Aug 2012 – Jul 2013",
+      "bullets": [
+        "Supported server deployments, Active Directory deployments, and enterprise endpoint security for B2B portal accounts.",
+        "Maintained virtualization clusters and hardware-level performance monitoring for client environments."
+      ]
+    },
+    {
+      "id": "9",
+      "role": "Field Support Engineer",
+      "company": "Aegis Global",
+      "duration": "May 2010 – May 2012",
+      "bullets": [
+        "Delivered site-wide technical support and critical infrastructure maintenance under strict enterprise SLAs.",
+        "Managed technical hardware deployments and incident resolution cycles for large-scale operations."
       ]
     }
   ],
-  "certifications": [
-    "AZ-305 Azure Solutions Architect Expert",
-    "AZ-104 Azure Administrator",
-    "AZ-900 Azure Fundamentals"
+  "projects": [
+    {
+      "title": "Enterprise Azure Migration & Governance",
+      "description": "Led hybrid cloud modernization initiatives improving governance, resiliency, monitoring, and operational scalability."
+    },
+    {
+      "title": "Operational Resiliency & Infrastructure Reliability",
+      "description": "Improved incident response effectiveness through monitoring modernization and operational governance enhancements."
+    },
+    {
+      "title": "Cloud Cost Optimization & Operational Maturity",
+      "description": "Reduced infrastructure costs through workload optimization, governance alignment, and resource management initiatives."
+    }
   ],
-  "education": {
-    "degree": "Bachelor of Computer Applications",
-    "institution": "Chandigarh University",
-    "expected_completion": "2027"
+  "education": [
+    "Bachelor of Computer Applications (BCA) - Chandigarh University - Expected Completion: 2027"
+  ],
+  "certifications": [
+    {
+      "name": "Microsoft Certified: Azure Solutions Architect Expert (AZ-305)",
+      "issuer": "Microsoft",
+      "date": ""
+    },
+    {
+      "name": "Microsoft Certified: Azure Administrator Associate (AZ-104)",
+      "issuer": "Microsoft",
+      "date": ""
+    },
+    {
+      "name": "Microsoft Certified: Azure Fundamentals (AZ-900)",
+      "issuer": "Microsoft",
+      "date": ""
+    }
+  ],
+  "ats_keywords_from_jd": [
+    "Azure",
+    "Hybrid Cloud",
+    "HA/DR",
+    "Cloud Governance",
+    "Azure Networking",
+    "Incident Management",
+    "Operational Resiliency",
+    "Business Continuity",
+    "Infrastructure Reliability",
+    "Cost Optimization"
+  ],
+  "ats_keywords_added_to_resume": [
+    "Azure Landing Zones",
+    "Azure Site Recovery",
+    "Operational Governance",
+    "Production Environments",
+    "Infrastructure Modernization",
+    "Hybrid Migration",
+    "Observability",
+    "Identity Federation",
+    "Monitoring",
+    "Cloud Transformation"
+  ],
+  "keyword_gap": [
+    "Kubernetes",
+    "Containerization",
+    "CI/CD",
+    "DevOps Pipelines",
+    "SRE"
+  ],
+  "match_score": 90,
+  "baseline_score": 66,
+  "improvement_notes": [
+    "Improved leadership positioning for management and senior cloud infrastructure opportunities.",
+    "Strengthened enterprise cloud governance and resiliency visibility across Azure roles.",
+    "Reduced low-value support-heavy wording improving executive readability.",
+    "Improved ATS alignment for Azure infrastructure and cloud operations leadership roles.",
+    "Maintained complete career continuity while compressing older operational roles."
+  ],
+  "audience_alignment_notes": "Resume optimized for Senior Cloud Architect, Cloud Operations Manager, Infrastructure Engineering Manager, Azure Platform Lead, and Director-track infrastructure leadership opportunities.",
+  "why_this_job": "Strong alignment with enterprise Azure infrastructure, cloud transformation, governance, resiliency, operational leadership, and hybrid cloud modernization requirements.",
+  "rejection_reasons": [
+    "Limited Kubernetes and containerization production experience.",
+    "Limited advanced DevOps and CI/CD pipeline implementation exposure.",
+    "Terraform experience currently foundational compared to advanced IaC-focused candidates."
+  ],
+  "star_stories": [
+    {
+      "bullet": "Implemented Azure Monitor and Grafana observability solutions reducing MTTR by approximately 40%.",
+      "situation": "Cloud operations teams faced delayed incident resolution across enterprise Azure environments.",
+      "task": "Improve monitoring visibility and accelerate operational response timelines.",
+      "action": "Implemented centralized observability using Azure Monitor and Grafana across infrastructure workloads.",
+      "result": "Reduced MTTR approximately 40% improving operational visibility and service reliability."
+    },
+    {
+      "bullet": "Reduced on-premises downtime approximately 50% through phased Azure hybrid migration initiatives.",
+      "situation": "Healthcare infrastructure experienced operational downtime and infrastructure scalability limitations.",
+      "task": "Improve resiliency and operational continuity through hybrid cloud modernization.",
+      "action": "Supported phased Azure migration, backup modernization, and disaster recovery process improvements.",
+      "result": "Reduced downtime approximately 50% improving business continuity and infrastructure reliability."
+    }
+  ],
+  "audit_report": {
+    "score": 90,
+    "flags": [
+      {
+        "id": "1",
+        "type": "technical_gap",
+        "message": "Limited Kubernetes, containerization, and SRE-related platform engineering exposure.",
+        "fix": "Add AKS, container orchestration, or reliability engineering experience where applicable.",
+        "severity": "high"
+      },
+      {
+        "id": "2",
+        "type": "leadership_scale",
+        "message": "Leadership scope visible but large-scale organizational ownership not fully quantified.",
+        "fix": "Add infrastructure scale, subscription count, migration volume, or stakeholder impact metrics.",
+        "severity": "high"
+      }
+    ],
+    "trajectory": {
+      "stage": "acceleration",
+      "description": "Profile demonstrates strong progression toward senior cloud infrastructure and management leadership roles.",
+      "recommendation": "Increase visibility around enterprise-scale ownership, governance leadership, and cross-functional cloud transformation initiatives."
+    }
   }
 }
