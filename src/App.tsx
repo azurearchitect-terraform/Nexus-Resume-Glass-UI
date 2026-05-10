@@ -4297,7 +4297,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                       <button 
                         onClick={downloadPDF}
                         disabled={isDownloading}
-                        className="px-6 py-2 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-all transform hover:scale-105 font-bold uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:hover:scale-100"
+                        className="px-6 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-800 transition-all transform hover:scale-[1.02] font-semibold text-sm flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:hover:scale-100"
                       >
                         {isDownloading ? (
                           <>

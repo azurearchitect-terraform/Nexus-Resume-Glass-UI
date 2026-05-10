@@ -30,7 +30,7 @@ export const Layout = ({ children, isDarkMode, setIsDarkMode, isFocusMode, setIs
           fixed inset-0 z-50 transition-transform md:relative md:translate-x-0
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Sidebar />
             <button 
                 className="md:hidden absolute top-4 right-4"
                 onClick={() => setIsSidebarOpen(false)}

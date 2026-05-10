@@ -1,23 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Hybrid Professional/Tech Palette */
+  /* Executive Grayscale & Accent Palette */
   --color-slate-900: #0f172a;
   --color-slate-800: #1e293b;
   --color-slate-700: #334155;
-  --color-blue-600: #2563eb;
-  --color-blue-500: #3b82f6;
-  --color-blue-400: #60a5fa;
+  --color-slate-200: #e2e8f0;
+  --color-emerald-600: #059669;
   --color-emerald-500: #10b981;
 }
 
 @layer base {
   body {
-    @apply font-sans antialiased bg-slate-50 text-slate-900;
+    @apply font-sans antialiased bg-stone-50 text-stone-900;
   }
 }
 

@@ -38,9 +38,10 @@ GLOBAL SYSTEM RULES (STRICT ENFORCEMENT):
    - BALANCE: 60% Execution (Azure infra), 40% Leadership (Mentoring, Architecture reviews).
    - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized."
 9. GOOGLE XYZ FORMULA: ALL high-impact bullets MUST conform to the formula: "Accomplished [X] as measured by [Y], by doing [Z]."
-   - [X] = The impact or accomplishment.
-   - [Y] = The metrics, data, or scale (e.g. "by 20%", "$50k revenue", "1M+ users").
-   - [Z] = The mechanism, action, or skill used (e.g. "by Implementing Terraform", "by re-architecting Azure SQL").
+   - [X] = The impact or accomplishment. What did you achieve?
+   - [Y] = The metrics, data, or scale. (Example: "Improving performance by 20%", "Generating $50k revenue", "Supporting 1M+ active users").
+   - [Z] = The mechanism, action, or skill used. (Example: "By implementing Terraform modules", "By re-architecting Azure SQL database").
+   - IF A BULLET HAS NO METRICS: You MUST pivot the phrasing to highlight the result of the action (e.g., "Led migration of [App] to [Cloud], reducing latency and improving deployment frequency" - implicit metrics).
 
 
 OUTPUT SCHEMA:
