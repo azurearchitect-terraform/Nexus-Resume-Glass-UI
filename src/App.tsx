@@ -752,48 +752,6 @@ export default function App() {
     currentOptimizingEngine,
     setCurrentOptimizingEngine
   } = useResumeStore();
-  const workspaceMeta = {
-    build: {
-      eyebrow: 'Application Workspace',
-      title: 'Resume Optimizer',
-      description: 'Target a role, analyze fit, generate a tailored resume, and export the final version.',
-      icon: Target,
-      accent: 'emerald',
-      primaryAction: 'Optimize Resume',
-      onPrimaryAction: () => handleOptimize(),
-      isPrimaryDisabled: isOptimizing,
-    },
-    tools: {
-      eyebrow: 'Career Suite',
-      title: 'Professional Tools',
-      description: 'Prepare supporting assets for interviews, networking, LinkedIn, skills, and job tracking.',
-      icon: Briefcase,
-      accent: 'blue',
-      primaryAction: 'Open Optimizer',
-      onPrimaryAction: () => navigate('/build'),
-      isPrimaryDisabled: false,
-    },
-    profile: {
-      eyebrow: 'Workspace Settings',
-      title: 'Profile & Integrations',
-      description: 'Manage API keys, resume source data, cloud sync, and export storage preferences.',
-      icon: Users,
-      accent: 'slate',
-      primaryAction: isSavingProfile ? 'Saving...' : 'Save Settings',
-      onPrimaryAction: () => handleSaveProfile(),
-      isPrimaryDisabled: isSavingProfile,
-    },
-  }[activeTab] || {
-    eyebrow: 'Application Workspace',
-    title: 'Resume Optimizer',
-    description: 'Target a role, analyze fit, generate a tailored resume, and export the final version.',
-    icon: Target,
-    accent: 'emerald',
-    primaryAction: 'Optimize Resume',
-    onPrimaryAction: () => handleOptimize(),
-    isPrimaryDisabled: isOptimizing,
-  };
-  const WorkspaceIcon = workspaceMeta.icon;
 
   const [linkedInUrl, setLinkedInUrl] = useState(() => localStorage.getItem('linkedInUrl') || '');
   const [linkedInPdfText, setLinkedInPdfText] = useState(() => localStorage.getItem('linkedInPdfText') || '');
@@ -2426,7 +2384,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
               marginBottom: `${getSectionStyle('header').margin}px`,
             }}
           >
-            <h1 className="font-bold uppercase tracking-[0.2em] mb-1" style={{ fontSize: '28px' }}>
+            <h1 className="font-bold uppercase tracking-[0.2em] mb-1" style={{ fontSize: '26px' }}>
               {personalInfo.name}
             </h1>
             <div className="font-semibold opacity-80 border-t-2 border-black/10 pt-3 flex justify-center items-center gap-x-4 gap-y-1 flex-wrap" style={{ fontSize: '11px', lineHeight: '1.2' }}>
@@ -2585,10 +2543,10 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
             {allExp.map((exp: any, i: number) => (
               <div key={i} className="mb-3 last:mb-0">
                 <div className="flex justify-between font-bold items-baseline mb-0.5">
-                  <span style={{ fontSize: '14px' }}>{exp.role}</span>
+                  <span style={{ fontSize: '13px' }}>{exp.role}</span>
                   <span className="opacity-70 font-medium italic" style={{ fontSize: '11px' }}>{exp.duration}</span>
                 </div>
-                <div className="font-semibold mb-2 text-emerald-700" style={{ fontSize: '13px' }}>{exp.company}</div>
+                <div className="font-semibold mb-2 text-emerald-700" style={{ fontSize: '12px' }}>{exp.company}</div>
                 <div className="space-y-1">
                   {Array.isArray(exp.bullets) && exp.bullets.map((b: string, bi: number) => (
                     <div key={bi} className="resume-bullet-item">
@@ -2626,7 +2584,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
             </h2>
             <div className="space-y-3">
               {allProjects.map((proj: any, i: number) => (
-                <div key={i} className="mb-3 last:mb-0 experience-item">
+                <div key={i} className="mb-3 last:mb-0">
                   <div className="font-bold mb-1" style={{ fontSize: '13px' }}>
                     {typeof proj === 'string' ? proj : (proj as any).title}
                   </div>
@@ -2710,8 +2668,6 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           onEmailSignUp={handleEmailSignUp}
           onPasswordReset={handlePasswordReset}
           externalError={error}
-          isDarkMode={isDarkMode}
-          setIsDarkMode={setIsDarkMode}
         />
       </Suspense>
     );
@@ -2742,66 +2698,64 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col relative w-full h-full min-w-0">
-          <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between gap-3 px-4 md:px-6 ${isDarkMode ? 'bg-neutral-950 border-white/10' : 'bg-white border-black/10'}`}>
-              <div className="flex min-w-0 items-center gap-4 md:gap-6">
-                <Link to="/build" className="flex min-w-0 items-center gap-3">
-                    <div className={`w-9 h-9 rounded-lg flex shrink-0 items-center justify-center transition-colors ${isDarkMode ? 'bg-emerald-500/15 text-emerald-300' : 'bg-neutral-950 text-emerald-300'}`}>
-                        <Cpu className="w-4 h-4" />
+          <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'bg-neutral-950/80 backdrop-blur-md border-white/10' : 'bg-white/80 backdrop-blur-md border-black/5'}`}>
+              <div className="flex items-center gap-6">
+                <div className="font-bold text-xl tracking-tight flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-xl flex shrink-0 items-center justify-center transition-colors shadow-sm ${isDarkMode ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-neutral-900 border border-black'}`}>
+                        <Cpu className={`w-4 h-4 text-emerald-400`} />
                     </div>
-                    <div className="hidden sm:block min-w-0">
-                      <span className="block text-sm font-bold tracking-tight">Nexus AI</span>
-                      <span className={`block text-[11px] ${isDarkMode ? 'text-white/40' : 'text-black/45'}`}>Resume workspace</span>
-                    </div>
-                </Link>
+                    <span className="tracking-tight text-[15px] hidden sm:inline-block">NEXUS AI</span>
+                </div>
 
-                <nav className={`flex items-center gap-1 rounded-lg p-1 ${isDarkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                  {([
-                    ['build', 'Optimizer'],
-                    ['tools', 'Tools'],
-                    ['profile', 'Profile']
-                  ] as const).map(([tab, label]) => (
+                <nav className="flex items-center gap-1">
+                  {(['build', 'tools', 'profile'] as const).map(tab => (
                     <Link
                       key={tab}
                       to={`/${tab}`}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
                         activeTab === tab 
-                          ? (isDarkMode ? 'bg-neutral-800 text-white shadow-sm' : 'bg-white text-black shadow-sm') 
-                          : (isDarkMode ? 'text-white/50 hover:text-white hover:bg-white/5' : 'text-black/50 hover:text-black hover:bg-white/70')
+                          ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-black text-white px-5') 
+                          : (isDarkMode ? 'hover:bg-white/5 opacity-40 hover:opacity-100' : 'hover:bg-black/5 opacity-50 hover:opacity-100')
                       }`}
                     >
-                      {label}
+                      {tab === 'build' ? 'Optimizer' : tab}
                     </Link>
                   ))}
                 </nav>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
-                  <button onClick={() => setFastMode(!fastMode)} className={`hidden sm:flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-semibold transition-colors ${fastMode ? 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300' : isDarkMode ? 'border-white/10 text-white/45 hover:text-white hover:bg-white/5' : 'border-black/10 text-black/50 hover:text-black hover:bg-black/5'}`} title="Toggle faster UI mode">
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>{fastMode ? 'Fast' : 'Standard'}</span>
+              <div className="flex items-center gap-2 md:gap-4">
+                  <button onClick={() => setFastMode(!fastMode)} className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors text-[10px] font-bold ${fastMode ? 'border-amber-500/50 bg-amber-500/20 text-amber-500' : 'border-neutral-500/30 bg-neutral-500/10 text-neutral-500 opacity-50'}`}>
+                      <Zap className="w-3 h-3" />
+                      <span>{fastMode ? 'FLASH UI ON' : 'FLASH UI'}</span>
                   </button>
                   {user && (
-                    <button onClick={() => syncAllData(false)} className={`relative rounded-md p-2 transition-colors ${isDarkMode ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-black/55 hover:bg-black/5 hover:text-black'} ${hasUnsavedChanges ? 'bg-amber-500/10' : ''}`} title={hasUnsavedChanges ? "Unsaved changes. Sync now" : "Synced"}>
+                    <button onClick={() => syncAllData(false)} className={`p-2 rounded-full transition-colors relative ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${hasUnsavedChanges ? 'bg-amber-500/10' : ''}`} title="Sync to Cloud">
                         <Cloud className={`w-[18px] h-[18px] transition-colors ${isSyncing ? 'animate-pulse text-blue-500' : hasUnsavedChanges ? 'text-amber-500' : ''}`} />
                         {hasUnsavedChanges && !isSyncing && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
                     </button>
                   )}
-                  <button onClick={() => setIsFocusMode(!isFocusMode)} className={`rounded-md p-2 transition-colors ${isDarkMode ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-black/55 hover:bg-black/5 hover:text-black'} ${isFocusMode ? 'bg-emerald-500/15 text-emerald-500' : ''}`} title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}>
+                  <button onClick={() => setIsFocusMode(!isFocusMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${isFocusMode ? 'bg-emerald-500/20' : ''}`} title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}>
                       {isFocusMode ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                   </button>
-                  <button onClick={resetLayout} className={`hidden md:flex rounded-md p-2 transition-colors ${isDarkMode ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-black/55 hover:bg-black/5 hover:text-black'}`} title="Reset Layout">
+                  <button onClick={resetLayout} className={`p-2 hidden md:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'}`} title="Reset Layout">
                       <Maximize className="w-[18px] h-[18px]" />
                   </button>
                   {(user?.email === 'param_jariwala@yahoo.com' || user?.email === 'hackerharnish@gmail.com') && (
-                      <button onClick={() => setShowAdminDashboard(true)} className={`rounded-md p-2 transition-colors ${isDarkMode ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-black/55 hover:bg-black/5 hover:text-black'}`} title="Admin Dashboard">
+                      <button onClick={() => setShowAdminDashboard(true)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'}`} title="Admin Dashboard">
                           <BarChart3 className="w-[18px] h-[18px]" />
                       </button>
                   )}
-                  <button onClick={() => setIsDarkMode(!isDarkMode)} className={`rounded-md p-2 transition-colors ${isDarkMode ? 'text-white/60 hover:bg-white/5 hover:text-amber-300' : 'text-black/55 hover:bg-black/5 hover:text-blue-600'}`} title="Toggle theme">
+                  <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-black/5 text-blue-600'}`}>
                       {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
                   </button>
-                  <Link to="/profile" className={`ml-1 flex items-center justify-center w-8 h-8 rounded-lg border transition-colors ${activeTab === 'profile' ? 'border-emerald-500/50 bg-emerald-500/10' : isDarkMode ? 'border-white/10 hover:border-white/25 bg-white/5' : 'border-black/10 hover:border-black/20 bg-white'}`}>
+                  <span className={`hidden sm:inline-block text-[10px] font-mono uppercase tracking-widest opacity-60 px-2 py-1 rounded bg-white/5 border border-white/10`}>V-3.0.0</span>
+                  <div className={`hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold text-emerald-500 animate-pulse`}>
+                      <Cpu className="w-3 h-3" />
+                      <span>GEMINI 3.1 PRO (NATIVE)</span>
+                  </div>
+                  <Link to="/profile" className={`flex items-center justify-center w-8 h-8 rounded-full border transition-colors ${isDarkMode ? 'border-white/20 hover:border-emerald-500/50 bg-neutral-900' : 'border-black/10 hover:border-emerald-500/50 bg-white'}`}>
                     {user ? (
-                      <span className="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">{user.email?.[0]}</span>
+                      <span className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">{user.email?.[0]}</span>
                     ) : (
                       <Users className="w-4 h-4 opacity-50" />
                     )}
@@ -2809,80 +2763,11 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
               </div>
           </header>
 
-          <section className={`shrink-0 border-b px-4 py-2 md:px-6 ${isDarkMode ? 'bg-neutral-950 border-white/10' : 'bg-white border-black/10'}`}>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
-                  workspaceMeta.accent === 'blue'
-                    ? (isDarkMode ? 'border-blue-500/25 bg-blue-500/10 text-blue-300' : 'border-blue-200 bg-blue-50 text-blue-700')
-                    : workspaceMeta.accent === 'slate'
-                      ? (isDarkMode ? 'border-white/10 bg-white/5 text-white/75' : 'border-slate-200 bg-slate-50 text-slate-700')
-                      : (isDarkMode ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700')
-                }`}>
-                  <WorkspaceIcon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className={`text-[11px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-white/35' : 'text-black/40'}`}>
-                    {workspaceMeta.eyebrow}
-                  </div>
-                  <h1 className="text-xl font-bold tracking-tight md:text-2xl">{workspaceMeta.title}</h1>
-                  <p className={`max-w-3xl text-sm leading-6 ${isDarkMode ? 'text-white/55' : 'text-black/55'}`}>
-                    {workspaceMeta.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${isDarkMode ? 'border-white/10 bg-white/5 text-white/60' : 'border-black/10 bg-black/5 text-black/55'}`}>
-                    {hasUnsavedChanges ? 'Unsaved changes' : 'Synced'}
-                  </span>
-                  <span className={`hidden md:inline-flex rounded-md border px-2.5 py-1 text-xs font-semibold ${isDarkMode ? 'border-white/10 bg-white/5 text-white/60' : 'border-black/10 bg-black/5 text-black/55'}`}>
-                    {selectedEngine.startsWith('hybrid') ? 'Hybrid AI' : selectedEngine.toUpperCase()}
-                  </span>
-                  {activeTab === 'build' && (
-                    <span className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${isDarkMode ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
-                      {Object.keys(results).length > 0 ? `${Object.keys(results).length} result set${Object.keys(results).length > 1 ? 's' : ''}` : 'Ready to target'}
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={workspaceMeta.onPrimaryAction}
-                  disabled={workspaceMeta.isPrimaryDisabled}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                    isDarkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/85'
-                  }`}
-                >
-                  {isOptimizing && activeTab === 'build' ? (
-                    <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                  ) : (
-                    <ArrowRight className="h-4 w-4" />
-                  )}
-                  {workspaceMeta.primaryAction}
-                </button>
-              </div>
-            </div>
-            <div className={`mt-2 h-px w-full overflow-hidden ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-              <motion.div
-                className={`h-full w-1/3 ${
-                  workspaceMeta.accent === 'blue' ? 'bg-blue-500' : workspaceMeta.accent === 'slate' ? 'bg-slate-500' : 'bg-emerald-500'
-                }`}
-                animate={{ x: isOptimizing ? ['-100%', '300%'] : ['0%', '30%', '0%'] }}
-                transition={{ duration: isOptimizing ? 1.8 : 8, repeat: Infinity, ease: 'easeInOut' }}
-              />
-            </div>
-          </section>
-
           {/* Main Workspace Area */}
           <main className="flex-1 flex flex-col sm:flex-row overflow-hidden relative w-full h-full bg-neutral-100 dark:bg-neutral-900" ref={containerRef}>
-              <div className={`pointer-events-none absolute inset-0 ${
-                isDarkMode
-                  ? 'bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)]'
-                  : 'bg-[linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px)]'
-              } bg-[size:32px_32px] opacity-40`} />
               
-              {/* Only show Config Pane outside the tools workspace */}
-              {activeTab !== 'tools' && (
+              {/* Only show Config Pane if NOT on tools or jobs */}
+              {activeTab !== 'tools' && activeTab !== 'jobs' && (
                 <div 
                   ref={leftPanelRef}
                   className={`flex flex-col h-full border-r relative transition-all duration-200 ease-in-out ${isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/5'} z-10 ${isFocusMode ? 'w-0 opacity-0 pointer-events-none border-none hidden sm:flex' : ''} ${isMobile ? 'h-1/2 sm:h-full w-full' : ''}`}
@@ -2903,10 +2788,10 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   transition={{ duration: 0.2 }}
                   className="space-y-6"
                 >
-                  <section className={`rounded-lg border p-6 shadow-sm transition-colors ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/10'}`}>
+                  <section className={`rounded-2xl border p-6 shadow-xl transition-colors ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/5'}`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+                        <div className={`p-2 rounded-xl ${isDarkMode ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
                           <Zap className="w-5 h-5 text-emerald-500" />
                         </div>
                         <div>
@@ -2942,7 +2827,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   <input 
                                     type="text"
                                     placeholder="e.g. Senior Azure Cloud Architect"
-                                    className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
+                                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
                                       isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                                     }`}
                                     value={targetRole}
@@ -2957,7 +2842,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   <input 
                                     type="text"
                                     placeholder="e.g. Microsoft"
-                                    className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
+                                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
                                       isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                                     }`}
                                     value={companyName}
@@ -2972,7 +2857,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           <div className="space-y-4">
                             <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">2. Job Analysis</h3>
                             {activeAudience && results[activeAudience] && results[activeAudience].match_score !== undefined && (
-                              <div className={`p-4 rounded-lg border flex items-center justify-between ${isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+                              <div className={`p-4 rounded-xl border flex items-center justify-between ${isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
                                 <div>
                                   <h3 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>Match Score</h3>
                                   <p className={`text-[10px] mt-1 ${isDarkMode ? 'text-emerald-400/70' : 'text-emerald-600/70'}`}>Based on current JD</p>
@@ -3061,7 +2946,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   <input 
                                     type="url"
                                     placeholder="Paste Job Posting URL here"
-                                    className={`w-full px-4 py-3 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all pr-12 ${
+                                    className={`w-full px-4 py-3 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all pr-12 ${
                                       isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                                     }`}
                                     value={jobUrl}
@@ -3076,7 +2961,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 <textarea 
                                   ref={jdTextareaRef}
                                   placeholder="Or paste the full job description text here..."
-                                  className={`w-full h-32 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-y text-sm leading-relaxed ${
+                                  className={`w-full h-32 p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-y text-sm leading-relaxed ${
                                     isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                                   }`}
                                   value={jobDescription}
@@ -3086,7 +2971,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 <button
                                   onClick={handleCheckSuitability}
                                   disabled={isCheckingSuitability || (!jobDescription && !jobUrl) || !resumeText}
-                                  className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all border ${
+                                  className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border ${
                                     isCheckingSuitability || (!jobDescription && !jobUrl) || !resumeText
                                       ? (isDarkMode ? 'bg-white/5 border-white/10 text-white/30 cursor-not-allowed' : 'bg-black/5 border-black/10 text-black/30 cursor-not-allowed')
                                       : (isDarkMode ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/30' : 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100')
@@ -3109,7 +2994,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           </div>
 
                           {/* Nexus Pro Advanced Features */}
-                          <div className={`rounded-lg border p-5 transition-all shadow-sm ${isDarkMode ? 'bg-purple-500/5 border-purple-500/20' : 'bg-purple-50/50 border-purple-200'}`}>
+                          <div className={`rounded-xl border p-5 transition-all shadow-sm ${isDarkMode ? 'bg-purple-500/5 border-purple-500/20' : 'bg-purple-50/50 border-purple-200'}`}>
                             <div className="flex items-center gap-2 mb-4">
                               <Sparkles className="w-4 h-4 text-purple-500" />
                               <span className="text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400">Advanced "Nexus Pro" Intelligence</span>
@@ -3121,7 +3006,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 <label className={`block text-[10px] font-black uppercase tracking-widest mb-2 ${isDarkMode ? 'opacity-50' : 'opacity-70'}`}>Corporate DNA Tailoring</label>
                                 <button
                                   onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
-                                  className={`w-full px-4 py-3 text-xs border rounded-lg flex items-center justify-between transition-all ${
+                                  className={`w-full px-4 py-3 text-xs border rounded-xl flex items-center justify-between transition-all ${
                                     isDarkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-white border-black/5 text-black hover:bg-black/5'
                                   }`}
                                 >
@@ -3141,7 +3026,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                       initial={{ opacity: 0, y: -10 }}
                                       animate={{ opacity: 1, y: 0 }}
                                       exit={{ opacity: 0, y: -10 }}
-                                      className={`absolute left-0 right-0 mt-2 p-2 rounded-lg border shadow-2xl z-50 max-h-72 overflow-y-auto custom-scrollbar ${
+                                      className={`absolute left-0 right-0 mt-2 p-2 rounded-xl border shadow-2xl z-50 max-h-72 overflow-y-auto custom-scrollbar ${
                                         isDarkMode ? 'bg-[#1A1A1A] border-white/10 shadow-black' : 'bg-white border-black/10 shadow-black/10'
                                       }`}
                                     >
@@ -3183,7 +3068,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 <p className="text-[9px] opacity-40 font-medium leading-tight mb-2 italic">Paste raw annual reviews, GitHub logs, or unstructured notes here. AI will sift for gold.</p>
                                 <textarea
                                   placeholder="Dump unstructured data (reviews, wikis, logs)..."
-                                  className={`w-full h-28 p-4 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-none leading-relaxed ${
+                                  className={`w-full h-28 p-4 text-xs border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-none leading-relaxed ${
                                     isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                                   }`}
                                   value={brainDump}
@@ -3294,7 +3179,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           </div>
 
                           {/* AI Engine Settings */}
-                          <div className={`rounded-lg border p-5 transition-all shadow-sm ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-black/5'}`}>
+                          <div className={`rounded-xl border p-5 transition-all shadow-sm ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-black/5'}`}>
                             <div className="flex items-center gap-2 mb-4">
                               <Cpu className="w-4 h-4 text-emerald-500" />
                               <span className="text-[10px] font-black uppercase tracking-widest">AI Engine Configuration</span>
@@ -3351,7 +3236,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 opacity-40 pointer-events-none" />
                                   </div>
                                 ) : (
-                                  <div className={`p-3 rounded-lg border flex items-center gap-3 ${isDarkMode ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+                                  <div className={`p-3 rounded-xl border flex items-center gap-3 ${isDarkMode ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
                                     <Zap className="w-4 h-4 text-emerald-500 shrink-0" />
                                     <p className="text-[10px] opacity-70 leading-relaxed font-medium">Smart routing enabled: Using Gemini for analysis and OpenAI for tone optimization.</p>
                                   </div>
@@ -3365,7 +3250,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                       </div>
                           
                           {suitabilityResult && (
-                              <div className={`mt-3 p-4 rounded-lg border ${
+                              <div className={`mt-3 p-4 rounded-xl border ${
                                 suitabilityResult.verdict === 'Strong Match' 
                                   ? (isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200')
                                   : suitabilityResult.verdict === 'Stretch Role'
@@ -3396,7 +3281,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                     {suitabilityResult.matchScore >= 85 && (
                                       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-lg animate-pulse flex items-center gap-1">
                                         <Zap className="w-2.5 h-2.5 fill-current" />
-                                        PROFESSIONAL READY
+                                        FAANG READY
                                       </div>
                                     )}
                                   </div>
@@ -3481,7 +3366,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 }
                               }}
                               rows={3}
-                              className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm ${
+                              className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm ${
                                 isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                               }`}
                             />
@@ -3502,7 +3387,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   handleOptimize();
                                 }}
                                 disabled={isOptimizing || isExtracting}
-                                className={`flex-1 py-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${
+                                className={`flex-1 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${
                                   isOptimizing 
                                     ? 'bg-emerald-500/50 cursor-not-allowed' 
                                     : 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20'
@@ -3524,7 +3409,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               {isOptimizing && (
                                 <button
                                   onClick={handleStop}
-                                  className="px-6 py-4 rounded-lg font-bold bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-all flex items-center gap-2"
+                                  className="px-6 py-4 rounded-xl font-bold bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-all flex items-center gap-2"
                                 >
                                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                                   Stop
@@ -3533,7 +3418,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                             </div>
 
                             {/* Token Usage Display */}
-                            <div className={`mt-4 p-3 rounded-lg border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/5'}`}>
+                            <div className={`mt-4 p-3 rounded-xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/5'}`}>
                               <div className="flex justify-between items-center mb-3">
                                 <div className="flex items-center gap-2 w-full">
                                   <Cpu className="w-3 h-3 opacity-50" />
@@ -3604,7 +3489,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           
                           {/* Strategic Insights - Moved inside the build section for direct feedback */}
                           {Object.keys(results).length > 0 && activeAudience && results[activeAudience] && (
-                            <div className="mt-6 rounded-lg border overflow-hidden transition-all duration-300 bg-emerald-500/5 border-emerald-500/10">
+                            <div className="mt-6 rounded-xl border overflow-hidden transition-all duration-300 bg-emerald-500/5 border-emerald-500/10">
                               <div className="p-4 border-b border-white/10 flex items-center gap-3">
                                 <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-500">
                                   <Zap className="w-5 h-5" />
@@ -3677,7 +3562,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                       </section>
 
                       {/* Power User Tips */}
-                      <div className={`mt-6 p-4 rounded-lg border border-dashed flex items-start gap-3 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-black/10'}`}>
+                      <div className={`mt-6 p-4 rounded-xl border border-dashed flex items-start gap-3 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-black/10'}`}>
                         <div className={`p-2 rounded-lg shrink-0 ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
                           <Sparkles className="w-4 h-4" />
                         </div>
@@ -3686,8 +3571,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           <p className="text-[11px] opacity-60 leading-relaxed font-medium">
                             {(() => {
                               const tips = [
-                                "Focus on impact: 'Accomplished [X] as measured by [Y], by doing [Z]'.",
-                                "Recruiters often spend only seconds on the first pass. Keep bullets punchy and metric-heavy.",
+                                "Use the Google XYZ formula: 'Accomplished [X] as measured by [Y], by doing [Z]'.",
+                                "FAANG recruiters spend ~6 seconds on the first pass. Keep bullets punchy and metric-heavy.",
                                 "Ensure your 'Skills' section matches the JD keywords in our Registry exactly for high ATS score.",
                                 "Leadership is not just for managers. Show how you mentored peers or led cross-functional efforts.",
                                 "Cloud projects? Always include specific scale metrics (e.g., 'Serving 5M+ DAU' or 'Reduced latency by 40%')."
@@ -3709,7 +3594,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   transition={{ duration: 0.2 }}
                   className="space-y-6"
                 >
-                  <section className={`rounded-lg border p-6 shadow-sm transition-colors ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/10'}`}>
+                  <section className={`rounded-2xl border p-6 shadow-xl transition-colors ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/5'}`}>
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <Users className={`w-5 h-5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
@@ -3729,7 +3614,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     
                     {user ? (
                       <div className="space-y-4">
-                        <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                           <p className="text-sm font-medium">Logged in as: {user.email}</p>
                         </div>
 
@@ -3743,7 +3628,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               setGeminiApiKey(e.target.value);
                               setIsApiKeySaved(false);
                             }}
-                            className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
+                            className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
                               isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                             }`}
                           />
@@ -3760,7 +3645,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               setOpenaiApiKey(e.target.value);
                               setIsApiKeySaved(false);
                             }}
-                            className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
+                            className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
                               isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                             }`}
                           />
@@ -3769,7 +3654,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                         <button
                           onClick={handleSaveProfile}
                           disabled={isSavingProfile}
-                          className={`w-full py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 ${
+                          className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
                             isSavingProfile
                                ? 'bg-gray-400 text-white cursor-not-allowed'
                                : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
@@ -3784,7 +3669,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                             type="file"
                             accept=".pdf,.json,.txt"
                             onChange={handleFileUpload}
-                            className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
+                            className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
                               isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
                             }`}
                           />
@@ -3825,7 +3710,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               onCancel: () => setConfirmDialog(null)
                             });
                           }}
-                          className="w-full py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20"
+                          className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20"
                         >
                           Clear Saved API Keys
                         </button>
@@ -3839,7 +3724,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
 
                   {/* Google Drive Backups - Now integrated as a vertical component in profile */}
                   {driveAccessToken && (
-                    <div className={`mt-6 rounded-lg border overflow-hidden transition-all duration-300 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-black/5'}`}>
+                    <div className={`mt-6 rounded-xl border overflow-hidden transition-all duration-300 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-black/5'}`}>
                       <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-blue-500/20 text-blue-500">
@@ -3928,13 +3813,13 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.02 }}
-                    className={`h-full flex flex-col p-4 md:p-8 overflow-y-auto custom-scrollbar rounded-lg border ${
-                    isDarkMode ? 'bg-[#0a0a0a] border-white/10' : 'bg-white border-black/10'
+                  className={`h-full flex flex-col p-4 md:p-8 overflow-y-auto custom-scrollbar rounded-3xl border border-dashed ${
+                    isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/10'
                   }`}
                 >
                   <div className="max-w-4xl w-full mx-auto">
                     {(!isCareerToolActive && !isAdditionalToolActive) && (
-                      <div className="mb-6 px-4 py-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                      <div className="mb-6 px-4 py-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
                         <h2 className="text-xl font-bold text-emerald-500 flex items-center gap-2">
                           <Zap className="w-5 h-5" /> Professional Career Tools
                         </h2>
@@ -4013,7 +3898,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className={`h-full min-h-[500px] flex flex-col items-center justify-center text-center p-12 rounded-lg border border-dashed ${
+                  className={`h-full min-h-[500px] flex flex-col items-center justify-center text-center p-12 rounded-2xl border border-dashed ${
                     isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/10'
                   }`}
                 >
@@ -4081,53 +3966,44 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
               ) : (Object.keys(results).length === 0) ? (
                 <motion.div 
                   key="empty-state"
-                  initial={{ opacity: 0, scale: 0.98 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.02 }}
-                  className={`h-full min-h-[500px] flex flex-col p-6 md:p-8 rounded-lg border overflow-y-auto custom-scrollbar ${
-                    isDarkMode ? 'bg-[#0a0a0a] border-white/10' : 'bg-white border-black/10'
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  className={`h-full min-h-[500px] flex flex-col items-center justify-start text-center p-8 md:p-16 rounded-3xl border border-dashed relative overflow-y-auto custom-scrollbar ${
+                    isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/10'
                   }`}
                 >
-                  <div className="w-full max-w-5xl mx-auto my-auto space-y-8">
-                    <div className="flex flex-col gap-4 text-left md:flex-row md:items-end md:justify-between">
-                      <div>
-                        <div className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold ${
-                          isDarkMode ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                        }`}>
-                          <Zap className="w-3.5 h-3.5" />
-                          Resume optimization workspace
-                        </div>
-                        <h3 className={`mt-4 text-3xl font-bold tracking-tight md:text-4xl ${isDarkMode ? 'text-white' : 'text-black'}`}>
-                          Start with the job, then tune the resume.
-                        </h3>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 opacity-60 md:text-base">
-                          Fill the targeting panel on the left, run a quick suitability check if needed, then generate a focused resume version for this role.
-                        </p>
+                  {/* Background Accents */}
+                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
+                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px]" />
+                    <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px]" />
+                  </div>
+
+                  <div className="w-full max-w-4xl space-y-6 md:space-y-10 relative z-10 py-12 my-auto">
+                    <div className="space-y-4 md:space-y-6">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] md:text-xs font-bold uppercase tracking-widest border border-emerald-500/20">
+                        <Zap className="w-3 h-3" />
+                        AI-Powered Optimization
                       </div>
-                      <button
-                        onClick={() => jdTextareaRef.current?.focus()}
-                        className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-colors ${
-                          isDarkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/85'
-                        }`}
-                      >
-                        <Target className="w-4 h-4" />
-                        Add Job Details
-                      </button>
+                      <h3 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.1] ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                        Transform Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">Professional Identity</span>
+                      </h3>
+                      <p className="opacity-60 text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed font-medium px-4">
+                        Upload your resume and target a specific role. Our AI will craft a high-impact version tailored for ATS success.
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                       <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className={`group rounded-lg border p-4 text-left transition-colors focus:outline-none ${
-                          isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-black/10 bg-slate-50 hover:bg-slate-100'
-                        }`}
+                        className="space-y-2 md:space-y-4 group text-center focus:outline-none"
                       >
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${isDarkMode ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-50 text-emerald-700'}`}>
-                          <Upload className="w-5 h-5" />
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-black/5'}`}>
+                          <Upload className="w-6 h-6 md:w-8 md:h-8 text-emerald-500" />
                         </div>
-                        <div className="mt-4 space-y-1">
-                          <h4 className="font-bold text-sm">1. Input</h4>
-                          <p className="text-xs leading-5 opacity-55">Upload or sync your master resume data.</p>
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-[10px] md:text-sm uppercase tracking-widest">1. Input</h4>
+                          <p className="text-[9px] md:text-xs opacity-40">Load your current experience</p>
                         </div>
                       </button>
                       <button 
@@ -4135,47 +4011,43 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           jdTextareaRef.current?.focus();
                           jdTextareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }}
-                        className={`group rounded-lg border p-4 text-left transition-colors focus:outline-none ${
-                          isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-black/10 bg-slate-50 hover:bg-slate-100'
-                        }`}
+                        className="space-y-2 md:space-y-4 group text-center focus:outline-none"
                       >
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${isDarkMode ? 'bg-blue-500/10 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
-                          <Target className="w-5 h-5" />
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-black/5'}`}>
+                          <Target className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
                         </div>
-                        <div className="mt-4 space-y-1">
-                          <h4 className="font-bold text-sm">2. Target</h4>
-                          <p className="text-xs leading-5 opacity-55">Add role, company, and job description.</p>
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-[10px] md:text-sm uppercase tracking-widest">2. Target</h4>
+                          <p className="text-[9px] md:text-xs opacity-40">Define your dream role</p>
                         </div>
                       </button>
                       <button 
                         onClick={() => handleOptimize()}
-                        className={`group rounded-lg border p-4 text-left transition-colors focus:outline-none ${
-                          isDarkMode ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-black/10 bg-slate-50 hover:bg-slate-100'
-                        }`}
+                        className="space-y-2 md:space-y-4 group text-center focus:outline-none"
                       >
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${isDarkMode ? 'bg-amber-500/10 text-amber-300' : 'bg-amber-50 text-amber-700'}`}>
-                          <Zap className="w-5 h-5" />
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-black/5'}`}>
+                          <Zap className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
                         </div>
-                        <div className="mt-4 space-y-1">
-                          <h4 className="font-bold text-sm">3. Optimize</h4>
-                          <p className="text-xs leading-5 opacity-55">Generate, review, and export a tailored version.</p>
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-[10px] md:text-sm uppercase tracking-widest">3. Optimize</h4>
+                          <p className="text-[9px] md:text-xs opacity-40">Get your ATS-ready resume</p>
                         </div>
                       </button>
                     </div>
 
-                    <div className={`rounded-lg border px-4 py-3 ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-black/10 bg-slate-50'}`}>
-                      <div className="flex flex-wrap items-center justify-start gap-4 md:gap-8 opacity-60">
+                    <div className="pt-4 md:pt-8">
+                      <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
                         <div className="flex items-center gap-2">
                           <Cpu className="w-4 h-4 md:w-5 md:h-5" />
-                          <span className="text-xs font-semibold">Hybrid Engine</span>
+                          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Hybrid Engine</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Layout className="w-4 h-4 md:w-5 md:h-5" />
-                          <span className="text-xs font-semibold">Smart Layout</span>
+                          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Smart Layout</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <BarChart3 className="w-4 h-4 md:w-5 md:h-5" />
-                          <span className="text-xs font-semibold">ATS Scoring</span>
+                          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">ATS Scoring</span>
                         </div>
                       </div>
                     </div>
@@ -4189,7 +4061,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   className="space-y-6 h-full flex flex-col"
                 >
                   {/* Resume Preview Pane */}
-                  <div className={`flex-1 flex flex-col rounded-lg border overflow-hidden ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/10 shadow-sm'}`}>
+                  <div className={`flex-1 flex flex-col rounded-2xl border overflow-hidden ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/5 shadow-xl'}`}>
                     <div className={`p-2 md:p-4 border-b flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 md:gap-4 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/5'}`}>
                       <div className="flex flex-row items-center gap-2 md:gap-3">
                         <div className="flex flex-row gap-1 bg-black/20 dark:bg-white/5 p-1 rounded-lg">
@@ -4375,12 +4247,18 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           >
                           {previewMode === 'standard' ? (
                             <>
-                              <div className={`resume-page ${isDownloading ? '' : 'mb-8'}`}>
+                              {/* Page 1 */}
+                              <div className={`resume-page ${isDownloading ? 'page-break-after-always' : 'mb-8'}`}>
                                 {renderSection('header')}
                                 {renderSection('summary')}
                                 {renderSection('skills')}
                                 {renderSection('certifications')}
-                                {renderSection('experience', results[activeAudience!]?.experience || data.experience)}
+                                {renderSection('experience', (results[activeAudience!]?.experience || data.experience).slice(0, 3))}
+                              </div>
+
+                              {/* Page 2 */}
+                              <div className="resume-page">
+                                {renderSection('experience', (results[activeAudience!]?.experience || data.experience).slice(3), true)}
                                 {renderSection('projects')}
                                 {renderSection('education')}
                               </div>
@@ -4406,7 +4284,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                       <button 
                         onClick={downloadPDF}
                         disabled={isDownloading}
-                        className="px-6 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all transform hover:scale-105 font-bold uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:hover:scale-100"
+                        className="px-6 py-2 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-all transform hover:scale-105 font-bold uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:hover:scale-100"
                       >
                         {isDownloading ? (
                           <>
@@ -4472,4 +4350,3 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
     </div>
   );
 }
-

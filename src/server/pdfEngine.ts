@@ -205,6 +205,16 @@ export function generateProfessionalHTML(data: ResumeData): string {
       .replace(/\b(Architected|Engineered)\b/gi, 'Designed');
   };
 
+  const renderBulletPoint = (text: string) => {
+    const cleanText = text.replace(/^[•\-\*\u2022]\s*/, '').trim();
+    return `
+      <li style="display: flex; align-items: flex-start; margin-bottom: 3.5pt; font-size: 9.5pt; color: #374151;">
+        <span style="margin-right: 6pt; line-height: 1.45; font-size: 10pt; color: #111827;">•</span>
+        <span style="line-height: 1.45;">${cleanText}</span>
+      </li>
+    `;
+  };
+
   const renderExperience = (item: any) => `
     <div class="experience-item" style="break-inside: avoid; margin-bottom: 12pt;">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2pt;">
@@ -215,8 +225,8 @@ export function generateProfessionalHTML(data: ResumeData): string {
         </div>
         <div style="font-size: 9.5pt; font-weight: 500; color: #6b7280;">${item.duration}</div>
       </div>
-      <ul style="margin: 0; padding-left: 14pt;">
-        ${item.bullets.map((b: string) => `<li style="font-size: 9.5pt; line-height: 1.4; margin-bottom: 3pt; color: #374151;">${sanitizeBullet(b)}</li>`).join('')}
+      <ul style="margin: 0; padding: 0; list-style: none;">
+        ${item.bullets.map((b: string) => renderBulletPoint(sanitizeBullet(b))).join('')}
       </ul>
     </div>
   `;
@@ -311,6 +321,15 @@ export function generateProfessionalHTML(data: ResumeData): string {
           </div>
         `).join('')}
       </section>
+
+      ${certifications && certifications.length > 0 ? `
+        <section style="break-inside: avoid;">
+          <div class="section-header">Professional Certifications</div>
+          <ul style="margin: 0; padding: 0; list-style: none;">
+            ${certifications.map(c => renderBulletPoint(c)).join('')}
+          </ul>
+        </section>
+      ` : ''}
     </body>
     </html>
   `;

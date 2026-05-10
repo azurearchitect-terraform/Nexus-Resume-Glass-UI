@@ -15,14 +15,13 @@ import admin from "firebase-admin";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import * as Optimization from "./server/optimization.ts";
 import { renderResumeToHTML } from "./server/resumeTemplate.ts";
-import { generateProfessionalHTML, ResumeData } from "./src/server/pdfEngine";
 import { pipelineCache } from "./server/cacheUtility";
 import { calculateCost, UsageLog } from "./server/analytics";
 import { runAgents } from "./server/agents";
 import { generatePerRole } from "./server/roleGenerator";
 import { deduplicateAndScore } from "./server/dedup";
 import { saveResumeVersion } from "./server/memory";
-// import { scrapeJobs } from "./server/jobScraper";
+import { scrapeJobs } from "./server/jobScraper";
 
 dotenv.config();
 
@@ -74,7 +73,7 @@ async function getApiKeys(idToken: string) {
         }
       } catch (error: any) {
         if (error.message.includes("DECRYPTION_FAILED")) {
-          console.warn(`[Server] Decryption failed for user ${uid}. This usually happens after an API key rotation.`);
+          console.warn(`[Server] Decryption failed for user ${uid}. Treating as no key found.`);
           return null;
         }
         throw error;
@@ -113,85 +112,57 @@ setInterval(() => {
 // Encryption Setup
 // We use a stable key derived from GEMINI_API_KEY if ENCRYPTION_KEY is not provided.
 // This prevents "bad decrypt" errors after server restarts.
-const getEncryptionKeys = () => {
+const getEncryptionKey = () => {
   const envKey = process.env.ENCRYPTION_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
-  const staticFallback = "4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b";
-  const nexusProFallback = "f7e8d9c8b7a69584736251403f2e1d0c9b8a7968574635241302f1e0d9c8b7a6"; // NexusPro Stable Fallback
   
-  const keys: Buffer[] = [];
-
-  // 1. Try Environment Key (Highest Priority - explicitly set by user)
   if (envKey) {
     if (envKey.length === 64) {
-      keys.push(Buffer.from(envKey, 'hex'));
+      console.log("[Encryption] Using ENCRYPTION_KEY from environment.");
+      return envKey;
     } else {
-      keys.push(crypto.createHash('sha256').update(envKey).digest());
+      console.warn("[Encryption] ENCRYPTION_KEY in environment is not 64 characters. Hashing it to ensure 32-byte key.");
+      return crypto.createHash('sha256').update(envKey).digest('hex');
     }
   }
   
-  // 2. Try NexusPro Stable Fallback (Primary default when no env var is set)
-  // This ensures stable encryption across API key rotations.
-  keys.push(Buffer.from(nexusProFallback, 'hex'));
-
-  // 3. Try Gemini Key Hash (Kept for backward compatibility with data encrypted before this fix)
   if (geminiKey) {
-    keys.push(crypto.createHash('sha256').update(geminiKey).digest());
+    console.log("[Encryption] Deriving ENCRYPTION_KEY from GEMINI_API_KEY.");
+    return crypto.createHash('sha256').update(geminiKey).digest('hex');
   }
   
-  // 4. Always include legacy static fallback
-  keys.push(Buffer.from(staticFallback, 'hex'));
-  
-  // Deduplicate keys (keeping order)
-  const uniqueKeys: Buffer[] = [];
-  const seen = new Set<string>();
-  for (const k of keys) {
-    const hex = k.toString('hex');
-    if (!seen.has(hex)) {
-      seen.add(hex);
-      uniqueKeys.push(k);
-    }
-  }
-  
-  return uniqueKeys;
+  console.warn("[Encryption] No ENCRYPTION_KEY or GEMINI_API_KEY found. Using static fallback key. WARNING: Your encrypted data will be lost if you provide an API key later.");
+  return "4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b"; 
 };
 
-const ENCRYPTION_KEYS = getEncryptionKeys();
-const PRIMARY_KEY = ENCRYPTION_KEYS[0];
+const ENCRYPTION_KEY = getEncryptionKey();
 const IV_LENGTH = 16;
 
 function encrypt(text: string) {
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv('aes-256-cbc', PRIMARY_KEY, iv);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
   let encrypted = cipher.update(text);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
   return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
 function decrypt(text: string) {
-  const textParts = text.split(':');
-  if (textParts.length < 2) throw new Error("Invalid encrypted text format");
-  const iv = Buffer.from(textParts.shift()!, 'hex');
-  const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-
-  let lastError: any = null;
-
-  // Try all potential keys (current, derived, and fallback)
-  for (const key of ENCRYPTION_KEYS) {
-    try {
-      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-      let decrypted = decipher.update(encryptedText);
-      decrypted = Buffer.concat([decrypted, decipher.final()]);
-      return decrypted.toString();
-    } catch (error: any) {
-      lastError = error;
-      // Continue to next key if it's likely a wrong key error
-      continue;
+  try {
+    const textParts = text.split(':');
+    if (textParts.length < 2) throw new Error("Invalid encrypted text format");
+    const iv = Buffer.from(textParts.shift()!, 'hex');
+    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  } catch (error: any) {
+    console.error("Decryption Error:", error);
+    if (error.message.includes('bad decrypt') || error.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
+      throw new Error("DECRYPTION_FAILED: The encryption key has changed or the data is corrupted. Please re-save your API keys in your profile.");
     }
+    throw error;
   }
-
-  // If we reach here, all keys failed
-  throw new Error("DECRYPTION_FAILED: The encryption key has changed or the data is corrupted. Please re-save your API keys in your profile.");
 }
 
 async function startServer() {
@@ -607,13 +578,6 @@ async function startServer() {
       }
       res.json({ keys });
     } catch (error: any) {
-      if (error.message.includes("DECRYPTION_FAILED")) {
-        console.warn(`[Server] Decryption failed for keys. This usually happens after an API key rotation.`);
-        return res.status(401).json({ 
-          error: "DECRYPTION_FAILED",
-          message: "The encryption key has changed. Please re-save your API keys in your profile."
-        });
-      }
       console.error("Decryption Error:", error);
       res.status(500).json({ error: "Failed to decrypt API keys" });
     }
@@ -819,37 +783,53 @@ async function startServer() {
 
       // STEP 3: Gemini 3.1 Pro (Premium) - Final Generation
       const finalPrompt = `
-        You are a senior professional resume strategist.
+        You are a senior executive resume strategist. 
         Optimize this structured resume data for the target role: ${targetRole}.
         Audience: ${audience}. Mode: ${mode}.
-        
-        STRICT PROFESSIONAL RESUME RULES:
-        1. Impact Formula: "Accomplished [X] by [Z] as measured by [Y]."
-        2. Action: Strong, past-tense verb at start.
-        3. Metrics: Inject reasonable, industry-standard metrics where appropriate based on source data.
-        4. Structure: Use as many bullets as needed to convey the full scope of the role, maintaining scannability.
-        5. Clarity: Professional and clear language.
-        6. Tech: Integrate all relevant tools and technologies naturally.
-        7. Maintain titles; include ALL roles/certs.
-
         ${customPrompt ? `Custom Instructions: ${customPrompt}` : ''}
-        ${brainDump ? `ADDITIONAL CONTEXT: ${brainDump}\nSift through this raw data and include relevant achievements that were missing from the original resume.` : ''}
+        ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
         
         CORPORATE DNA TAILORING:
-        ${targetCompany ? `Tailor appropriately for ${targetCompany}. Focus on specific impacts and technologies relevant to their industry.` : ''}
+        ${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results". Use terminology from Amazon Leadership Principles.' : ''}
+        ${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale", "Cloud Transformation", and "Collaborative Ecosystems".' : ''}
+        ${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design", "Extreme Scale", "Algorithmic Efficiency", and "Google XYZ Formula".' : ''}
+        ${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast", "Shipping End-to-End Impact", and "Performance Optimization".' : ''}
+        ${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery", "Global Managed Services", and "Cross-functional Deployment".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
         
-        Return the optimized result as a valid JSON object.
-        RESUME DATA:
-        ${JSON.stringify(optimizedInput)}
+        PLAYER-COACH MODE:
+        ${mode === 'Player-Coach' ? `
+          - 60/40 BALANCE: 60% Execution (Azure infra, Site Recovery, Entra ID), 40% Leadership (Mentoring, Agile pods, Architecture reviews).
+          - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized," "Spearheaded."
+          - STRICT NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". Focus entirely on Azure Infrastructure.
+        ` : ''}
 
+        INPUT DATA (Optimized):
+        ${JSON.stringify(optimizedInput, null, 2)}
+        
         STRICT RULES:
-        * Focus on JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
-        * Titles: Never modify. Include ALL roles/certs.
-        * No Hallucinations: Use only provided Input Data.
-        * Achievement focus: Achievement-oriented bullets.
-        * Comprehensive: Ensure every role provided in the input is represented appropriately.
-        * Anchoring: Bullets only based on role's provided context and brain dump.
-        * Allowed Verbs: Use strong action verbs (Led, Developed, Architected, Managed, etc.).
+        1. TONE & FOCUS: Maintain a professional, concise, executive-level tone suitable for FAANG, Senior Cloud Architect, or Director-level infrastructure roles. Focus heavily on these JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
+        
+        2. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
+        
+        3. INCLUDE ALL ROLES: You MUST include every single role provided in the INPUT DATA. Do not skip any jobs, even very old ones.
+        
+        4. NO HALLUCINATIONS: DO NOT invent, suggest, or add any certifications, skills, metrics, or experience that are not explicitly present in the INPUT DATA. Do not "suggest" certifications if the user doesn't have them.
+        
+        5. BREVITY & DENSITY: Bullet points MUST be dense and achievement-oriented (recommended length: 15-20 words). Prioritize hard skills, tools, and scale metrics over verbose filler jargon.
+        
+        6. RECENT ROLE EXPANSION (Post-2018) - ABSOLUTE REQUIREMENT: You MUST output EXACTLY 4 to 5 bullet points for EVERY single role that occurred after 2018. DO NOT merge, combine, or consolidate the original bullets, even if the role was only a few months long. If the input has 5 bullets for a recent role, you must rewrite and output exactly 4 or 5 bullets. No exceptions.
+        
+        7. OLDER ROLE COMPRESSION (Pre-2018): Provide EXACTLY one (1) bullet point maximum for roles and projects that occurred before 2018. Focus on foundational infrastructure experience.
+        
+        8. SOURCE ANCHORING (CRITICAL): Each experience entry contains ORIGINAL BULLETS. You MUST derive new bullets ONLY from that specific role’s original content. Do NOT borrow, reuse, or "hallucinate" content from other roles to fill gaps.
+        
+        9. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
+        
+        10. VERB CONTROL: Avoid forbidden buzzwords like "Spearheaded", "Visionary", "Dynamic", or "Guru". For execution bullets, use allowed verbs: "Deployed", "Maintained", "Utilized", "Provisioned".
+        
+        11. ANTI-DUPLICATION: Avoid semantic repetition across roles. Each role should demonstrate distinct business or technical impact. Do not repeat identical achievement phrasing.
+        
+        12. DEVOPS BAN: The terms "CI/CD", "Pipelines", and "DevOps" are ABSOLUTELY FORBIDDEN. Focus the narrative entirely on Azure Infrastructure, HA/DR, and Governance.
         
         
         OUTPUT SCHEMA (MUST MATCH EXACTLY):
@@ -1005,16 +985,14 @@ async function startServer() {
           }, null, 2)}
           
           RULES:
-          - Summary: Concise, technical, and high-signal (approx 80-100 words). Avoid robotic phrases like "Strategic Leader". Use: "Infrastructure professional with X years of experience in...".
-          - Skills: Categorize into exactly 4 logical categories.
-          - Why This Job: 100-150 words response.
+          - Summary: Approx 100 words.
+          - Skills: Categorize into exactly 4 logical categories relevant to ${targetRole}. Rename 'DevOps & Automation' to 'Infrastructure Operations & Automation'. Strictly replace 'CI/CD Pipeline Design' with 'Infrastructure Provisioning'.
+          - Why This Job: 100-150 words compelling response.
           - DO NOT invent certifications.
-          - Brevity & Density: Bullet points MUST be concise and high-signal (max 20 words). Prioritize hard skills and verifiable outcomes.
-          - ANTI-BUZZWORD SYSTEM: ABSOLUTELY FORBIDDEN verbs: "Architected", "Spearheaded", "Orchestrated", "Championed", "Visionary", "Dynamic", "Engineered".
-          - ALLOWED ACTION VERBS: "Led", "Designed", "Implemented", "Improved", "Reduced", "Optimized", "Managed", "Delivered", "Supported", "Built".
-          - Balanced IaC: Limit Terraform/IaC to 2 bullet points TOTAL across entire resume.
-          - SCALE CONTROL: Do not exaggerate scale (e.g. "massive", "global") unless explicitly in source data.
-          - GLOBAL NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". Focus on Azure Migration, FinOps, HA/DR, and Governance.
+          - Brevity & Density: Bullet points MUST be concise and dense (max 15 words). Prioritize hard skills, tools, and metrics over verbose jargon.
+          - Balanced IaC: Terraform/IaC permitted, limited to 2 bullet points TOTAL across entire resume. Forbidden verbs: "Architected", "Engineered", "Spearheaded". Allowed: "Deployed", "Maintained", "Utilized", "Provisioned".
+          - Pre-2018 Compression: Before 2018, provide EXACTLY one (1) bullet point maximum for projects.
+          - GLOBAL NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". These terms MUST NOT appear anywhere in the output, including project summaries, skill categories, or bullet points. Focus project summaries entirely on Azure Migration, FinOps, HA/DR, and Governance.
           
           OUTPUT JSON SCHEMA:
           {
@@ -1250,63 +1228,6 @@ async function startServer() {
     await handlePdfGeneration(session.html, session.css, session.fonts, res, session.title);
   });
 
-  /**
-   * PRODUCTION-GRADE PDF ENDPOINT
-   * Accepts structured JSON and renders a professional 2-page PDF.
-   */
-  app.post("/api/generate-production-pdf", async (req, res) => {
-    try {
-      const data: ResumeData = req.body;
-      if (!data || !data.personal_info) {
-        return res.status(400).json({ error: "Invalid resume data provided." });
-      }
-
-      const html = generateProfessionalHTML(data);
-      
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--font-render-hinting=none",
-        ],
-      });
-
-      const page = await browser.newPage();
-      
-      // Essential for A4 scaling accuracy
-      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
-
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-      await page.evaluateHandle('document.fonts.ready');
-
-      const pdf = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        displayHeaderFooter: false,
-        preferCSSPageSize: true,
-        scale: 0.95, // Subtle scaling to ensure margin safety
-        margin: {
-          top: '0mm',
-          right: '0mm',
-          bottom: '0mm',
-          left: '0mm'
-        }
-      });
-
-      await browser.close();
-
-      res.contentType("application/pdf");
-      const safeName = data.personal_info.name.replace(/[^a-zA-Z0-9]/g, '_');
-      res.setHeader('Content-Disposition', `attachment; filename="${safeName}_Resume.pdf"`);
-      res.send(pdf);
-    } catch (error: any) {
-      console.error("PRODUCTION PDF ERROR:", error);
-      res.status(500).json({ error: "Failed to generate professional PDF", details: error.message });
-    }
-  });
-
   async function handlePdfGeneration(html: string, css: string, fonts: string, res: any, title: string = "Resume") {
     if (!html) {
       return res.status(400).json({ error: "HTML content is required" });
@@ -1352,7 +1273,7 @@ async function startServer() {
               * { box-sizing: border-box; }
               @page { 
                 size: A4; 
-                margin: 15mm 15mm; 
+                margin: 0; /* No margins to allow fixed-height pages to fit */
               }
               html, body {
                 margin: 0;
@@ -1365,6 +1286,7 @@ async function startServer() {
               /* Ensure the resume container takes full width */
               #resume-container, .resume-page {
                 width: 100% !important;
+                margin: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
               }
@@ -1372,20 +1294,9 @@ async function startServer() {
               ${css || ''}
               ${fonts || ''}
                 h1, h2, h3, h4 { margin-top: 6px !important; margin-bottom: 2px !important; }
-                ul { margin-top: 2px !important; margin-bottom: 6px !important; padding-left: 30px !important; }
+                ul { margin-top: 2px !important; margin-bottom: 6px !important; padding-left: 20px !important; }
                 li { margin-bottom: 2px !important; }
-                .resume-section > div, .experience-item { break-inside: avoid; page-break-inside: avoid; }
-                .resume-page { padding: 6mm !important; }
-                .resume-section { margin-left: 0 !important; margin-right: 0 !important; padding-left: 15px !important; padding-right: 15px !important; }
-                .resume-section h2 { font-size: 17px !important; }
-                .resume-section h1 { font-size: 30px !important; }
-                * { overflow: visible !important; }
-                .grid { gap: 20px !important; }
-                .grid > div { padding-left: 2px !important; }
-                .text-\[11px\], .text-\[10\.5px\] { font-size: 13px !important; }
-                .resume-bullet-text { font-size: 13px !important; }
-                p { font-size: 13px !important; }
-                .experience-item span { font-size: 14px !important; }
+                .experience-item { margin-bottom: 8px !important; page-break-inside: avoid; }
             </style>
           </head>
           <body>
@@ -1408,7 +1319,8 @@ async function startServer() {
         format: "A4",
         printBackground: true,
         displayHeaderFooter: false,
-        preferCSSPageSize: true
+        preferCSSPageSize: true,
+        pageRanges: "1-2"
       });
 
       console.log(`PDF generated. Size: ${pdfBuffer.length} bytes`);
