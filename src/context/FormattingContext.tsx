@@ -2,11 +2,11 @@ import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 export const DEFAULT_STYLE = {
   fontFamily: 'Inter',
-  fontSize: 10.5,
+  fontSize: 11,
   lineHeight: 1.5,
   letterSpacing: 0,
   padding: 8,
-  margin: 8,
+  margin: 10,
   color: '#1a1a1a',
 };
 

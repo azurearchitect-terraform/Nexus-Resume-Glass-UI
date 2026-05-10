@@ -2426,7 +2426,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
               marginBottom: `${getSectionStyle('header').margin}px`,
             }}
           >
-            <h1 className="font-bold uppercase tracking-[0.2em] mb-1" style={{ fontSize: '26px' }}>
+            <h1 className="font-bold uppercase tracking-[0.2em] mb-1" style={{ fontSize: '28px' }}>
               {personalInfo.name}
             </h1>
             <div className="font-semibold opacity-80 border-t-2 border-black/10 pt-3 flex justify-center items-center gap-x-4 gap-y-1 flex-wrap" style={{ fontSize: '11px', lineHeight: '1.2' }}>
@@ -2585,10 +2585,10 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
             {allExp.map((exp: any, i: number) => (
               <div key={i} className="mb-3 last:mb-0">
                 <div className="flex justify-between font-bold items-baseline mb-0.5">
-                  <span style={{ fontSize: '13px' }}>{exp.role}</span>
+                  <span style={{ fontSize: '14px' }}>{exp.role}</span>
                   <span className="opacity-70 font-medium italic" style={{ fontSize: '11px' }}>{exp.duration}</span>
                 </div>
-                <div className="font-semibold mb-2 text-emerald-700" style={{ fontSize: '12px' }}>{exp.company}</div>
+                <div className="font-semibold mb-2 text-emerald-700" style={{ fontSize: '13px' }}>{exp.company}</div>
                 <div className="space-y-1">
                   {Array.isArray(exp.bullets) && exp.bullets.map((b: string, bi: number) => (
                     <div key={bi} className="resume-bullet-item">
@@ -2626,7 +2626,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
             </h2>
             <div className="space-y-3">
               {allProjects.map((proj: any, i: number) => (
-                <div key={i} className="mb-3 last:mb-0">
+                <div key={i} className="mb-3 last:mb-0 experience-item">
                   <div className="font-bold mb-1" style={{ fontSize: '13px' }}>
                     {typeof proj === 'string' ? proj : (proj as any).title}
                   </div>

@@ -15,6 +15,7 @@ import admin from "firebase-admin";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import * as Optimization from "./server/optimization.ts";
 import { renderResumeToHTML } from "./server/resumeTemplate.ts";
+import { generateProfessionalHTML, ResumeData } from "./src/server/pdfEngine";
 import { pipelineCache } from "./server/cacheUtility";
 import { calculateCost, UsageLog } from "./server/analytics";
 import { runAgents } from "./server/agents";
@@ -73,7 +74,7 @@ async function getApiKeys(idToken: string) {
         }
       } catch (error: any) {
         if (error.message.includes("DECRYPTION_FAILED")) {
-          console.warn(`[Server] Decryption failed for user ${uid}. Treating as no key found.`);
+          console.warn(`[Server] Decryption failed for user ${uid}. This usually happens after an API key rotation.`);
           return null;
         }
         throw error;
@@ -116,10 +117,11 @@ const getEncryptionKeys = () => {
   const envKey = process.env.ENCRYPTION_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const staticFallback = "4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b";
+  const nexusProFallback = "f7e8d9c8b7a69584736251403f2e1d0c9b8a7968574635241302f1e0d9c8b7a6"; // NexusPro Stable Fallback
   
   const keys: Buffer[] = [];
 
-  // 1. Try Environment Key
+  // 1. Try Environment Key (Highest Priority - explicitly set by user)
   if (envKey) {
     if (envKey.length === 64) {
       keys.push(Buffer.from(envKey, 'hex'));
@@ -128,15 +130,30 @@ const getEncryptionKeys = () => {
     }
   }
   
-  // 2. Try Gemini Key Hash
+  // 2. Try NexusPro Stable Fallback (Primary default when no env var is set)
+  // This ensures stable encryption across API key rotations.
+  keys.push(Buffer.from(nexusProFallback, 'hex'));
+
+  // 3. Try Gemini Key Hash (Kept for backward compatibility with data encrypted before this fix)
   if (geminiKey) {
     keys.push(crypto.createHash('sha256').update(geminiKey).digest());
   }
   
-  // 3. Always include static fallback as a last resort for legacy data
+  // 4. Always include legacy static fallback
   keys.push(Buffer.from(staticFallback, 'hex'));
   
-  return keys;
+  // Deduplicate keys (keeping order)
+  const uniqueKeys: Buffer[] = [];
+  const seen = new Set<string>();
+  for (const k of keys) {
+    const hex = k.toString('hex');
+    if (!seen.has(hex)) {
+      seen.add(hex);
+      uniqueKeys.push(k);
+    }
+  }
+  
+  return uniqueKeys;
 };
 
 const ENCRYPTION_KEYS = getEncryptionKeys();
@@ -168,19 +185,13 @@ function decrypt(text: string) {
       return decrypted.toString();
     } catch (error: any) {
       lastError = error;
-      // Continue to next key if it's a decrypt error
-      if (error.message.includes('bad decrypt') || error.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
-        continue;
-      }
-      throw error;
+      // Continue to next key if it's likely a wrong key error
+      continue;
     }
   }
 
   // If we reach here, all keys failed
-  if (lastError && (lastError.message.includes('bad decrypt') || lastError.code === 'ERR_OSSL_EVP_BAD_DECRYPT')) {
-    throw new Error("DECRYPTION_FAILED: The encryption key has changed or the data is corrupted. Please re-save your API keys in your profile.");
-  }
-  throw lastError || new Error("Decryption failed");
+  throw new Error("DECRYPTION_FAILED: The encryption key has changed or the data is corrupted. Please re-save your API keys in your profile.");
 }
 
 async function startServer() {
@@ -597,7 +608,7 @@ async function startServer() {
       res.json({ keys });
     } catch (error: any) {
       if (error.message.includes("DECRYPTION_FAILED")) {
-        console.warn(`[Server] Decryption failed for keys. Key mismatch suspected.`);
+        console.warn(`[Server] Decryption failed for keys. This usually happens after an API key rotation.`);
         return res.status(401).json({ 
           error: "DECRYPTION_FAILED",
           message: "The encryption key has changed. Please re-save your API keys in your profile."
@@ -1237,6 +1248,63 @@ async function startServer() {
     await handlePdfGeneration(session.html, session.css, session.fonts, res, session.title);
   });
 
+  /**
+   * PRODUCTION-GRADE PDF ENDPOINT
+   * Accepts structured JSON and renders a professional 2-page PDF.
+   */
+  app.post("/api/generate-production-pdf", async (req, res) => {
+    try {
+      const data: ResumeData = req.body;
+      if (!data || !data.personal_info) {
+        return res.status(400).json({ error: "Invalid resume data provided." });
+      }
+
+      const html = generateProfessionalHTML(data);
+      
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--font-render-hinting=none",
+        ],
+      });
+
+      const page = await browser.newPage();
+      
+      // Essential for A4 scaling accuracy
+      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
+
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await page.evaluateHandle('document.fonts.ready');
+
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        displayHeaderFooter: false,
+        preferCSSPageSize: true,
+        scale: 0.95, // Subtle scaling to ensure margin safety
+        margin: {
+          top: '0mm',
+          right: '0mm',
+          bottom: '0mm',
+          left: '0mm'
+        }
+      });
+
+      await browser.close();
+
+      res.contentType("application/pdf");
+      const safeName = data.personal_info.name.replace(/[^a-zA-Z0-9]/g, '_');
+      res.setHeader('Content-Disposition', `attachment; filename="${safeName}_Resume.pdf"`);
+      res.send(pdf);
+    } catch (error: any) {
+      console.error("PRODUCTION PDF ERROR:", error);
+      res.status(500).json({ error: "Failed to generate professional PDF", details: error.message });
+    }
+  });
+
   async function handlePdfGeneration(html: string, css: string, fonts: string, res: any, title: string = "Resume") {
     if (!html) {
       return res.status(400).json({ error: "HTML content is required" });
@@ -1282,7 +1350,7 @@ async function startServer() {
               * { box-sizing: border-box; }
               @page { 
                 size: A4; 
-                margin: 0; /* No margins to allow fixed-height pages to fit */
+                margin: 15mm 15mm; 
               }
               html, body {
                 margin: 0;
@@ -1295,7 +1363,6 @@ async function startServer() {
               /* Ensure the resume container takes full width */
               #resume-container, .resume-page {
                 width: 100% !important;
-                margin: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
               }
@@ -1303,9 +1370,19 @@ async function startServer() {
               ${css || ''}
               ${fonts || ''}
                 h1, h2, h3, h4 { margin-top: 6px !important; margin-bottom: 2px !important; }
-                ul { margin-top: 2px !important; margin-bottom: 6px !important; padding-left: 20px !important; }
+                ul { margin-top: 2px !important; margin-bottom: 6px !important; padding-left: 30px !important; }
                 li { margin-bottom: 2px !important; }
-                .experience-item { margin-bottom: 8px !important; page-break-inside: avoid; }
+                .resume-section > div, .experience-item { break-inside: avoid; page-break-inside: avoid; }
+                .resume-page { padding: 2mm !important; }
+                .resume-section { margin-left: 0 !important; margin-right: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
+                .resume-section h2 { font-size: 17px !important; }
+                .resume-section h1 { font-size: 30px !important; }
+                * { overflow: visible !important; }
+                .grid { gap: 15px !important; }
+                .text-\[11px\], .text-\[10\.5px\] { font-size: 13px !important; }
+                .resume-bullet-text { font-size: 13px !important; }
+                p { font-size: 13px !important; }
+                .experience-item span { font-size: 14px !important; }
             </style>
           </head>
           <body>
@@ -1328,8 +1405,7 @@ async function startServer() {
         format: "A4",
         printBackground: true,
         displayHeaderFooter: false,
-        preferCSSPageSize: true,
-        pageRanges: "1-2"
+        preferCSSPageSize: true
       });
 
       console.log(`PDF generated. Size: ${pdfBuffer.length} bytes`);
