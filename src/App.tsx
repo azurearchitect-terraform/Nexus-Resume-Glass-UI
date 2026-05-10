@@ -3737,13 +3737,24 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                             <p className="text-[10px] opacity-50">PDF Archive in Google Drive</p>
                           </div>
                         </div>
-                        <button 
-                          onClick={fetchDriveFiles}
-                          disabled={isFetchingDriveFiles}
-                          className={`p-2 rounded-lg hover:bg-white/5 transition-colors ${isFetchingDriveFiles ? 'animate-spin opacity-50' : ''}`}
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={fetchDriveFiles}
+                            disabled={isFetchingDriveFiles}
+                            className={`p-2 rounded-lg hover:bg-white/5 transition-colors ${isFetchingDriveFiles ? 'animate-spin opacity-50' : ''}`}
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setIsSelectingFolder(true)}
+                            className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition-colors"
+                          >
+                            Change Folder
+                          </button>
+                        </div>
+                      </div>
+                      <div className="px-4 py-2 text-[10px] opacity-60">
+                        Current folder: {selectedDriveFolder?.name || 'Default (Root)'}
                       </div>
                       <div className="p-2 max-h-60 overflow-y-auto custom-scrollbar">
                         {isFetchingDriveFiles && driveFiles.length === 0 ? (
@@ -4341,6 +4352,17 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           isDarkMode={isDarkMode}
         />
         <ResumeJsonViewer isOpen={showJsonViewer} onClose={() => setShowJsonViewer(false)} />
+        <DriveFolderPicker
+          isOpen={isSelectingFolder}
+          onClose={() => setIsSelectingFolder(false)}
+          onSelect={(folder) => {
+            setSelectedDriveFolder(folder);
+            setIsSelectingFolder(false);
+            showToast(`Selected folder: ${folder.name}`, 'success');
+          }}
+          accessToken={driveAccessToken}
+          isDarkMode={isDarkMode}
+        />
         <CommandPalette 
           isOpen={isCommandPaletteOpen}
           onClose={() => setIsCommandPaletteOpen(false)}
