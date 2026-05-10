@@ -2668,6 +2668,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           onEmailSignUp={handleEmailSignUp}
           onPasswordReset={handlePasswordReset}
           externalError={error}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
         />
       </Suspense>
     );
@@ -2767,7 +2769,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           <main className="flex-1 flex flex-col sm:flex-row overflow-hidden relative w-full h-full bg-neutral-100 dark:bg-neutral-900" ref={containerRef}>
               
               {/* Only show Config Pane if NOT on tools or jobs */}
-              {activeTab !== 'tools' && activeTab !== 'jobs' && (
+              {activeTab !== 'tools' && (
                 <div 
                   ref={leftPanelRef}
                   className={`flex flex-col h-full border-r relative transition-all duration-200 ease-in-out ${isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/5'} z-10 ${isFocusMode ? 'w-0 opacity-0 pointer-events-none border-none hidden sm:flex' : ''} ${isMobile ? 'h-1/2 sm:h-full w-full' : ''}`}

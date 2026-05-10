@@ -25,8 +25,8 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
   const [status, setStatus] = useState<'active' | 'paused' | 'completed' | 'idle'>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const masterSkills = Array.isArray(masterResume.core_competencies) 
-    ? masterResume.core_competencies.map(c => c.skill)
+  const masterSkills = Array.isArray((masterResume as any).core_competencies) 
+    ? (masterResume as any).core_competencies.map((c: any) => c.skill)
     : typeof masterResume.skills === 'object' && !Array.isArray(masterResume.skills)
       ? Object.values(masterResume.skills).flat() as string[]
       : Array.isArray(masterResume.skills)

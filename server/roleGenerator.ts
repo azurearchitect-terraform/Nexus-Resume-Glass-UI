@@ -29,13 +29,19 @@ GLOBAL SYSTEM RULES (STRICT ENFORCEMENT):
 1. ZERO-SHOT ANTI-HALLUCINATION: Use ONLY the provided role data. Do NOT invent numbers, percentages, budgets, or metrics.
 2. TENURE & TIMELINE AWARENESS: 
    - For short tenures (under 6 months): Focus on "Rapid Delivery," "Auditing," or "Assessment." CRITICAL: Do NOT alter the job title or append the word "(Contract)" to short roles. Leave the title exactly as provided.
-3. BREVITY & DENSITY: Recruiters skim. Bullet points should be concise and impactful. Prioritize hard skills, tools, and metrics. Max 20 words per bullet.
-4. ANTI-BUZZWORD SYSTEM: ABSOLUTELY FORBIDDEN verbs: "Architected", "Spearheaded", "Orchestrated", "Championed", "Visionary", "Dynamic", "Engineered".
-5. ALLOWED ACTION VERBS: "Led", "Designed", "Implemented", "Improved", "Reduced", "Optimized", "Managed", "Delivered", "Supported", "Built".
-6. SCALE CONTROL: Do not exaggerate scale (e.g. "massive", "global") unless explicitly in source data.
-7. PLAYER-COACH MODE: ONLY IF mode is 'Player-Coach':
-   - BALANCE: 60% Execution (Azure infra), 40% Leadership (Mentoring).
-   - HYBRID VOCABULARY: Use "Led & Mentored," "Designed & Standardized."
+3. BREVITY & DENSITY: Recruiters skim. Bullet points should be concise and impactful. Prioritize hard skills, tools, and metrics.
+4. COMPREHENSIVE DETAIL: Include all significant achievements provided in the source ROLE DATA. Do not arbitrarily cap the number of bullet points unless necessary for layout (aim for high impact).
+5. CLOUD & INFRASTRUCTURE: Use professional terminology naturally.
+6. NO ARBITRARY COMPRESSION: Older roles should still be accurately represented with multiple bullet points if the source data contains them.
+7. ACCURATE TERMINOLOGY: Include all relevant technical skills and tools (e.g., CI/CD, DevOps, Cloud Platforms) as they appear in the source data.
+8. PLAYER-COACH MODE: ONLY IF mode is 'Player-Coach':
+   - BALANCE: 60% Execution (Azure infra), 40% Leadership (Mentoring, Architecture reviews).
+   - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized."
+9. GOOGLE XYZ FORMULA: ALL high-impact bullets MUST conform to the formula: "Accomplished [X] as measured by [Y], by doing [Z]."
+   - [X] = The impact or accomplishment.
+   - [Y] = The metrics, data, or scale (e.g. "by 20%", "$50k revenue", "1M+ users").
+   - [Z] = The mechanism, action, or skill used (e.g. "by Implementing Terraform", "by re-architecting Azure SQL").
+
 
 OUTPUT SCHEMA:
 Return ONLY a valid JSON array of strings containing the high-impact bullet points for this role. Do not include keys, objects, or markdown formatting outside the array. Example: ["Bullet 1", "Bullet 2"]

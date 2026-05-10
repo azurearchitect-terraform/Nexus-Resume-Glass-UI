@@ -21,7 +21,7 @@ import { runAgents } from "./server/agents";
 import { generatePerRole } from "./server/roleGenerator";
 import { deduplicateAndScore } from "./server/dedup";
 import { saveResumeVersion } from "./server/memory";
-import { scrapeJobs } from "./server/jobScraper";
+// import { scrapeJobs } from "./server/jobScraper";
 
 dotenv.config();
 

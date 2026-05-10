@@ -47,7 +47,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             type: 'element',
             title: type.charAt(0).toUpperCase() + type.slice(1),
             subtitle: content.substring(0, 60) + (content.length > 60 ? '...' : ''),
-            icon: type === 'experience' ? Briefcase : type === 'education' ? GraduationCap : type === 'skills' ? Code : FileText,
+            icon: (type as any) === 'experience' ? Briefcase : (type as any) === 'education' ? GraduationCap : (type as any) === 'skills' ? Code : FileText,
             action: () => {
               selectElement(el.id);
               onClose();
