@@ -1373,12 +1373,13 @@ async function startServer() {
                 ul { margin-top: 2px !important; margin-bottom: 6px !important; padding-left: 30px !important; }
                 li { margin-bottom: 2px !important; }
                 .resume-section > div, .experience-item { break-inside: avoid; page-break-inside: avoid; }
-                .resume-page { padding: 2mm !important; }
-                .resume-section { margin-left: 0 !important; margin-right: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
+                .resume-page { padding: 6mm !important; }
+                .resume-section { margin-left: 0 !important; margin-right: 0 !important; padding-left: 15px !important; padding-right: 15px !important; }
                 .resume-section h2 { font-size: 17px !important; }
                 .resume-section h1 { font-size: 30px !important; }
                 * { overflow: visible !important; }
-                .grid { gap: 15px !important; }
+                .grid { gap: 20px !important; }
+                .grid > div { padding-left: 2px !important; }
                 .text-\[11px\], .text-\[10\.5px\] { font-size: 13px !important; }
                 .resume-bullet-text { font-size: 13px !important; }
                 p { font-size: 13px !important; }
