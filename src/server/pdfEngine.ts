@@ -62,7 +62,7 @@ const PROFESSIONAL_CSS = `
 
   @page {
     size: A4;
-    margin: 14mm 16mm;
+    margin: 0;
   }
 
   html, body {
@@ -72,16 +72,15 @@ const PROFESSIONAL_CSS = `
     color: var(--text-main);
     line-height: 1.45;
     background: white;
+    width: 210mm;
     overflow-x: hidden;
   }
 
   .resume-container {
-    width: 100%;
-    max-width: 780px;
-    margin: 0 auto;
-    padding-left: 4px;
-    padding-right: 4px;
+    width: 210mm;
+    padding: 14mm 16mm;
     box-sizing: border-box;
+    margin: 0 auto;
   }
 
   /* Page Break Management */
@@ -199,129 +198,44 @@ const PROFESSIONAL_CSS = `
 export function generateProfessionalHTML(data: ResumeData): string {
   const { personal_info, summary, skills, experience, projects, education, certifications } = data;
 
-  // Helper to sanitize bullets (Verb filtering and length constraint)
+  // We only replace buzzwords here. We DO NOT truncate words to maintain accurate bullet counts from the AI generation phase.
   const sanitizeBullet = (bullet: string) => {
-    let text = bullet
+    return bullet
       .replace(/\b(Spearheaded|Orchestrated|Championed|Visionary|Dynamic|Massive-scale|World-class|Cutting-edge)\b/gi, 'Led')
       .replace(/\b(Architected|Engineered)\b/gi, 'Designed');
-    
-    // Constraint: Max words ~20
-    const words = text.split(' ');
-    if (words.length > 22) {
-      text = words.slice(0, 22).join(' ') + '...';
-    }
-    return text;
   };
 
-  // Distribute content for 2-page executive format
-  const page1Exp = experience.slice(0, 3);
-  const page2Exp = experience.slice(3);
-
   const renderExperience = (item: any) => `
-    <div class="experience-item">
-      <div class="experience-header">
+    <div class="experience-item" style="break-inside: avoid; margin-bottom: 12pt;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2pt;">
         <div>
-          <h3 class="role-title">${item.role}</h3>
-          <div class="company-name">${item.company}</div>
+          <span style="font-weight: 700; font-size: 11pt; color: #111827;">${item.role}</span>
+          <span style="margin: 0 4px; color: #6b7280;">|</span>
+          <span style="font-weight: 500; font-size: 10.5pt; color: #374151;">${item.company}</span>
         </div>
-        <div class="date">${item.duration}</div>
+        <div style="font-size: 9.5pt; font-weight: 500; color: #6b7280;">${item.duration}</div>
       </div>
-      <ul>
-        ${item.bullets.map((b: string) => `<li>${sanitizeBullet(b)}</li>`).join('')}
-      </ul>
-    </div>
-  `;
-
-  const renderProject = (item: any) => `
-    <div class="experience-item">
-      <div class="experience-header">
-        <div>
-          <h3 class="role-title">${item.name}</h3>
-          <div class="company-name">${item.role}</div>
-        </div>
-        <div class="date">${item.duration}</div>
-      </div>
-      <ul>
-        ${item.bullets.map((b: string) => `<li>${sanitizeBullet(b)}</li>`).join('')}
+      <ul style="margin: 0; padding-left: 14pt;">
+        ${item.bullets.map((b: string) => `<li style="font-size: 9.5pt; line-height: 1.4; margin-bottom: 3pt; color: #374151;">${sanitizeBullet(b)}</li>`).join('')}
       </ul>
     </div>
   `;
 
   const header = `
-    <header>
-      <h1 class="resume-name">${personal_info.name}</h1>
-      <div class="contact-info">
-        <span>${personal_info.email}</span>
-        <span>${personal_info.phone}</span>
-        <span>${personal_info.location}</span>
-        ${personal_info.linkedin ? `<span>${personal_info.linkedin}</span>` : ''}
-        ${personal_info.website ? `<span>${personal_info.website}</span>` : ''}
+    <header style="text-align: center; margin-bottom: 14pt; border-bottom: 1px solid #e5e7eb; padding-bottom: 10pt;">
+      <h1 style="font-size: 22pt; font-weight: 700; letter-spacing: -0.5px; text-transform: uppercase; margin: 0 0 4pt 0; color: #111827;">
+        ${personal_info.name}
+      </h1>
+      <div style="font-size: 9.5pt; color: #4b5563; display: flex; justify-content: center; gap: 12pt; flex-wrap: wrap;">
+        ${[
+          personal_info.email,
+          personal_info.phone,
+          personal_info.location,
+          personal_info.linkedin,
+          personal_info.website
+        ].filter(Boolean).join('<span style="color: #d1d5db;">•</span>')}
       </div>
     </header>
-  `;
-
-  const page1Content = `
-    <div class="page-container">
-      ${header}
-      <section>
-        <div class="section-header">Executive Summary</div>
-        <p style="font-size: 10pt; text-align: justify; line-height: 1.5;">${summary}</p>
-      </section>
-      <section>
-        <div class="section-header">Core Competencies</div>
-        <div class="skills-body">
-            ${Object.entries(skills).map(([cat, items]) => `
-                <div class="skill-row">
-                  <b>${cat}:</b> <span style="color: var(--text-dim);">${items.join(', ')}</span>
-                </div>
-            `).join('')}
-        </div>
-      </section>
-      <section>
-        <div class="section-header">Professional Experience</div>
-        ${page1Exp.map(renderExperience).join('')}
-      </section>
-    </div>
-  `;
-
-  const page2Content = `
-    <div class="page-container">
-      ${page2Exp.length > 0 ? `
-        <section>
-          <div class="section-header">Professional Experience (Continued)</div>
-          ${page2Exp.map(renderExperience).join('')}
-        </section>
-      ` : ''}
-      ${projects && projects.length > 0 ? `
-        <section>
-          <div class="section-header">Selected Projects</div>
-          ${projects.map(renderProject).join('')}
-        </section>
-      ` : ''}
-      <section class="education-section">
-        <div class="section-header">Education</div>
-        ${education.map(e => `
-          <div class="experience-item edu-entry" style="margin-bottom: 8pt;">
-            <div class="experience-header">
-              <div>
-                <h3 class="role-title">${e.degree}</h3>
-                <div class="company-name">${e.institution}</div>
-              </div>
-              <div class="date">${e.duration}</div>
-            </div>
-            <div style="font-size: 9pt; color: #6b7280; margin-top: -2px;">${e.location}${e.gpa ? ` | GPA: ${e.gpa}` : ''}</div>
-          </div>
-        `).join('')}
-      </section>
-      ${certifications && certifications.length > 0 ? `
-        <section>
-          <div class="section-header">Certifications & Training</div>
-          <div class="certifications-list">
-            ${certifications.map(c => `<span class="certification-item">${c}</span>`).join('')}
-          </div>
-        </section>
-      ` : ''}
-    </div>
   `;
 
   return `
@@ -329,13 +243,74 @@ export function generateProfessionalHTML(data: ResumeData): string {
     <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <style>${PROFESSIONAL_CSS}</style>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        @page { size: A4; margin: 12mm 15mm; }
+        * { box-sizing: border-box; }
+        body { 
+          font-family: 'Inter', sans-serif; 
+          background: white; 
+          width: 100%;
+          margin: 0;
+          padding: 0;
+        }
+        .section-header {
+          font-size: 10.5pt;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border-bottom: 1px solid #111827;
+          padding-bottom: 2pt;
+          margin: 14pt 0 8pt 0;
+          color: #111827;
+        }
+        .skills-grid {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 4pt 12pt;
+          font-size: 9.5pt;
+        }
+      </style>
     </head>
-    <body class="ats-target">
-      <main class="resume-container">
-        ${page1Content}
-        ${page2Content}
-      </main>
+    <body>
+      ${header}
+
+      ${summary ? `
+      <section style="break-inside: avoid;">
+        <div class="section-header">Summary</div>
+        <div style="font-size: 9.5pt; line-height: 1.5; color: #374151;">${summary}</div>
+      </section>
+      ` : ''}
+
+      <section style="break-inside: avoid;">
+        <div class="section-header">Core Competencies</div>
+        <div class="skills-grid">
+          ${Object.entries(skills).map(([cat, items]) => `
+            <div style="font-weight: 600; color: #111827; text-align: right;">${cat}</div>
+            <div style="color: #374151;">${items.join(', ')}</div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section>
+        <div class="section-header">Professional Experience</div>
+        ${experience.map(renderExperience).join('')}
+      </section>
+
+      <section style="break-inside: avoid;">
+        <div class="section-header">Education</div>
+        ${education.map(e => `
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4pt;">
+            <div>
+              <span style="font-weight: 600; font-size: 10pt; color: #111827;">${e.degree}</span>
+              <span style="margin: 0 4px; color: #6b7280;">|</span>
+              <span style="font-size: 9.5pt; color: #374151;">${e.institution}</span>
+            </div>
+            <div style="font-size: 9.5pt; color: #6b7280;">${e.duration}</div>
+          </div>
+        `).join('')}
+      </section>
     </body>
     </html>
   `;
