@@ -1005,14 +1005,16 @@ async function startServer() {
           }, null, 2)}
           
           RULES:
-          - Summary: Approx 100 words.
-          - Skills: Categorize into exactly 4 logical categories relevant to ${targetRole}. Rename 'DevOps & Automation' to 'Infrastructure Operations & Automation'. Strictly replace 'CI/CD Pipeline Design' with 'Infrastructure Provisioning'.
-          - Why This Job: 100-150 words compelling response.
+          - Summary: Concise, technical, and high-signal (approx 80-100 words). Avoid robotic phrases like "Strategic Leader". Use: "Infrastructure professional with X years of experience in...".
+          - Skills: Categorize into exactly 4 logical categories.
+          - Why This Job: 100-150 words response.
           - DO NOT invent certifications.
-          - Brevity & Density: Bullet points MUST be concise and dense (max 15 words). Prioritize hard skills, tools, and metrics over verbose jargon.
-          - Balanced IaC: Terraform/IaC permitted, limited to 2 bullet points TOTAL across entire resume. Forbidden verbs: "Architected", "Engineered", "Spearheaded". Allowed: "Deployed", "Maintained", "Utilized", "Provisioned".
-          - Pre-2018 Compression: Before 2018, provide EXACTLY one (1) bullet point maximum for projects.
-          - GLOBAL NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". These terms MUST NOT appear anywhere in the output, including project summaries, skill categories, or bullet points. Focus project summaries entirely on Azure Migration, FinOps, HA/DR, and Governance.
+          - Brevity & Density: Bullet points MUST be concise and high-signal (max 20 words). Prioritize hard skills and verifiable outcomes.
+          - ANTI-BUZZWORD SYSTEM: ABSOLUTELY FORBIDDEN verbs: "Architected", "Spearheaded", "Orchestrated", "Championed", "Visionary", "Dynamic", "Engineered".
+          - ALLOWED ACTION VERBS: "Led", "Designed", "Implemented", "Improved", "Reduced", "Optimized", "Managed", "Delivered", "Supported", "Built".
+          - Balanced IaC: Limit Terraform/IaC to 2 bullet points TOTAL across entire resume.
+          - SCALE CONTROL: Do not exaggerate scale (e.g. "massive", "global") unless explicitly in source data.
+          - GLOBAL NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". Focus on Azure Migration, FinOps, HA/DR, and Governance.
           
           OUTPUT JSON SCHEMA:
           {

@@ -54,27 +54,15 @@ const PROFESSIONAL_CSS = `
     --text-main: #111827;
     --text-dim: #374151;
     --text-light: #6b7280;
-    --accent: #000000;
+    --accent: #111827;
     --border: #d1d5db;
-    --page-margin: 15mm;
-    
-    /* Executive Typography Scale */
-    --size-name: 22pt;
-    --size-section-head: 11pt;
-    --size-job-title: 10.5pt;
-    --size-body: 9.5pt;
-    --size-contact: 8.5pt;
-    
-    --line-height: 1.4;
-    --section-spacing: 12pt;
-    --entry-spacing: 8pt;
   }
 
-  * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
+  * { box-sizing: border-box; }
 
   @page {
     size: A4;
-    margin: 0;
+    margin: 14mm 16mm;
   }
 
   html, body {
@@ -82,148 +70,126 @@ const PROFESSIONAL_CSS = `
     padding: 0;
     font-family: 'Inter', -apple-system, 'Segoe UI', Arial, sans-serif;
     color: var(--text-main);
-    line-height: var(--line-height);
+    line-height: 1.45;
     background: white;
+    overflow-x: hidden;
   }
 
-  .resume-wrapper {
-    width: 210mm;
+  .resume-container {
+    width: 100%;
+    max-width: 780px;
     margin: 0 auto;
-    background: white;
+    padding-left: 4px;
+    padding-right: 4px;
+    box-sizing: border-box;
   }
 
   /* Page Break Management */
   .page-container {
-    background: white;
-    width: 210mm;
-    height: 297mm;
-    padding: var(--page-margin);
+    width: 100%;
     position: relative;
-    overflow: hidden;
     page-break-after: always;
   }
 
   /* Section Styling */
   section {
-    margin-bottom: var(--section-spacing);
+    margin-bottom: 18px;
   }
 
   .section-header {
-    font-size: var(--size-section-head);
+    font-size: 11pt;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    border-bottom: 1.5pt solid var(--accent);
-    padding-bottom: 2pt;
-    margin-bottom: 6pt;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    margin-top: 18px;
     color: var(--accent);
   }
 
-  /* Header / Personal Info */
-  header {
-    text-align: center;
-    margin-bottom: 14pt;
-  }
-
-  header h1 {
-    font-size: var(--size-name);
-    font-weight: 800;
-    margin: 0 0 2pt 0;
-    letter-spacing: -0.015em;
+  /* Name Formatting */
+  .resume-name {
+    font-size: 24pt;
+    font-weight: 700;
+    letter-spacing: -0.5px;
     text-transform: uppercase;
+    line-height: 1.1;
+    margin-bottom: 4px;
   }
 
   .contact-info {
-    font-size: var(--size-contact);
+    font-size: 9pt;
     color: var(--text-dim);
     display: flex;
     justify-content: center;
-    gap: 12pt;
+    gap: 8pt;
     flex-wrap: wrap;
-    font-weight: 500;
+    margin-bottom: 18pt;
   }
 
-  .contact-info span:not(:last-child)::after {
-    content: "|";
-    margin-left: 12pt;
-    opacity: 0.3;
-    font-weight: 400;
-  }
-
-  /* Summary */
-  .summary-text {
-    font-size: var(--size-body);
-    color: var(--text-dim);
-    text-align: left;
-    margin-bottom: 4pt;
-  }
-
-  /* Skills List */
-  .skills-list {
-    font-size: var(--size-body);
-    display: flex;
-    flex-direction: column;
-    gap: 2pt;
-  }
-
-  .skill-row {
-    display: flex;
-    gap: 4pt;
-  }
-
-  .skill-row b {
-    min-width: 120pt;
-    font-weight: 600;
-    color: var(--accent);
-  }
-
-  /* Experience / Projects Items */
-  .entry {
-    margin-bottom: var(--entry-spacing);
-    break-inside: avoid;
-  }
-
-  .entry-primary {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-weight: 700;
-    font-size: var(--size-job-title);
+  /* Bullets */
+  ul {
+    list-style: none;
+    padding-left: 18px;
+    margin-top: 6px;
     margin-bottom: 0;
   }
 
-  .entry-secondary {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: var(--size-body);
-    color: var(--text-light);
-    font-weight: 500;
-    margin-bottom: 2pt;
-  }
-
-  .company-name {
-    color: var(--text-dim);
-    font-weight: 600;
-  }
-
-  ul {
-    margin: 0;
-    padding-left: 12pt;
-    font-size: var(--size-body);
-    list-style-type: disc;
-  }
-
   li {
-    margin-bottom: 2pt;
-    color: var(--text-dim);
-    padding-left: 2pt;
+    position: relative;
+    padding-left: 10px;
+    margin-bottom: 5px;
+    line-height: 1.45;
+    font-size: 10pt;
   }
 
-  /* Education Specific */
-  .edu-entry {
-    margin-bottom: 6pt;
+  li::before {
+    content: "•";
+    position: absolute;
+    left: -2px;
+    top: 0.02em;
+    font-size: 11pt;
+    color: var(--text-main);
   }
+
+  /* Skills List */
+  .skills-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin-top: 6px;
+    font-size: 10pt;
+  }
+
+  .skill-row {
+    margin-bottom: 4pt;
+  }
+
+  .skill-row b {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 9pt;
+  }
+
+  /* Certifications */
+  .certifications-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .certification-item {
+    font-size: 10pt;
+    font-weight: 500;
+  }
+
+  .education-section {
+    break-before: avoid;
+    page-break-before: avoid;
+  }
+
 `;
 
 /**
@@ -233,63 +199,65 @@ const PROFESSIONAL_CSS = `
 export function generateProfessionalHTML(data: ResumeData): string {
   const { personal_info, summary, skills, experience, projects, education, certifications } = data;
 
-  // HEURISTIC PAGINATION: Split at index 3 for experience if long, or handle logically.
-  // FAANG Executive resumes usually have Top 2-3 detailed experiences on Page 1.
+  // Helper to sanitize bullets (Verb filtering and length constraint)
+  const sanitizeBullet = (bullet: string) => {
+    let text = bullet
+      .replace(/\b(Spearheaded|Orchestrated|Championed|Visionary|Dynamic|Massive-scale|World-class|Cutting-edge)\b/gi, 'Led')
+      .replace(/\b(Architected|Engineered)\b/gi, 'Designed');
+    
+    // Constraint: Max words ~20
+    const words = text.split(' ');
+    if (words.length > 22) {
+      text = words.slice(0, 22).join(' ') + '...';
+    }
+    return text;
+  };
+
+  // Distribute content for 2-page executive format
   const page1Exp = experience.slice(0, 3);
   const page2Exp = experience.slice(3);
 
   const renderExperience = (item: any) => `
-    <article class="entry">
-      <div class="entry-primary">
-        <span>${item.role}</span>
-        <span class="company-name">${item.company}</span>
-      </div>
-      <div class="entry-secondary">
-        <span>${item.location}</span>
-        <span>${item.duration}</span>
+    <div class="experience-item">
+      <div class="experience-header">
+        <div>
+          <h3 class="role-title">${item.role}</h3>
+          <div class="company-name">${item.company}</div>
+        </div>
+        <div class="date">${item.duration}</div>
       </div>
       <ul>
-        ${item.bullets.map((b: string) => `<li>${b}</li>`).join('')}
+        ${item.bullets.map((b: string) => `<li>${sanitizeBullet(b)}</li>`).join('')}
       </ul>
-    </article>
+    </div>
   `;
 
   const renderProject = (item: any) => `
-    <article class="entry">
-      <div class="entry-primary">
-        <span>${item.name}${item.link ? ` <a href="${item.link}" style="font-weight: 400; font-size: 8pt; color: #3b82f6; text-decoration: none;">[Link]</a>` : ''}</span>
-        <span>${item.duration}</span>
-      </div>
-      <div class="entry-secondary">
-        <span>${item.role}</span>
+    <div class="experience-item">
+      <div class="experience-header">
+        <div>
+          <h3 class="role-title">${item.name}</h3>
+          <div class="company-name">${item.role}</div>
+        </div>
+        <div class="date">${item.duration}</div>
       </div>
       <ul>
-        ${item.bullets.map((b: string) => `<li>${b}</li>`).join('')}
+        ${item.bullets.map((b: string) => `<li>${sanitizeBullet(b)}</li>`).join('')}
       </ul>
-    </article>
+    </div>
   `;
 
   const header = `
     <header>
-      <h1>${personal_info.name}</h1>
-      <nav class="contact-info">
+      <h1 class="resume-name">${personal_info.name}</h1>
+      <div class="contact-info">
         <span>${personal_info.email}</span>
         <span>${personal_info.phone}</span>
         <span>${personal_info.location}</span>
         ${personal_info.linkedin ? `<span>${personal_info.linkedin}</span>` : ''}
         ${personal_info.website ? `<span>${personal_info.website}</span>` : ''}
-      </nav>
+      </div>
     </header>
-  `;
-
-  const skillsHtml = `
-    <div class="skills-list">
-      ${Object.entries(skills).map(([cat, items]) => `
-        <div class="skill-row">
-          <b>${cat}:</b> <span>${items.join(', ')}</span>
-        </div>
-      `).join('')}
-    </div>
   `;
 
   const page1Content = `
@@ -297,11 +265,17 @@ export function generateProfessionalHTML(data: ResumeData): string {
       ${header}
       <section>
         <div class="section-header">Executive Summary</div>
-        <div class="summary-text">${summary}</div>
+        <p style="font-size: 10pt; text-align: justify; line-height: 1.5;">${summary}</p>
       </section>
       <section>
         <div class="section-header">Core Competencies</div>
-        ${skillsHtml}
+        <div class="skills-body">
+            ${Object.entries(skills).map(([cat, items]) => `
+                <div class="skill-row">
+                  <b>${cat}:</b> <span style="color: var(--text-dim);">${items.join(', ')}</span>
+                </div>
+            `).join('')}
+        </div>
       </section>
       <section>
         <div class="section-header">Professional Experience</div>
@@ -314,37 +288,37 @@ export function generateProfessionalHTML(data: ResumeData): string {
     <div class="page-container">
       ${page2Exp.length > 0 ? `
         <section>
-          <div class="section-header">Experience (Continued)</div>
+          <div class="section-header">Professional Experience (Continued)</div>
           ${page2Exp.map(renderExperience).join('')}
         </section>
       ` : ''}
       ${projects && projects.length > 0 ? `
         <section>
-          <div class="section-header">Technical Projects</div>
+          <div class="section-header">Selected Projects</div>
           ${projects.map(renderProject).join('')}
         </section>
       ` : ''}
-      <section>
+      <section class="education-section">
         <div class="section-header">Education</div>
         ${education.map(e => `
-          <div class="entry edu-entry">
-            <div class="entry-primary">
-              <span>${e.degree}</span>
-              <span class="company-name">${e.institution}</span>
+          <div class="experience-item edu-entry" style="margin-bottom: 8pt;">
+            <div class="experience-header">
+              <div>
+                <h3 class="role-title">${e.degree}</h3>
+                <div class="company-name">${e.institution}</div>
+              </div>
+              <div class="date">${e.duration}</div>
             </div>
-            <div class="entry-sub" style="display: flex; justify-content: space-between; font-size: 9.5pt; color: #6b7280;">
-              <span>${e.location}</span>
-              <span>${e.duration}${e.gpa ? ` | GPA: ${e.gpa}` : ''}</span>
-            </div>
+            <div style="font-size: 9pt; color: #6b7280; margin-top: -2px;">${e.location}${e.gpa ? ` | GPA: ${e.gpa}` : ''}</div>
           </div>
         `).join('')}
       </section>
       ${certifications && certifications.length > 0 ? `
         <section>
           <div class="section-header">Certifications & Training</div>
-          <ul style="margin-top: 4pt;">
-            ${certifications.map(c => `<li>${c}</li>`).join('')}
-          </ul>
+          <div class="certifications-list">
+            ${certifications.map(c => `<span class="certification-item">${c}</span>`).join('')}
+          </div>
         </section>
       ` : ''}
     </div>
@@ -355,11 +329,10 @@ export function generateProfessionalHTML(data: ResumeData): string {
     <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <title>Professional Resume</title>
       <style>${PROFESSIONAL_CSS}</style>
     </head>
     <body class="ats-target">
-      <main class="resume-wrapper">
+      <main class="resume-container">
         ${page1Content}
         ${page2Content}
       </main>
