@@ -7,7 +7,7 @@ interface CacheEntry<T> {
 
 class CacheManager {
   private cache: Map<string, CacheEntry<any>> = new Map();
-  private readonly ttlMs: number = 10 * 60 * 1000; // 10 minutes default
+  private readonly ttlMs: number = 2 * 60 * 1000; // 2 minutes
 
   generateKey(parts: Record<string, any>): string {
     const sortedKeys = Object.keys(parts).sort();

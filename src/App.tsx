@@ -1170,6 +1170,8 @@ export default function App() {
   const resumePreviewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
+  const [contentHeight, setContentHeight] = useState(1123);
+  const [isPiiMasked, setIsPiiMasked] = useState(false);
   const [customFonts, setCustomFonts] = useState<{name: string, url: string, format: string}[]>([]);
 
   // Autosave to Drive logic
@@ -1325,10 +1327,16 @@ export default function App() {
       if (!resumeElement) return;
 
       const currentZoom = zoom || 1;
-      const contentWidth = resumeElement.offsetWidth / currentZoom;
-      const contentHeight = resumeElement.scrollHeight / currentZoom;
+      
+      // Use offsetWidth directly as it represents the unscaled CSS dimensions (e.g. 210mm = 794px)
+      // Dividing by currentZoom was causing the scaling loop to minimum zoom
+      const contentWidth = resumeElement.offsetWidth;
+      const contentHeight = resumeElement.offsetHeight;
       
       if (contentWidth === 0 || contentHeight === 0) return;
+      
+      // Update state for exact container sizing
+      setContentHeight(contentHeight);
 
       const padding = window.innerWidth < 768 ? 8 : 32; 
       const availableWidth = containerWidth - padding;
@@ -1341,8 +1349,8 @@ export default function App() {
       const isMobile = window.innerWidth < 640;
 
       if (isMobile) {
-        // On mobile, fit width but don't go too small
-        newZoom = Math.max(0.4, Math.min(scaleX, 1.0));
+        // On mobile, fit width exactly so it doesn't overflow
+        newZoom = Math.max(0.1, Math.min(scaleX, 1.0));
       } else {
         // On desktop/laptop, prioritize width fitting but allow some vertical fitting
         // Increase minimum zoom to 60% (0.6) to avoid the "zoom only 20%" issue
@@ -1369,18 +1377,30 @@ export default function App() {
       });
     });
 
-    observer.observe(previewContainerRef.current);
+    if (previewContainerRef.current) {
+      observer.observe(previewContainerRef.current);
+    }
+    
+    // Also observe the resume element itself if it exists, so changes in content size trigger zoom updates
+    const resumeEl = document.getElementById('resume-container');
+    if (resumeEl) {
+      observer.observe(resumeEl);
+    }
     
     // Initial calculation
     calculateZoom();
 
+    // Re-calculate after a short delay to ensure DOM is fully updated
+    const timeoutId = setTimeout(calculateZoom, 100);
+
     return () => {
       observer.disconnect();
+      clearTimeout(timeoutId);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [activeAudience, isAutoZoom, results, data, previewMode]); // Re-run when content or mode changes
+  }, [activeAudience, isAutoZoom, results, data, previewMode, isFocusMode, isOptimizing]); // Re-run when content or mode changes
 
   useEffect(() => {
     console.log("isOptimizing changed:", isOptimizing);
@@ -2261,7 +2281,11 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
     setResults({});
     setActiveAudience(null);
     setSuitabilityResult(null);
-    showToast("Job details cleared.", "info");
+    
+    // Clear the backend cache
+    fetch('/api/cache/clear', { method: 'POST' }).catch(err => console.error("Failed to clear backend cache", err));
+    
+    showToast("Job details and cache cleared.", "info");
   };
 
   const renderSimplifiedResume = () => {
@@ -2367,9 +2391,9 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
         const personalInfo = {
           ...(results[activeAudience!]?.personal_info as any || {}),
           name: profileName || results[activeAudience!]?.personal_info?.name || data.personal_info?.name || '',
-          location: profileLocation || results[activeAudience!]?.personal_info?.location || data.personal_info?.location || '',
-          email: profileEmail || results[activeAudience!]?.personal_info?.email || data.personal_info?.email || '',
-          phone: profilePhone || results[activeAudience!]?.personal_info?.phone || data.personal_info?.phone || '',
+          location: isPiiMasked ? '[REDACTED LOCATION]' : (profileLocation || results[activeAudience!]?.personal_info?.location || data.personal_info?.location || ''),
+          email: isPiiMasked ? '[REDACTED EMAIL]' : (profileEmail || results[activeAudience!]?.personal_info?.email || data.personal_info?.email || ''),
+          phone: isPiiMasked ? '[REDACTED PHONE]' : (profilePhone || results[activeAudience!]?.personal_info?.phone || data.personal_info?.phone || ''),
           linkedin: profileLinkedIn || results[activeAudience!]?.personal_info?.linkedin || data.personal_info?.linkedin || '',
           linkedinText: profileLinkedInText || results[activeAudience!]?.personal_info?.linkedinText || '',
           summary: results[activeAudience!]?.summary || data.personal_info?.summary || ''
@@ -2752,6 +2776,9 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           <BarChart3 className="w-[18px] h-[18px]" />
                       </button>
                   )}
+                  <button onClick={() => setIsPiiMasked(!isPiiMasked)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${isPiiMasked ? 'bg-emerald-500/20 text-emerald-500' : ''}`} title={isPiiMasked ? "Show PII" : "Mask PII for Security"}>
+                      {isPiiMasked ? <ShieldCheck className="w-[18px] h-[18px]" /> : <ShieldAlert className="w-[18px] h-[18px]" />}
+                  </button>
                   <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-black/5 text-blue-600'}`}>
                       {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
                   </button>
@@ -4255,15 +4282,24 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     >
                       {viewMode === 'resume' ? (
                         <div 
-                          className="flex flex-col gap-8 w-max mx-auto"
+                          className="mx-auto relative overflow-hidden"
                           style={{
-                            zoom: zoom
+                            width: `${794 * zoom}px`, // Approx width of A4 210mm
+                            height: `${contentHeight * zoom}px`,
+                            transition: 'width 0.3s ease, height 0.3s ease'
                           }}
                         >
                           <div 
-                            id="resume-container"
-                            className={`transition-all duration-300 relative ${activeSection ? 'ring-2 ring-emerald-500/20' : ''} ${isDownloading ? 'legacy-colors' : 'shadow-2xl'}`}
+                            style={{
+                              transform: `scale(${zoom})`,
+                              transformOrigin: 'top left',
+                              width: 'max-content'
+                            }}
                           >
+                            <div 
+                              id="resume-container"
+                              className={`transition-all duration-300 relative ${activeSection ? 'ring-2 ring-emerald-500/20' : ''} ${isDownloading ? 'legacy-colors' : 'shadow-2xl'}`}
+                            >
                           {previewMode === 'standard' ? (
                             <>
                               {/* Page 1 */}
@@ -4285,6 +4321,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           ) : (
                             renderSimplifiedResume()
                           )}
+                          </div>
                           </div>
                         </div>
                       ) : (
