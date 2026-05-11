@@ -342,7 +342,7 @@ export async function optimizeResume(
   resumeText: string,
   jobDescription: string,
   targetRole: string,
-  mode: "conservative" | "balanced" | "aggressive",
+  mode: "conservative" | "balanced" | "aggressive" | "Player-Coach",
   audience: string,
   config: RouterConfig,
   linkedInUrl?: string,

@@ -108,7 +108,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-type OptimizationMode = 'conservative' | 'balanced' | 'aggressive';
+type OptimizationMode = 'conservative' | 'balanced' | 'aggressive' | 'Player-Coach';
 
 import { CommandPalette } from './components/CommandPalette';
 
@@ -1878,6 +1878,11 @@ export default function App() {
       setOptimizationProgress(100);
       setIsOptimizing(false);
       setAbortController(null);
+
+      // On mobile, auto-switch to Focus Mode (Preview mode) so the user can easily see the result and the download button
+      if (window.innerWidth < 640) {
+        setIsFocusMode(true);
+      }
     }
   };
 
@@ -2701,22 +2706,22 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
       {/* Main Container */}
       <div className="flex-1 flex flex-col relative w-full h-full min-w-0">
           <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'bg-neutral-950/80 backdrop-blur-md border-white/10' : 'bg-white/80 backdrop-blur-md border-black/5'}`}>
-              <div className="flex items-center gap-6">
-                <div className="font-bold text-xl tracking-tight flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-xl flex shrink-0 items-center justify-center transition-colors shadow-sm ${isDarkMode ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-neutral-900 border border-black'}`}>
-                        <Cpu className={`w-4 h-4 text-emerald-400`} />
+              <div className="flex items-center gap-2 sm:gap-6">
+                <div className="font-bold text-xl tracking-tight flex items-center gap-2 sm:gap-3">
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex shrink-0 items-center justify-center transition-colors shadow-sm ${isDarkMode ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-neutral-900 border border-black'}`}>
+                        <Cpu className={`w-3 h-3 sm:w-4 sm:h-4 text-emerald-400`} />
                     </div>
-                    <span className="tracking-tight text-[15px] hidden sm:inline-block">NEXUS AI</span>
+                    <span className="tracking-tight text-[13px] sm:text-[15px] hidden md:inline-block">NEXUS AI</span>
                 </div>
 
-                <nav className="flex items-center gap-1">
+                <nav className="flex items-center gap-0.5 sm:gap-1">
                   {(['build', 'tools', 'profile'] as const).map(tab => (
                     <Link
                       key={tab}
                       to={`/${tab}`}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-[9px] sm:text-xs font-bold uppercase tracking-widest transition-all ${
                         activeTab === tab 
-                          ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-black text-white px-5') 
+                          ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-black text-white px-3 sm:px-5') 
                           : (isDarkMode ? 'hover:bg-white/5 opacity-40 hover:opacity-100' : 'hover:bg-black/5 opacity-50 hover:opacity-100')
                       }`}
                     >
@@ -2725,29 +2730,29 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   ))}
                 </nav>
               </div>
-              <div className="flex items-center gap-2 md:gap-4">
-                  <button onClick={() => setFastMode(!fastMode)} className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors text-[10px] font-bold ${fastMode ? 'border-amber-500/50 bg-amber-500/20 text-amber-500' : 'border-neutral-500/30 bg-neutral-500/10 text-neutral-500 opacity-50'}`}>
+              <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+                  <button onClick={() => setFastMode(!fastMode)} className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors text-[10px] font-bold ${fastMode ? 'border-amber-500/50 bg-amber-500/20 text-amber-500' : 'border-neutral-500/30 bg-neutral-500/10 text-neutral-500 opacity-50'}`}>
                       <Zap className="w-3 h-3" />
                       <span>{fastMode ? 'FLASH UI ON' : 'FLASH UI'}</span>
                   </button>
                   {user && (
-                    <button onClick={() => syncAllData(false)} className={`p-2 rounded-full transition-colors relative ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${hasUnsavedChanges ? 'bg-amber-500/10' : ''}`} title="Sync to Cloud">
-                        <Cloud className={`w-[18px] h-[18px] transition-colors ${isSyncing ? 'animate-pulse text-blue-500' : hasUnsavedChanges ? 'text-amber-500' : ''}`} />
-                        {hasUnsavedChanges && !isSyncing && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
+                    <button onClick={() => syncAllData(false)} className={`p-1.5 sm:p-2 rounded-full transition-colors relative ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${hasUnsavedChanges ? 'bg-amber-500/10' : ''}`} title="Sync to Cloud">
+                        <Cloud className={`w-4 h-4 sm:w-[18px] sm:h-[18px] transition-colors ${isSyncing ? 'animate-pulse text-blue-500' : hasUnsavedChanges ? 'text-amber-500' : ''}`} />
+                        {hasUnsavedChanges && !isSyncing && <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
                     </button>
                   )}
-                  <button onClick={() => setIsFocusMode(!isFocusMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${isFocusMode ? 'bg-emerald-500/20' : ''}`} title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}>
-                      {isFocusMode ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+                  <button onClick={() => setIsFocusMode(!isFocusMode)} className={`p-1.5 sm:p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${isFocusMode ? 'bg-emerald-500/20' : ''}`} title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}>
+                      {isFocusMode ? <EyeOff className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> : <Eye className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />}
                   </button>
                   <button onClick={resetLayout} className={`p-2 hidden md:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'}`} title="Reset Layout">
                       <Maximize className="w-[18px] h-[18px]" />
                   </button>
                   {(user?.email === 'param_jariwala@yahoo.com' || user?.email === 'hackerharnish@gmail.com') && (
-                      <button onClick={() => setShowAdminDashboard(true)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'}`} title="Admin Dashboard">
+                      <button onClick={() => setShowAdminDashboard(true)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'}`} title="Admin Dashboard">
                           <BarChart3 className="w-[18px] h-[18px]" />
                       </button>
                   )}
-                  <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-black/5 text-blue-600'}`}>
+                  <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-black/5 text-blue-600'}`}>
                       {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
                   </button>
                   <span className={`hidden sm:inline-block text-[10px] font-mono uppercase tracking-widest opacity-60 px-2 py-1 rounded bg-white/5 border border-white/10`}>V-3.0.0</span>
@@ -2755,18 +2760,18 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                       <Cpu className="w-3 h-3" />
                       <span>GEMINI 3.1 PRO (NATIVE)</span>
                   </div>
-                  <Link to="/profile" className={`flex items-center justify-center w-8 h-8 rounded-full border transition-colors ${isDarkMode ? 'border-white/20 hover:border-emerald-500/50 bg-neutral-900' : 'border-black/10 hover:border-emerald-500/50 bg-white'}`}>
+                  <Link to="/profile" className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border transition-colors ${isDarkMode ? 'border-white/20 hover:border-emerald-500/50 bg-neutral-900' : 'border-black/10 hover:border-emerald-500/50 bg-white'}`}>
                     {user ? (
-                      <span className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">{user.email?.[0]}</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">{user.email?.[0]}</span>
                     ) : (
-                      <Users className="w-4 h-4 opacity-50" />
+                      <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-50" />
                     )}
                   </Link>
               </div>
           </header>
 
           {/* Main Workspace Area */}
-          <main className="flex-1 flex flex-col sm:flex-row overflow-hidden relative w-full h-full bg-neutral-100 dark:bg-neutral-900" ref={containerRef}>
+          <main className="flex-1 flex flex-col sm:flex-row overflow-hidden relative w-full min-h-0 bg-neutral-100 dark:bg-neutral-900" ref={containerRef}>
               
               {/* Only show Config Pane if NOT on tools or jobs */}
               {activeTab !== 'tools' && (
@@ -3109,12 +3114,13 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                       <li><span className="font-semibold">Conservative:</span> {MODE_DESCRIPTIONS.conservative}</li>
                                       <li><span className="font-semibold">Balanced:</span> {MODE_DESCRIPTIONS.balanced}</li>
                                       <li><span className="font-semibold">Aggressive:</span> {MODE_DESCRIPTIONS.aggressive}</li>
+                                      <li><span className="font-semibold">Player-Coach:</span> {MODE_DESCRIPTIONS["Player-Coach"]}</li>
                                     </ul>
                                   </motion.div>
                                 )}
                               </AnimatePresence>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                {(['conservative', 'balanced', 'aggressive'] as const).map((m) => (
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {(['conservative', 'balanced', 'aggressive', 'Player-Coach'] as const).map((m) => (
                                   <button
                                     key={m}
                                     onClick={() => setMode(m)}
@@ -3818,7 +3824,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           )}
 
           {/* Result Section */}
-          <div className={`flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border-l border-black/5 dark:border-white/10 shadow-2xl relative z-20 ${isMobile ? 'h-1/2 sm:h-full' : 'flex'}`}>
+          <div className={`flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border-l border-black/5 dark:border-white/10 shadow-2xl relative z-20 ${isMobile ? (isFocusMode ? 'h-full flex-1' : 'h-1/2 sm:h-full') : 'flex'}`}>
             <AnimatePresence mode="wait">
               {activeTab === 'tools' ? (
                 <motion.div 
@@ -4245,7 +4251,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     
                     <div 
                       ref={previewContainerRef}
-                      className={`w-full h-full overflow-auto flex items-start justify-center ${isDarkMode ? 'bg-[#1A1A1A]' : 'bg-gray-200/50'} custom-scrollbar`}
+                      className={`w-full flex-1 min-h-0 overflow-auto flex items-start justify-center ${isDarkMode ? 'bg-[#1A1A1A]' : 'bg-gray-200/50'} custom-scrollbar`}
                     >
                       {viewMode === 'resume' ? (
                         <div 

@@ -1,7 +1,8 @@
 export const MODE_DESCRIPTIONS = {
   conservative: "Minimal edits. Preserves your original structure and wording while ensuring basic keyword alignment.",
   balanced: "The 'Sweet Spot'. Improves clarity, strengthens action verbs, and strategically aligns keywords. Recommended.",
-  aggressive: "Maximum Impact. Rewrites bullets for peak ATS compatibility and high-stakes competitive roles."
+  aggressive: "Maximum Impact. Rewrites bullets for peak ATS compatibility and high-stakes competitive roles.",
+  "Player-Coach": "Balances 60% Execution and 40% Leadership (Mentoring, Architecture reviews) for hybrid roles."
 };
 
 export const AUDIENCES = [
