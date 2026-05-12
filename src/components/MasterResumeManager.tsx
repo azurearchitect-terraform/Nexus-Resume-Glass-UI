@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Edit2, FileText, Copy, Star } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Plus, Trash2, Edit2, FileText, Copy, Star, Upload } from 'lucide-react';
 import { MasterResume } from '../types';
 
 interface MasterResumeManagerProps {
@@ -19,6 +19,7 @@ export const MasterResumeManager: React.FC<MasterResumeManagerProps> = ({
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAdd = () => {
     if (!newName || resumes.length >= 5) return;
@@ -48,6 +49,31 @@ export const MasterResumeManager: React.FC<MasterResumeManagerProps> = ({
     onAdd(newResume);
   };
 
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || resumes.length >= 5) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const parsedData = JSON.parse(content);
+        const newResume: MasterResume = {
+          id: Date.now().toString(),
+          name: file.name.replace('.json', ''),
+          description: 'Imported from file',
+          data: parsedData,
+          createdAt: Date.now(),
+          isActive: false
+        };
+        onAdd(newResume);
+      } catch (err) {
+        alert("Error parsing JSON file");
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -72,9 +98,13 @@ export const MasterResumeManager: React.FC<MasterResumeManagerProps> = ({
         </div>
       ))}
       <div className="flex gap-2">
+           <button onClick={() => fileInputRef.current?.click()} disabled={resumes.length >= 5} className="flex-1 flex items-center justify-center gap-2 text-xs font-bold bg-white/5 py-2 rounded-lg hover:bg-white/10 disabled:opacity-50">
+             <Upload className="w-4 h-4" /> Import JSON
+           </button>
            <button onClick={handleImportCurrent} disabled={resumes.length >= 5} className="flex-1 flex items-center justify-center gap-2 text-xs font-bold bg-white/5 py-2 rounded-lg hover:bg-white/10 disabled:opacity-50">
              <FileText className="w-4 h-4" /> Import Current
            </button>
+           <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
            {isAdding ? (
              <div className="flex flex-1 gap-2">
                <input className={`flex-1 p-2 text-xs rounded-lg ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`} value={newName} onChange={e => setNewName(e.target.value)} placeholder="Name" />

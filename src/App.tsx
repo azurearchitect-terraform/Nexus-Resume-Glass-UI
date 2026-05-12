@@ -246,7 +246,7 @@ export default function App() {
 
   const [resumeText, setResumeText] = useState(() => {
     const selected = masterResumes.find(r => r.id === selectedResumeId) || masterResumes[0];
-    return JSON.stringify(selected.data, null, 2);
+    return (selected && selected.data) ? JSON.stringify(selected.data, null, 2) : "{}";
   });
 
   useEffect(() => {
@@ -1083,6 +1083,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [showModeInfo, setShowModeInfo] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isAutoSelectingAudiences, setIsAutoSelectingAudiences] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [optimizationProgress, setOptimizationProgress] = useState(0);
   const [optimizationStatus, setOptimizationStatus] = useState('');
@@ -1574,6 +1575,21 @@ export default function App() {
     }
     
     navigate('/build');
+  };
+
+  const handleAutoSelectAudiences = async () => {
+    if (!jobDescription) return;
+    setIsAutoSelectingAudiences(true);
+    try {
+      const bestAudiences = await analyzeBestAudiences(jobDescription, getRouterConfig());
+      setSelectedAudiences(bestAudiences);
+      showToast('Audience auto-selected!', 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to auto-select audience', 'error');
+    } finally {
+      setIsAutoSelectingAudiences(false);
+    }
   };
 
   const toggleAudience = (id: string) => {
@@ -2978,6 +2994,16 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   isDarkMode ? 'bg-[#1A1A1A] border-white/10' : 'bg-white border-black/5'
                                 }`}>
                                   <div className="p-2 border-b border-white/10 flex gap-2">
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAutoSelectAudiences();
+                                      }}
+                                      disabled={isAutoSelectingAudiences}
+                                      className="flex-1 py-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+                                    >
+                                      {isAutoSelectingAudiences ? 'Selecting...' : 'Auto-Select'}
+                                    </button>
                                     <button 
                                       onClick={(e) => {
                                         e.stopPropagation();
