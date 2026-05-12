@@ -186,7 +186,25 @@ export default function App() {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // Add resumeSource state: 'local' (default) or 'firestore'
+  const [resumeSource, setResumeSource] = useState<'local' | 'firestore'>('local');
   const isInitialLoad = useRef(true);
+
+  // Load master resume when preference changes
+  useEffect(() => {
+    if (resumeSource === 'firestore' && user) {
+       const loadFromFirestore = async () => {
+         const docRef = doc(db, 'users', user.uid);
+         const docSnap = await getDoc(docRef);
+         if (docSnap.exists() && docSnap.data().masterResume) {
+            setResumeText(docSnap.data().masterResume);
+         }
+       };
+       loadFromFirestore();
+    } else if (resumeSource === 'local') {
+        setResumeText(JSON.stringify(defaultMasterResume, null, 2));
+    }
+  }, [resumeSource, user]);
 
   const [resumeText, setResumeText] = useState(() => {
     const isPersistent = localStorage.getItem('isResumePersistent') !== 'false';
@@ -3699,6 +3717,44 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                         </button>
 
                         <div className="mt-8 pt-8 border-t border-white/10">
+                          <label className="block text-[10px] font-bold uppercase tracking-widest mb-2 opacity-50">Master Resume Source</label>
+                          <div className="flex gap-4 mb-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input type="radio" value="local" checked={resumeSource === 'local'} onChange={(e) => setResumeSource(e.target.value as 'local')} className="text-emerald-500" />
+                              <span className="text-xs">Local (Code)</span>
+                            </label>
+                            {user && <label className="flex items-center gap-2 cursor-pointer">
+                              <input type="radio" value="firestore" checked={resumeSource === 'firestore'} onChange={(e) => setResumeSource(e.target.value as 'firestore')} className="text-emerald-500" />
+                              <span className="text-xs">Firestore</span>
+                            </label>}
+                          </div>
+                          
+
+                          {resumeSource === 'local' && user && (
+                            <button
+                                onClick={async () => {
+                                    setIsSyncing(true);
+                                    await setDoc(doc(db, 'users', user.uid), { masterResume: resumeText }, { merge: true });
+                                    setIsSyncing(false);
+                                    showToast("Synced to Firestore", "success");
+                                }}
+                                disabled={isSyncing}
+                                className="w-full py-2 mb-4 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-xs font-bold uppercase tracking-widest"
+                            >
+                                {isSyncing ? "Syncing..." : "Sync Resume to Firestore"}
+                            </button>
+                          )}
+
+                          <button
+                              onClick={() => {
+                                  setResumeText(JSON.stringify(defaultMasterResume, null, 2));
+                                  showToast("Master resume reloaded from local file", "info");
+                              }}
+                              className="w-full py-2 mb-4 rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 text-xs font-bold uppercase tracking-widest"
+                          >
+                              Reload Master Resume from Local
+                          </button>
+
                           <label className="block text-[10px] font-bold uppercase tracking-widest mb-2 opacity-50">Upload Master Resume (PDF, JSON, TXT)</label>
                           <input 
                             type="file"

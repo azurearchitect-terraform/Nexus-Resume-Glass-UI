@@ -7,7 +7,7 @@ interface CacheEntry<T> {
 
 class CacheManager {
   private cache: Map<string, CacheEntry<any>> = new Map();
-  private readonly ttlMs: number = 2 * 60 * 1000; // 2 minutes
+  private readonly ttlMs: number = 0; // Disabled cache
 
   generateKey(parts: Record<string, any>): string {
     const sortedKeys = Object.keys(parts).sort();

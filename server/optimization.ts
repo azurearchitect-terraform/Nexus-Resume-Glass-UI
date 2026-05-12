@@ -46,7 +46,7 @@ export async function extractRelevantResumeData(resumeText: string, geminiApiKey
         ]
       }
       STRICT RULE: Extract EVERY SINGLE role present in the resume. Do not skip any jobs, even very old ones.
-      Extract all bullets per role to ensure the next stage has a complete history of experience.
+      Extract all bullets per role EXACTLY AS WRITTEN in the original resume. DO NOT summarize, rewrite, or attempt to refine the language of bullet points in this stage. Maintain absolute fidelity to original experience text.
       
       RESUME:
       ${trimmedResume}
@@ -99,7 +99,7 @@ export async function extractRelevantResumeData(resumeText: string, geminiApiKey
       ]
     }
     STRICT RULE: Extract EVERY SINGLE role present in the resume. Do not skip any jobs, even very old ones.
-    Extract all bullets per role to ensure the next stage has a complete history of experience.
+    Extract all bullets per role EXACTLY AS WRITTEN in the original resume. DO NOT summarize, rewrite, or attempt to refine the language of bullet points in this stage. Maintain absolute fidelity to original experience text.
     
     RESUME:
     ${trimmedResume}
@@ -304,10 +304,8 @@ export function enforceFidelity(aiResponse: any, originalInput: any) {
         role: originalRole.role,
         company: originalRole.company,
         duration: originalRole.duration,
-        // If AI provided bullets for this role, use them. Otherwise, fallback to original.
-        bullets: matchedAI?.bullets && Array.isArray(matchedAI.bullets) 
-          ? matchedAI.bullets 
-          : (originalRole.original_bullets || [])
+        // Force use of original_bullets to prevent AI from overwriting experience.
+        bullets: (originalRole.original_bullets || [])
       };
     });
 
