@@ -1581,7 +1581,7 @@ export default function App() {
     if (!jobDescription) return;
     setIsAutoSelectingAudiences(true);
     try {
-      const bestAudiences = await analyzeBestAudiences(jobDescription, getRouterConfig());
+      const bestAudiences = await analyzeBestAudiences(jobDescription, targetRole, getRouterConfig());
       setSelectedAudiences(bestAudiences);
       showToast('Audience auto-selected!', 'success');
     } catch (e) {
@@ -2970,7 +2970,19 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               </div>
                             )}
                             <div className="relative" ref={audienceDropdownRef}>
-                              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'opacity-50' : 'opacity-70'}`}>Target Audiences (Multi-select)</label>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'opacity-50' : 'opacity-70'}`}>Target Audiences (Multi-select)</label>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAutoSelectAudiences();
+                                  }}
+                                  disabled={isAutoSelectingAudiences}
+                                  className="py-1 px-2 text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+                                >
+                                  {isAutoSelectingAudiences ? 'Selecting...' : 'Auto-Select'}
+                                </button>
+                              </div>
                               <button
                                 onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
                                 className={`w-full px-3 py-2 text-xs border rounded-lg flex items-center justify-between ${
@@ -2997,20 +3009,10 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                     <button 
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleAutoSelectAudiences();
-                                      }}
-                                      disabled={isAutoSelectingAudiences}
-                                      className="flex-1 py-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
-                                    >
-                                      {isAutoSelectingAudiences ? 'Selecting...' : 'Auto-Select'}
-                                    </button>
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
                                         setSelectedAudiences(['microsoft']);
                                       }}
                                       className="flex-1 py-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 transition-colors"
-                                    >
+                >
                                       Reset
                                     </button>
                                     <button 
