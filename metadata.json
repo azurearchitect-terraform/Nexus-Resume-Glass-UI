@@ -1,6 +1,6 @@
 {
-  "name": "NexusPro AI: High-Performance Resume Intelligence System",
-  "description": "NexusPro AI is a production-grade career intelligence suite. It leverages multi-agent LLM pipelines to align professional history with high-stakes job requirements, featuring STAR story generation, ATS-optimization heuristics, and professional style controls.",
+  "name": "Nexus AI Resume App",
+  "description": "Premium AI-powered resume builder with iOS-style liquid glass aesthetics, featuring multi-agent optimization, real-time career tool integration, and high-performance ATS alignment.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

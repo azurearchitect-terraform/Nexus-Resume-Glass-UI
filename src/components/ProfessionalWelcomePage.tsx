@@ -38,10 +38,10 @@ export function ProfessionalWelcomePage({
   }, [externalError]);
 
   const displayError = externalError || error;
-  const surface = isDarkMode ? 'bg-neutral-950 text-white' : 'bg-slate-50 text-slate-950';
-  const panel = isDarkMode ? 'bg-neutral-900 border-white/10' : 'bg-white border-slate-200';
+  const surface = isDarkMode ? 'bg-black text-white' : 'bg-slate-50 text-slate-950';
+  const panel = isDarkMode ? 'glass-panel' : 'glass-panel-light';
   const muted = isDarkMode ? 'text-white/55' : 'text-slate-600';
-  const softPanel = isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200';
+  const softPanel = isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-slate-200';
 
   const getMetricTone = (tone: string) => {
     if (tone === 'emerald') return isDarkMode ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : 'text-emerald-600 bg-emerald-50 border-emerald-100';
@@ -79,8 +79,15 @@ export function ProfessionalWelcomePage({
   }`;
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface}`}>
-      <main className="min-h-screen grid lg:grid-cols-[1.08fr_0.92fr]">
+    <div className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface} relative overflow-hidden`}>
+      <div className="liquid-container">
+        <div className="liquid-blob w-[1000px] h-[1000px] bg-blue-600/30 -top-1/2 -left-1/4" />
+        <div className="liquid-blob w-[800px] h-[800px] bg-purple-600/25 top-1/2 -right-1/4" />
+        <div className="liquid-blob w-[900px] h-[900px] bg-emerald-500/25 -bottom-1/4 left-1/3" />
+        <div className="liquid-blob w-[700px] h-[700px] bg-pink-500/20 top-0 right-1/4" />
+        <div className="liquid-blob w-[600px] h-[600px] bg-cyan-400/20 bottom-1/4 right-1/2" />
+      </div>
+      <main className="min-h-screen grid lg:grid-cols-[1.08fr_0.92fr] relative z-10">
         <section className="flex flex-col justify-between px-6 py-6 sm:px-10 lg:px-14 lg:py-10">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -131,7 +138,7 @@ export function ProfessionalWelcomePage({
           <p className={`hidden text-xs sm:block ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>Built for repeated applications, not one-off resume decoration.</p>
         </section>
 
-        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-white border-slate-200'}`}>
+        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10 saturate-[150%]' : 'bg-white/10 border-slate-200'}`}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}

@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* Executive Grayscale & Accent Palette */
@@ -14,13 +14,76 @@
   --color-emerald-500: #10b981;
 }
 
+:root {
+  --glass-bg-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
+}
+
 @layer base {
   body {
-    @apply font-sans antialiased bg-stone-50 text-stone-900;
+    @apply font-sans antialiased text-slate-900 overflow-hidden;
+    background: #000000;
   }
 }
 
+@keyframes liquid-float {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(4%, 6%) scale(1.15) rotate(10deg); }
+  66% { transform: translate(-3%, 3%) scale(0.9) rotate(-5deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
 @layer components {
+  .liquid-container {
+    @apply fixed inset-0 -z-10 overflow-hidden pointer-events-none;
+    background: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
+  }
+
+  .liquid-container::before {
+    content: "";
+    @apply absolute inset-0 opacity-40 transition-all duration-1000;
+    background-image: var(--glass-bg-image);
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* Layer 1: Noise/Grain Overlay to prevent banding */
+  .liquid-container::after {
+    content: "";
+    @apply absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .liquid-blob {
+    @apply absolute rounded-full filter blur-[120px] opacity-40 mix-blend-screen;
+    animation: liquid-float 25s ease-in-out infinite;
+  }
+
+  .glass-panel {
+    @apply backdrop-blur-[30px] saturate-[200%] brightness-[1.1] bg-white/5 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)];
+    /* Edge highlight for deep glass look */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  .glass-panel-light {
+    @apply backdrop-blur-[30px] saturate-[180%] brightness-[1.05] bg-white/20 border border-white/50 shadow-[0_8px_32px_rgba(31,38,135,0.07)];
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 8px 32px rgba(31,38,135,0.07);
+  }
+
+  .glass-card {
+    @apply backdrop-blur-3xl saturate-[180%] bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 rounded-3xl overflow-hidden;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 50px rgba(0,0,0,0.1);
+  }
+
+  .glass-card:hover {
+    @apply bg-white/10;
+    transform: translateY(-2px);
+  }
+
+  .ios-control {
+    @apply backdrop-blur-2xl saturate-[180%] bg-white/15 border border-white/20 rounded-2xl shadow-lg;
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.2), 0 10px 30px rgba(0,0,0,0.2);
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -37,10 +100,19 @@
   }
 
   .glass {
-    @apply backdrop-blur-md bg-white/30 border border-white/20;
+    @apply backdrop-blur-xl bg-white/60 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
   }
   .glass-dark {
-    @apply backdrop-blur-md bg-black/30 border border-white/10;
+    @apply backdrop-blur-xl bg-slate-900/60 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+  }
+  .glass-morphic {
+    @apply backdrop-blur-2xl bg-white/40 border border-white/50 shadow-2xl;
+  }
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/70 border border-white/20 hover:border-white/50 transition-all duration-500;
+  }
+  .glass-card-dark {
+    @apply backdrop-blur-xl bg-slate-900/40 border border-white/5 hover:border-white/20 transition-all duration-500;
   }
 
   .page-break-after-always {

@@ -47,7 +47,8 @@ ShieldCheck,
   Sparkles,
   Pin,
   PinOff,
-  Menu
+  Menu,
+  Palette
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -55,7 +56,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { SortableSection } from './components/SortableSection';
 import { StatusIndicator } from './components/StatusIndicator';
 import { Toast, ConfirmDialog } from './components/UI.tsx';
-import { MODE_DESCRIPTIONS, AUDIENCES, MODEL_PRICING, TARGET_COMPANIES } from './constants';
+import { MODE_DESCRIPTIONS, AUDIENCES, MODEL_PRICING, TARGET_COMPANIES, BACKGROUND_THEMES } from './constants';
 import { downloadDOCX, downloadJSON } from './services/exportService';
 import { useResumeStore } from './store';
 import { ResumeData, SuitabilityResult, Certification, MasterResume } from './types';
@@ -981,6 +982,8 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [isAutoZoom, setIsAutoZoom] = useState(true);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [activeTheme, setActiveTheme] = useState(BACKGROUND_THEMES[0]);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarPinned, setIsSidebarPinned] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(200);
@@ -1079,6 +1082,19 @@ export default function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    const savedThemeId = localStorage.getItem('nexus_bg_theme');
+    if (savedThemeId) {
+      const theme = BACKGROUND_THEMES.find(t => t.id === savedThemeId);
+      if (theme) setActiveTheme(theme);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--glass-bg-image', `url('${activeTheme.url}')`);
+    localStorage.setItem('nexus_bg_theme', activeTheme.id);
+  }, [activeTheme]);
 
   const [error, setError] = useState<string | null>(null);
   const [showModeInfo, setShowModeInfo] = useState(false);
@@ -2764,7 +2780,14 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
   }
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'} font-sans selection:bg-emerald-500/30`}>
+    <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-black text-white' : 'bg-slate-50 text-slate-900'} font-sans selection:bg-emerald-500/30 relative`}>
+      <div className="liquid-container">
+        <div className="liquid-blob w-[1000px] h-[1000px] bg-blue-600/30 -top-1/2 -left-1/4" />
+        <div className="liquid-blob w-[800px] h-[800px] bg-purple-600/25 top-1/2 -right-1/4" />
+        <div className="liquid-blob w-[900px] h-[900px] bg-emerald-500/25 -bottom-1/4 left-1/3" />
+        <div className="liquid-blob w-[700px] h-[700px] bg-pink-500/20 top-0 right-1/4" />
+        <div className="liquid-blob w-[600px] h-[600px] bg-cyan-400/20 bottom-1/4 right-1/2" />
+      </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <DriveFolderPicker 
           isOpen={isSelectingFolder}
@@ -2788,13 +2811,13 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col relative w-full h-full min-w-0">
-          <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'bg-neutral-950/80 backdrop-blur-md border-white/10' : 'bg-white/80 backdrop-blur-md border-black/5'}`}>
+          <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'}`}>
               <div className="flex items-center gap-2 sm:gap-6">
                 <div className="font-bold text-xl tracking-tight flex items-center gap-2 sm:gap-3">
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex shrink-0 items-center justify-center transition-colors shadow-sm ${isDarkMode ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-neutral-900 border border-black'}`}>
                         <Cpu className={`w-3 h-3 sm:w-4 sm:h-4 text-emerald-400`} />
                     </div>
-                    <span className="tracking-tight text-[13px] sm:text-[15px] hidden md:inline-block">NEXUS AI</span>
+                    <span className={`tracking-tight text-[13px] sm:text-[15px] hidden md:inline-block ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>NEXUS AI</span>
                 </div>
 
                 <nav className="flex items-center gap-0.5 sm:gap-1">
@@ -2841,6 +2864,48 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-black/5 text-blue-600'}`}>
                       {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
                   </button>
+                  <div className="relative">
+                    <button 
+                      onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)} 
+                      className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-rose-400' : 'hover:bg-black/5 text-rose-600'} ${isThemeMenuOpen ? (isDarkMode ? 'bg-rose-500/20 shadow-inner' : 'bg-rose-50 shadow-inner') : ''}`}
+                      title="Change Theme"
+                    >
+                        <Palette className="w-[18px] h-[18px]" />
+                    </button>
+                    <AnimatePresence>
+                      {isThemeMenuOpen && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setIsThemeMenuOpen(false)} />
+                          <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className={`absolute top-full right-0 mt-2 w-48 p-2 rounded-2xl border shadow-2xl z-50 ${isDarkMode ? 'glass-panel border-white/20' : 'glass-panel-light border-black/10'}`}
+                          >
+                            <div className="space-y-1">
+                              {BACKGROUND_THEMES.map(theme => (
+                                <button
+                                  key={theme.id}
+                                  onClick={() => {
+                                    setActiveTheme(theme);
+                                    setIsThemeMenuOpen(false);
+                                  }}
+                                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                                    activeTheme.id === theme.id
+                                      ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-black text-white')
+                                      : (isDarkMode ? 'hover:bg-white/5 text-white/70' : 'hover:bg-black/5 text-black/70')
+                                  }`}
+                                >
+                                  {theme.label}
+                                  {activeTheme.id === theme.id && <Check className="w-3 h-3" />}
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
                   <span className={`hidden sm:inline-block text-[10px] font-mono uppercase tracking-widest opacity-60 px-2 py-1 rounded bg-white/5 border border-white/10`}>V-3.0.0</span>
                   <div className={`hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-bold text-emerald-500 animate-pulse`}>
                       <Cpu className="w-3 h-3" />
@@ -2857,13 +2922,13 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           </header>
 
           {/* Main Workspace Area */}
-          <main className="flex-1 flex flex-col sm:flex-row overflow-hidden relative w-full min-h-0 bg-neutral-100 dark:bg-neutral-900" ref={containerRef}>
+          <main className="flex-1 flex flex-col sm:flex-row overflow-hidden relative w-full min-h-0 bg-transparent" ref={containerRef}>
               
               {/* Only show Config Pane if NOT on tools or jobs */}
               {activeTab !== 'tools' && (
                 <div 
                   ref={leftPanelRef}
-                  className={`flex flex-col h-full border-r relative transition-all duration-200 ease-in-out ${isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/5'} z-10 ${isFocusMode ? 'w-0 opacity-0 pointer-events-none border-none hidden sm:flex' : ''} ${isMobile ? 'h-1/2 sm:h-full w-full' : ''}`}
+                  className={`flex flex-col h-full relative transition-all duration-200 ease-in-out ${isDarkMode ? 'glass-panel' : 'glass-panel-light'} z-10 ${isFocusMode ? 'w-0 opacity-0 pointer-events-none border-none hidden sm:flex' : ''} ${isMobile ? 'h-1/2 sm:h-full w-full' : ''}`}
                   style={{ 
                     width: isFocusMode ? '0' : (isMobile ? '100%' : `${configWidth}%`),
                     minWidth: isFocusMode ? '0' : (isMobile ? '100%' : '320px'),
@@ -2881,7 +2946,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   transition={{ duration: 0.2 }}
                   className="space-y-6"
                 >
-                  <section className={`rounded-2xl border p-6 shadow-xl transition-colors ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/5'}`}>
+                  <section className={`rounded-3xl p-6 shadow-2xl transition-all duration-500 ${isDarkMode ? 'glass-card-dark' : 'glass-card'}`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <div className={`p-2 rounded-xl ${isDarkMode ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
@@ -2921,8 +2986,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                     type="text"
                                     placeholder="e.g. Senior Azure Cloud Architect"
                                     className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
-                                      isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
-                                    }`}
+                                      isDarkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-white/50 border-black/5 text-black placeholder:text-black/30'
+                                    } backdrop-blur-sm shadow-inner`}
                                     value={targetRole}
                                     onChange={(e) => setTargetRole(e.target.value)}
                                   />
@@ -2936,8 +3001,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                     type="text"
                                     placeholder="e.g. Microsoft"
                                     className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
-                                      isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
-                                    }`}
+                                      isDarkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-white/50 border-black/5 text-black placeholder:text-black/30'
+                                    } backdrop-blur-sm shadow-inner`}
                                     value={companyName}
                                     onChange={(e) => setCompanyName(e.target.value)}
                                   />
@@ -2950,7 +3015,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           <div className="space-y-4">
                             <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">2. Job Analysis</h3>
                             {activeAudience && results[activeAudience] && results[activeAudience].match_score !== undefined && (
-                              <div className={`p-4 rounded-xl border flex items-center justify-between ${isDarkMode ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+                              <div className={`p-4 rounded-xl border flex items-center justify-between ${isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'}`}>
                                 <div>
                                   <h3 className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>Match Score</h3>
                                   <p className={`text-[10px] mt-1 ${isDarkMode ? 'text-emerald-400/70' : 'text-emerald-600/70'}`}>Based on current JD</p>
@@ -2985,8 +3050,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               </div>
                               <button
                                 onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
-                                className={`w-full px-3 py-2 text-xs border rounded-lg flex items-center justify-between ${
-                                  isDarkMode ? 'bg-[#1A1A1A] border-white/10 text-white' : 'bg-white border-black/10 text-black'
+                                className={`w-full px-3 py-2 text-xs border rounded-lg flex items-center justify-between transition-all ${
+                                  isDarkMode ? 'glass-panel border-white/10 text-white' : 'glass-panel-light border-black/5 text-black'
                                 }`}
                               >
                                 <span className="truncate flex items-center gap-2">
@@ -3073,15 +3138,15 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   onChange={(e) => setJobDescription(e.target.value)}
                                 />
                                 
-                                <button
-                                  onClick={handleCheckSuitability}
-                                  disabled={isCheckingSuitability || (!jobDescription && !jobUrl) || !resumeText}
-                                  className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border ${
-                                    isCheckingSuitability || (!jobDescription && !jobUrl) || !resumeText
-                                      ? (isDarkMode ? 'bg-white/5 border-white/10 text-white/30 cursor-not-allowed' : 'bg-black/5 border-black/10 text-black/30 cursor-not-allowed')
-                                      : (isDarkMode ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/30' : 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100')
-                                  }`}
-                                >
+                              <button
+                                onClick={handleCheckSuitability}
+                                disabled={isCheckingSuitability || (!jobDescription && !jobUrl) || !resumeText}
+                                className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border ${
+                                  isCheckingSuitability || (!jobDescription && !jobUrl) || !resumeText
+                                    ? (isDarkMode ? 'bg-white/5 border-white/10 text-white/30 cursor-not-allowed' : 'bg-black/5 border-black/10 text-black/30 cursor-not-allowed')
+                                    : (isDarkMode ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/40 shadow-lg shadow-indigo-500/20' : 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50 shadow-md shadow-blue-500/10')
+                                }`}
+                              >
                                   {isCheckingSuitability ? (
                                     <>
                                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -3239,38 +3304,13 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   className={`w-full py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-between border transition-all ${
                                     recruiterSimulationMode
                                       ? (isDarkMode ? 'bg-red-500/20 border-red-500 text-red-200' : 'bg-red-50 border-red-500 text-red-800')
-                                      : (isDarkMode ? 'bg-white/5 border-white/10 text-white/60' : 'bg-white border-black/5 text-black/60')
+                                      : (isDarkMode ? 'glass-dark border-white/10 text-white/60' : 'glass border-black/5 text-black/60')
                                   }`}
                                 >
                                   Recruiter Simulation Mode
                                   <div className={`w-3 h-3 rounded-full ${recruiterSimulationMode ? 'bg-red-500' : 'bg-gray-400'}`} />
                                 </button>
                                 
-                                <button
-                                  onClick={async () => {
-                                    if (!jobDescription && !jobUrl) return;
-                                    try {
-                                      setIsOptimizing(true);
-                                      const bestAudiences = await analyzeBestAudiences(jobDescription || jobUrl || "", targetRole || "Professional Candidate", getRouterConfig(), fastMode);
-                                      if (bestAudiences && bestAudiences.length > 0) {
-                                        setSelectedAudiences(bestAudiences);
-                                      }
-                                    } catch (error) {
-                                      console.error('Error auto-selecting audience:', error);
-                                    } finally {
-                                      setIsOptimizing(false);
-                                    }
-                                  }}
-                                  disabled={isOptimizing}
-                                  className={`w-full py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center border transition-all ${
-                                    isOptimizing ? 'opacity-50 cursor-not-allowed' : ''
-                                  } ${
-                                    isDarkMode ? 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10' : 'bg-white border-black/5 text-black/60 hover:bg-black/5'
-                                  }`}
-                                >
-                                  Auto-select Audience
-                                </button>
-
                                 <label className="flex items-center gap-2 mt-4 cursor-pointer">
                                   <input 
                                     type="checkbox" 
@@ -3960,7 +4000,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           )}
 
           {/* Result Section */}
-          <div className={`flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border-l border-black/5 dark:border-white/10 shadow-2xl relative z-20 ${isMobile ? (isFocusMode ? 'h-full flex-1' : 'h-1/2 sm:h-full') : 'flex'}`}>
+          <div className={`flex-1 min-w-0 flex flex-col h-full overflow-hidden border-l border-black/5 dark:border-white/10 shadow-2xl relative z-20 ${isDarkMode ? 'glass-panel' : 'glass-panel-light'} ${isMobile ? (isFocusMode ? 'h-full flex-1' : 'h-1/2 sm:h-full') : 'flex'}`}>
             <AnimatePresence mode="wait">
               {activeTab === 'tools' ? (
                 <motion.div 
@@ -3969,7 +4009,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.02 }}
                   className={`h-full flex flex-col p-4 md:p-8 overflow-y-auto custom-scrollbar rounded-3xl border border-dashed ${
-                    isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/10'
+                    isDarkMode ? 'glass-panel border-white/20' : 'glass-panel-light border-black/10'
                   }`}
                 >
                   <div className="max-w-4xl w-full mx-auto">
@@ -4060,7 +4100,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className={`h-full min-h-[500px] flex flex-col items-center justify-center text-center p-12 rounded-2xl border border-dashed ${
-                    isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/10'
+                    isDarkMode ? 'glass-panel border-white/20' : 'glass-panel-light border-black/10'
                   }`}
                 >
                   <div className="w-full max-w-md space-y-12">
@@ -4131,7 +4171,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.05 }}
                   className={`h-full min-h-[500px] flex flex-col items-center justify-start text-center p-8 md:p-16 rounded-3xl border border-dashed relative overflow-y-auto custom-scrollbar ${
-                    isDarkMode ? 'bg-[#0a0a0a] border-white/5' : 'bg-white border-black/10'
+                    isDarkMode ? 'glass-dark border-white/10' : 'glass border-black/10'
                   }`}
                 >
                   {/* Background Accents */}
@@ -4222,7 +4262,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   className="space-y-6 h-full flex flex-col"
                 >
                   {/* Resume Preview Pane */}
-                  <div className={`flex-1 flex flex-col rounded-2xl border overflow-hidden ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/5 shadow-xl'}`}>
+                  <div className={`flex-1 flex flex-col rounded-3xl overflow-hidden ${isDarkMode ? 'glass-panel border border-white/10' : 'glass-panel-light border border-black/5 shadow-2xl'}`}>
                     <div className={`p-2 md:p-4 border-b flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 md:gap-4 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/5'}`}>
                       <div className="flex flex-row items-center gap-2 md:gap-3">
                         <div className="flex flex-row gap-1 bg-black/20 dark:bg-white/5 p-1 rounded-lg">
