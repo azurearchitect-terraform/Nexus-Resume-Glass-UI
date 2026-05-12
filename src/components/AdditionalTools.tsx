@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Zap, Brain, History, Trash2, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, FileText, Copy, Download, ShieldAlert, Linkedin } from 'lucide-react';
+import { Zap, Brain, History, Trash2, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, FileText, Copy, Download, ShieldAlert, Linkedin, Sparkles } from 'lucide-react';
 import { EngineConfig, EngineType, analyzeSkillGap, generateInterviewQuestions, generateCoverLetter, generateRecruiterMessage, optimizeHeadline, generateWhyThisJob, analyzeResumeCritique } from '../services/geminiService';
 import { LinkedInImporter } from './LinkedInImporter';
+import { MasterResumeGenerator } from './MasterResumeGenerator';
 
 interface AdditionalToolsProps {
   resumeText: string;
@@ -44,7 +45,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
   onToolActive,
   linkedinProps
 }) => {
-  const [activeTab, setActiveTab] = useState<'skillGap' | 'interview' | 'history' | 'coverLetter' | 'recruiterMessage' | 'headline' | 'whyThisJob' | 'linkedin' | null>(null);
+  const [activeTab, setActiveTab] = useState<'skillGap' | 'interview' | 'history' | 'coverLetter' | 'recruiterMessage' | 'headline' | 'whyThisJob' | 'linkedin' | 'masterResumeGenerator' | null>(null);
 
   useEffect(() => {
     if (onToolActive) {
@@ -485,6 +486,21 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
           </button>
 
           <button 
+            onClick={() => setActiveTab('masterResumeGenerator')} 
+            className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
+              activeTab === 'masterResumeGenerator' 
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
+                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4"/>
+              <span className="text-[11px] font-bold">Resume Gen</span>
+            </div>
+            <span className="text-[9px] opacity-70 text-left leading-tight">Generate role bullets</span>
+          </button>
+
+          <button 
             onClick={() => setActiveTab('history')} 
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'history' 
@@ -759,6 +775,18 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             </div>
           )}
         </div>
+      )}
+      {activeTab === 'masterResumeGenerator' && (
+        <MasterResumeGenerator 
+            isDarkMode={isDarkMode} 
+            engineConfig={engineConfig} 
+            selectedEngine={selectedEngine}
+            setResumeText={(text) => {
+                const existing = JSON.parse(resumeText || '{}');
+                const newResume = { ...existing, experience: [...(existing.experience || []), JSON.parse(text)] };
+                setResumeText(JSON.stringify(newResume, null, 2));
+            }}
+        />
       )}
       {activeTab === 'history' && (
         <div className="space-y-4">

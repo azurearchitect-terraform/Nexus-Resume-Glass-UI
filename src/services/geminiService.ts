@@ -1016,3 +1016,37 @@ export async function optimizeHeadline(
     throw error;
   }
 }
+
+export async function generateMasterResume(
+  data: { company: string, role: string, startYear: string, endYear: string, description: string },
+  config: RouterConfig
+): Promise<{ role: string, company: string, duration: string, bullets: string[] }> {
+  const routedConfig = routeTask('rewrite_resume', config);
+  const prompt = `
+    ROLE: Expert Career Coach & Resume Writer.
+    TASK: Generate 3-5 high-impact, ATS-friendly bullet points for a user's experience entry.
+    
+    INPUT DATA:
+    Company: ${data.company}
+    Role: ${data.role}
+    Tenure: ${data.startYear} - ${data.endYear}
+    Context/Description: ${data.description}
+    
+    STRICT GUIDELINES:
+    - Use strong action verbs.
+    - Include metrics (%, $, time saved, scale) if imaginable.
+    - Focus on outcomes and leadership.
+    
+    OUTPUT (STRICT JSON):
+    { "role": string, "company": string, "duration": string, "bullets": string[] }
+  `;
+
+  try {
+    const dataResult = await callAI(prompt, routedConfig.model, routedConfig.engine, routedConfig.apiKey);
+    const resultText = extractJson(dataResult.result || "");
+    return JSON.parse(resultText);
+  } catch (error) {
+    console.error("Error generating master resume bullets:", error);
+    throw error;
+  }
+}
