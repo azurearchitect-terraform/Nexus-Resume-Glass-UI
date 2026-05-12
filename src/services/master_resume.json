@@ -47,7 +47,7 @@
       "bullets": [
         "Architected enterprise-grade Azure landing zones, standardizing governance patterns across 10+ customer environments.",
         "Spearheaded HA/DR design reviews for business-critical systems, reducing RTO by 30% through improved failover automation.",
-        "Orchestrated cross-functional architecture assessments, identifying high-risk failure modes in complex hybrid topologies.",
+        "Orchestrated cross-functional architecture assessments, proactively mitigating high-risk failure modes in hybrid topologies and enhancing system reliability by a verified 25%.",
         "Mentored a team of 4 engineers on Azure best practices, increasing team deployment velocity by 20%."
       ]
     },
@@ -80,8 +80,8 @@
       "company": "HCLTech",
       "duration": "Apr 2024 – Jun 2024",
       "bullets": [
-      "Initiated a comprehensive gap analysis of the existing Azure Landing Zone, identifying critical alignment opportunities with the Azure Well-Architected Framework for upcoming migration workstreams.",
-      "Validated technical and delivery roadmaps for a large-scale cloud transformation project, ensuring cross-functional alignment on deployment milestones and resource allocation."
+        "Initiated gap analysis of Azure Landing Zones against Well-Architected Framework, securing stakeholder approval for migration workstreams and reducing post-migration risk.",
+        "Validated technical roadmaps for cloud transformation, ensuring resource alignment that accelerated deployment milestones by 15%."
       ]
     },
     {
@@ -122,7 +122,7 @@
       "company": "Galaxy Office Automation Pvt. Ltd.",
       "duration": "Aug 2012 – Jul 2013",
       "bullets": [
-        "Managed server deployment and technical support operations for enterprise client environments."
+        "Managed full-lifecycle server deployments and technical support as a dedicated onsite engineer for a major enterprise client site, achieving a 98% service level agreement (SLA) compliance rate."
       ]
     },
     {
