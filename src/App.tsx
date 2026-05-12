@@ -58,7 +58,7 @@ import { Toast, ConfirmDialog } from './components/UI.tsx';
 import { MODE_DESCRIPTIONS, AUDIENCES, MODEL_PRICING, TARGET_COMPANIES } from './constants';
 import { downloadDOCX, downloadJSON } from './services/exportService';
 import { useResumeStore } from './store';
-import { ResumeData, SuitabilityResult, Certification } from './types';
+import { ResumeData, SuitabilityResult, Certification, MasterResume } from './types';
 import { detectOverflow } from './overflowDetection';
 import { useFormatting, DEFAULT_STYLE } from './context/FormattingContext';
 import { optimizeResume, fetchJobDescription, analyzeBestAudiences, evaluateSuitability, OptimizationResult, EngineType, EngineConfig } from './services/geminiService';
@@ -206,23 +206,47 @@ export default function App() {
     }
   }, [resumeSource, user]);
 
+  const [masterResumes, setMasterResumes] = useState<MasterResume[]>(() => {
+    const saved = localStorage.getItem('masterResumes');
+    return saved ? JSON.parse(saved) : [{ 
+      id: 'default', 
+      name: 'Default Resume', 
+      description: 'Main master resume', 
+      data: defaultMasterResume, 
+      createdAt: Date.now(),
+      isActive: true
+    }];
+  });                
+  const [selectedResumeId, setSelectedResumeId] = useState<string>(() => {
+      const saved = localStorage.getItem('selectedResumeId');
+      return saved || 'default';
+  });
+
+  const handleSetActiveResume = (id: string) => {
+    setMasterResumes(prev => prev.map(r => ({ ...r, isActive: r.id === id })));
+    setSelectedResumeId(id);
+    const selected = masterResumes.find(r => r.id === id) || masterResumes[0];
+    localStorage.setItem('selectedResumeId', id);
+    setResumeText(JSON.stringify(selected.data, null, 2));
+  };
+
+  const handleDuplicateResume = (id: string) => {
+    if (masterResumes.length >= 5) return;
+    const resumeToDuplicate = masterResumes.find(r => r.id === id);
+    if (!resumeToDuplicate) return;
+    const newResume: MasterResume = {
+      ...resumeToDuplicate,
+      id: Date.now().toString(),
+      name: `${resumeToDuplicate.name} (Copy)`,
+      createdAt: Date.now(),
+      isActive: false
+    };
+    setMasterResumes([...masterResumes, newResume]);
+  };
+
   const [resumeText, setResumeText] = useState(() => {
-    const isPersistent = localStorage.getItem('isResumePersistent') !== 'false';
-    const savedLocal = localStorage.getItem('resumeText');
-    const savedSession = sessionStorage.getItem('resumeText');
-    
-    if (isPersistent && savedLocal) return savedLocal;
-    if (!isPersistent) {
-      if (savedSession) return savedSession;
-      // If we just switched to temporary mode, we might want to keep the current one for this session
-      if (savedLocal) return savedLocal; 
-    }
-    
-    try {
-      return JSON.stringify(defaultMasterResume, null, 2);
-    } catch (e) {
-      return "";
-    }
+    const selected = masterResumes.find(r => r.id === selectedResumeId) || masterResumes[0];
+    return JSON.stringify(selected.data, null, 2);
   });
 
   useEffect(() => {
@@ -266,7 +290,8 @@ export default function App() {
     localStorage.setItem('isAutosaveEnabled', isAutosaveEnabled.toString());
     localStorage.setItem('selectedDriveFolder', selectedDriveFolder ? JSON.stringify(selectedDriveFolder) : '');
     localStorage.setItem('driveAccessToken', driveAccessToken || '');
-  }, [versioningEnabled, isAutosaveEnabled, selectedDriveFolder, driveAccessToken]);
+    localStorage.setItem('masterResumes', JSON.stringify(masterResumes));
+  }, [versioningEnabled, isAutosaveEnabled, selectedDriveFolder, driveAccessToken, masterResumes]);
 
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ message: string, onConfirm: () => void, onCancel: () => void } | null>(null);
@@ -3958,6 +3983,12 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     {!isCareerToolActive && (
                       <div className={`mt-8`}>
                         <AdditionalTools 
+                          masterResumes={masterResumes}
+                          setMasterResumes={setMasterResumes}
+                          selectedResumeId={selectedResumeId}
+                          setSelectedResumeId={setSelectedResumeId}
+                          onSetActive={handleSetActiveResume}
+                          onDuplicate={handleDuplicateResume}
                           resumeText={getEffectiveResumeText()}
                           jobDescription={jobDescription}
                           targetRole={targetRole}

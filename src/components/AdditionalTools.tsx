@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, Brain, History, Trash2, ChevronRight, ChevronDown, CheckCircle2, AlertCircle, FileText, Copy, Download, ShieldAlert, Linkedin, Sparkles } from 'lucide-react';
-import { EngineConfig, EngineType, analyzeSkillGap, generateInterviewQuestions, generateCoverLetter, generateRecruiterMessage, optimizeHeadline, generateWhyThisJob, analyzeResumeCritique } from '../services/geminiService';
+import { EngineConfig, EngineType, analyzeSkillGap, generateInterviewQuestions, generateCoverLetter, generateRecruiterMessage, optimizeHeadline, generateWhyThisJob, analyzeResumeCritique, selectBestMasterResume } from '../services/geminiService';
 import { LinkedInImporter } from './LinkedInImporter';
 import { MasterResumeGenerator } from './MasterResumeGenerator';
+import { MasterResumeManager } from './MasterResumeManager';
+import { MasterResume } from '../types';
 
 interface AdditionalToolsProps {
+  masterResumes: MasterResume[];
+  setMasterResumes: React.Dispatch<React.SetStateAction<MasterResume[]>>;
+  selectedResumeId: string;
+  setSelectedResumeId: React.Dispatch<React.SetStateAction<string>>;
+  onSetActive: (id: string) => void;
+  onDuplicate: (id: string) => void;
   resumeText: string;
   jobDescription: string;
   targetRole: string;
@@ -26,6 +34,12 @@ interface AdditionalToolsProps {
 }
 
 export const AdditionalTools: React.FC<AdditionalToolsProps> = ({ 
+  masterResumes,
+  setMasterResumes,
+  selectedResumeId,
+  setSelectedResumeId,
+  onSetActive,
+  onDuplicate,
   resumeText, 
   jobDescription, 
   targetRole,
@@ -45,7 +59,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
   onToolActive,
   linkedinProps
 }) => {
-  const [activeTab, setActiveTab] = useState<'skillGap' | 'interview' | 'history' | 'coverLetter' | 'recruiterMessage' | 'headline' | 'whyThisJob' | 'linkedin' | 'masterResumeGenerator' | null>(null);
+  const [activeTab, setActiveTab] = useState<'skillGap' | 'interview' | 'history' | 'coverLetter' | 'recruiterMessage' | 'headline' | 'whyThisJob' | 'linkedin' | 'masterResumeGenerator' | 'masterResumeManager' | null>(null);
 
   useEffect(() => {
     if (onToolActive) {
@@ -62,9 +76,34 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [renamingId, setRenamingId] = useState<number | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [saveName, setSaveName] = useState('');
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    // Implement or mock or pass as prop
+  };
+
+  const runOptimizationForJD = async () => {
+    if (!jobDescription) return;
+    setIsLoading(true);
+    try {
+      const bestId = await selectBestMasterResume(masterResumes, jobDescription, {
+          mode: 'gemini', geminiConfig: { engine: 'gemini', model: engineConfig.gemini.model, apiKey: engineConfig.gemini.apiKey },
+          openaiConfig: { engine: 'openai', model: engineConfig.openai.model, apiKey: engineConfig.openai.apiKey }
+      });
+      if (bestId) {
+        setSelectedResumeId(bestId);
+        onSetActive(bestId);
+        showToast(`AI recommended resume: ${masterResumes.find(r => r.id === bestId)?.name}`, 'success');
+        await runOptimization();
+      }
+    } catch (e) {
+      console.error(e);
+      setError("AI optimization failed.");
+    }
+    setIsLoading(false);
+  };
 
   const runSkillGap = async () => {
     if (!resumeText || !jobDescription) {
@@ -396,6 +435,22 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
       {!activeTab ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-6">
           <button 
+            onClick={runOptimizationForJD}
+            disabled={isLoading || !jobDescription}
+            className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
+              isLoading 
+                ? 'opacity-50'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4"/>
+              <span className="text-[11px] font-bold">Auto-Optimize</span>
+            </div>
+            <span className="text-[9px] opacity-70 text-left leading-tight">AI picks best resume + optimize</span>
+          </button>
+          
+          <button 
             onClick={() => setActiveTab('skillGap')} 
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'skillGap' 
@@ -486,6 +541,21 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
           </button>
 
           <button 
+            onClick={() => setActiveTab('masterResumeManager')} 
+            className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
+              activeTab === 'masterResumeManager' 
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
+                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4"/>
+              <span className="text-[11px] font-bold">Master Manager</span>
+            </div>
+            <span className="text-[9px] opacity-70 text-left leading-tight">Manage your resumes</span>
+          </button>
+
+          <button 
             onClick={() => setActiveTab('masterResumeGenerator')} 
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'masterResumeGenerator' 
@@ -550,6 +620,21 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
       {activeTab === 'linkedin' && linkedinProps && (
         <div className="max-w-3xl mx-auto w-full">
           <LinkedInImporter {...linkedinProps} />
+        </div>
+      )}
+      {activeTab === 'masterResumeManager' && (
+        <div className="max-w-3xl mx-auto w-full">
+          <MasterResumeManager 
+            resumes={masterResumes}
+            onAdd={(r) => setMasterResumes([...masterResumes, r])}
+            onUpdate={(r) => setMasterResumes(masterResumes.map(m => m.id === r.id ? r : m))}
+            onDelete={(id) => setMasterResumes(masterResumes.filter(m => m.id !== id))}
+            onSetActive={onSetActive}
+            onDuplicate={onDuplicate}
+            selectedId={selectedResumeId}
+            onSelect={setSelectedResumeId}
+            isDarkMode={isDarkMode}
+          />
         </div>
       )}
 

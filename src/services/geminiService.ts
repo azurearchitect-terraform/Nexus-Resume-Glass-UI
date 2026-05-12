@@ -2,7 +2,7 @@ import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import OpenAI from "openai";
 import { jsonrepair } from "jsonrepair";
 import { routeTask, RouterConfig } from "./aiRouter";
-import { SuitabilityResult, Certification, StarStory, AuditReport } from "../types";
+import { MasterResume, SuitabilityResult, Certification, StarStory, AuditReport } from "../types";
 import { doc, getDoc, getDocFromServer } from "firebase/firestore";
 import { db, auth } from "../firebase";
 
@@ -803,6 +803,40 @@ export async function analyzeBestAudiences(
   }
 }
 
+export async function selectBestMasterResume(
+  resumes: MasterResume[],
+  jobDescription: string,
+  config: RouterConfig
+): Promise<string> {
+  const routedConfig = routeTask('rewrite_resume', config);
+  const prompt = `
+    ROLE: Expert Career Coach.
+    TASK: Select the best master resume for a specific job posting from the provided list.
+    
+    JOB DESCRIPTION:
+    ${jobDescription}
+    
+    MASTER RESUMES AVAILABLE:
+    ${resumes.map(r => `ID: ${r.id}, Name: ${r.name}, Description: ${r.description}`).join('\n')}
+    
+    OUTPUT:
+    Return ONLY the ID of the best matching master resume as a JSON string.
+    Example: { "selectedId": "resume_id_here" }
+  `;
+
+  try {
+    const data = await callAI(prompt, 'gemini-3.1-flash-lite-preview', 'gemini', routedConfig.apiKey);
+    const resultText = extractJson(data.result || "");
+    const parsed = JSON.parse(resultText);
+    return parsed.selectedId;
+  } catch (error) {
+    console.error("Error selecting best master resume:", error);
+    return resumes[0]?.id || 'default';
+  }
+}
+
+
+
 export async function generateInterviewQuestions(
   jobDescription: string,
   resumeText: string,
@@ -1016,6 +1050,32 @@ export async function optimizeHeadline(
     throw error;
   }
 }
+
+export async function autoSelectPlayerCoachRole(
+  jobDescription: string,
+  config: RouterConfig
+): Promise<boolean> {
+  const routedConfig = routeTask('rewrite_resume', config);
+  const prompt = `
+    Analyze the following Job Description.
+    Determine if this role is a "Player-Coach" role (individual contributor + team lead/mentor).
+    Return ONLY a JSON object: { "isPlayerCoach": boolean }
+    
+    JOB DESCRIPTION:
+    ${jobDescription}
+  `;
+
+  try {
+    const data = await callAI(prompt, 'gemini-3.1-flash-lite-preview', 'gemini', routedConfig.apiKey);
+    const resultText = extractJson(data.result || "");
+    const parsed = JSON.parse(resultText);
+    return parsed.isPlayerCoach;
+  } catch (error) {
+    console.error("Error auto-selecting player-coach role:", error);
+    return false;
+  }
+}
+
 
 export async function generateMasterResume(
   data: { company: string, role: string, startYear: string, endYear: string, description: string },

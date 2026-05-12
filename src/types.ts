@@ -1,3 +1,12 @@
+export interface MasterResume {
+  id: string;
+  name: string;
+  description: string;
+  data: ResumeData;
+  createdAt: number;
+  isActive?: boolean;
+}
+
 export interface Certification {
   name: string;
   issuer: string;
