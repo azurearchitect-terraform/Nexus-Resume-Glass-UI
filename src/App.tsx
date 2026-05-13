@@ -15,6 +15,7 @@ import {
   Copy,
   Search,
   Layout,
+  LayoutGrid,
   Cpu,
   BarChart3,
   Info,
@@ -23,6 +24,7 @@ import {
   Trash2,
   Upload,
   Users,
+  UserCircle,
   Eye,
   EyeOff,
   FileDown,
@@ -41,7 +43,8 @@ import {
   Edit2,
   Check,
   X,
-ShieldCheck,
+  ImagePlus,
+  ShieldCheck,
   ShieldAlert,
   Linkedin,
   Sparkles,
@@ -984,6 +987,20 @@ export default function App() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [activeTheme, setActiveTheme] = useState(BACKGROUND_THEMES[0]);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const themeInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCustomTheme = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        setActiveTheme({ id: 'custom', label: 'Custom', url });
+        setIsThemeMenuOpen(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarPinned, setIsSidebarPinned] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(200);
@@ -1086,14 +1103,24 @@ export default function App() {
   useEffect(() => {
     const savedThemeId = localStorage.getItem('nexus_bg_theme');
     if (savedThemeId) {
-      const theme = BACKGROUND_THEMES.find(t => t.id === savedThemeId);
-      if (theme) setActiveTheme(theme);
+      if (savedThemeId === 'custom') {
+        const customUrl = localStorage.getItem('nexus_custom_bg_url');
+        if (customUrl) {
+          setActiveTheme({ id: 'custom', label: 'Custom', url: customUrl });
+        }
+      } else {
+        const theme = BACKGROUND_THEMES.find(t => t.id === savedThemeId);
+        if (theme) setActiveTheme(theme);
+      }
     }
   }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--glass-bg-image', `url('${activeTheme.url}')`);
     localStorage.setItem('nexus_bg_theme', activeTheme.id);
+    if (activeTheme.id === 'custom') {
+      localStorage.setItem('nexus_custom_bg_url', activeTheme.url);
+    }
   }, [activeTheme]);
 
   const [error, setError] = useState<string | null>(null);
@@ -2780,13 +2807,11 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
   }
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-black text-white' : 'bg-slate-50 text-slate-900'} font-sans selection:bg-emerald-500/30 relative`}>
+    <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans selection:bg-emerald-500/30 relative`}>
       <div className="liquid-container">
-        <div className="liquid-blob w-[1000px] h-[1000px] bg-blue-600/30 -top-1/2 -left-1/4" />
-        <div className="liquid-blob w-[800px] h-[800px] bg-purple-600/25 top-1/2 -right-1/4" />
-        <div className="liquid-blob w-[900px] h-[900px] bg-emerald-500/25 -bottom-1/4 left-1/3" />
-        <div className="liquid-blob w-[700px] h-[700px] bg-pink-500/20 top-0 right-1/4" />
-        <div className="liquid-blob w-[600px] h-[600px] bg-cyan-400/20 bottom-1/4 right-1/2" />
+        <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/30 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
+        <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/30 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
+        <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/20 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
       </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <DriveFolderPicker 
@@ -2825,18 +2850,20 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     <Link
                       key={tab}
                       to={`/${tab}`}
-                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-[9px] sm:text-xs font-bold uppercase tracking-widest transition-all ${
+                      className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-[9px] sm:text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 ${
                         activeTab === tab 
                           ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-black text-white px-3 sm:px-5') 
                           : (isDarkMode ? 'hover:bg-white/5 opacity-40 hover:opacity-100' : 'hover:bg-black/5 opacity-50 hover:opacity-100')
                       }`}
+                      title={tab}
                     >
-                      {tab === 'build' ? 'Optimizer' : tab}
+                      {tab === 'build' ? <Zap className="w-3.5 h-3.5 sm:hidden" /> : tab === 'tools' ? <LayoutGrid className="w-3.5 h-3.5 sm:hidden" /> : <UserCircle className="w-3.5 h-3.5 sm:hidden" />}
+                      <span className="hidden sm:inline">{tab === 'build' ? 'Optimizer' : tab}</span>
                     </Link>
                   ))}
                 </nav>
               </div>
-              <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+              <div className="flex items-center gap-1 sm:gap-2 md:gap-4 shrink-0">
                   <button onClick={() => setFastMode(!fastMode)} className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors text-[10px] font-bold ${fastMode ? 'border-amber-500/50 bg-amber-500/20 text-amber-500' : 'border-neutral-500/30 bg-neutral-500/10 text-neutral-500 opacity-50'}`}>
                       <Zap className="w-3 h-3" />
                       <span>{fastMode ? 'FLASH UI ON' : 'FLASH UI'}</span>
@@ -2847,7 +2874,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                         {hasUnsavedChanges && !isSyncing && <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
                     </button>
                   )}
-                  <button onClick={() => setIsFocusMode(!isFocusMode)} className={`p-1.5 sm:p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${isFocusMode ? 'bg-emerald-500/20' : ''}`} title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}>
+                  <button onClick={() => setIsFocusMode(!isFocusMode)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${isFocusMode ? 'bg-emerald-500/20' : ''}`} title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}>
                       {isFocusMode ? <EyeOff className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> : <Eye className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />}
                   </button>
                   <button onClick={resetLayout} className={`p-2 hidden md:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'}`} title="Reset Layout">
@@ -2861,16 +2888,16 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   <button onClick={() => setIsPiiMasked(!isPiiMasked)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-emerald-400' : 'hover:bg-black/5 text-emerald-600'} ${isPiiMasked ? 'bg-emerald-500/20 text-emerald-500' : ''}`} title={isPiiMasked ? "Show PII" : "Mask PII for Security"}>
                       {isPiiMasked ? <ShieldCheck className="w-[18px] h-[18px]" /> : <ShieldAlert className="w-[18px] h-[18px]" />}
                   </button>
-                  <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-black/5 text-blue-600'}`}>
-                      {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+                  <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 sm:p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-black/5 text-blue-600'}`}>
+                      {isDarkMode ? <Sun className="w-5 h-5 sm:w-[18px] sm:h-[18px]" /> : <Moon className="w-5 h-5 sm:w-[18px] sm:h-[18px]" />}
                   </button>
                   <div className="relative">
                     <button 
                       onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)} 
-                      className={`p-1.5 sm:p-2 hidden sm:flex rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-rose-400' : 'hover:bg-black/5 text-rose-600'} ${isThemeMenuOpen ? (isDarkMode ? 'bg-rose-500/20 shadow-inner' : 'bg-rose-50 shadow-inner') : ''}`}
+                      className={`p-2 sm:p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-white/10 text-rose-400' : 'hover:bg-black/5 text-rose-600'} ${isThemeMenuOpen ? (isDarkMode ? 'bg-rose-500/20 shadow-inner' : 'bg-rose-50 shadow-inner') : ''}`}
                       title="Change Theme"
                     >
-                        <Palette className="w-[18px] h-[18px]" />
+                        <Palette className="w-5 h-5 sm:w-[18px] sm:h-[18px]" />
                     </button>
                     <AnimatePresence>
                       {isThemeMenuOpen && (
@@ -2900,6 +2927,25 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   {activeTheme.id === theme.id && <Check className="w-3 h-3" />}
                                 </button>
                               ))}
+                              
+                              <div className="pt-1 mt-1 border-t border-white/10">
+                                <input 
+                                  type="file" 
+                                  ref={themeInputRef} 
+                                  onChange={handleCustomTheme} 
+                                  accept="image/*" 
+                                  className="hidden" 
+                                />
+                                <button
+                                  onClick={() => themeInputRef.current?.click()}
+                                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                                    isDarkMode ? 'hover:bg-white/5 text-rose-400' : 'hover:bg-black/5 text-rose-600'
+                                  }`}
+                                >
+                                  <ImagePlus className="w-3.5 h-3.5" />
+                                  Custom Wallpaper
+                                </button>
+                              </div>
                             </div>
                           </motion.div>
                         </>

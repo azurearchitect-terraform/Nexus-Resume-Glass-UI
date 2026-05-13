@@ -38,7 +38,7 @@ export function ProfessionalWelcomePage({
   }, [externalError]);
 
   const displayError = externalError || error;
-  const surface = isDarkMode ? 'bg-black text-white' : 'bg-slate-50 text-slate-950';
+  const surface = isDarkMode ? 'text-white' : 'text-slate-950';
   const panel = isDarkMode ? 'glass-panel' : 'glass-panel-light';
   const muted = isDarkMode ? 'text-white/55' : 'text-slate-600';
   const softPanel = isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-slate-200';
@@ -81,11 +81,9 @@ export function ProfessionalWelcomePage({
   return (
     <div className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface} relative overflow-hidden`}>
       <div className="liquid-container">
-        <div className="liquid-blob w-[1000px] h-[1000px] bg-blue-600/30 -top-1/2 -left-1/4" />
-        <div className="liquid-blob w-[800px] h-[800px] bg-purple-600/25 top-1/2 -right-1/4" />
-        <div className="liquid-blob w-[900px] h-[900px] bg-emerald-500/25 -bottom-1/4 left-1/3" />
-        <div className="liquid-blob w-[700px] h-[700px] bg-pink-500/20 top-0 right-1/4" />
-        <div className="liquid-blob w-[600px] h-[600px] bg-cyan-400/20 bottom-1/4 right-1/2" />
+        <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/30 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
+        <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/30 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
+        <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/20 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
       </div>
       <main className="min-h-screen grid lg:grid-cols-[1.08fr_0.92fr] relative z-10">
         <section className="flex flex-col justify-between px-6 py-6 sm:px-10 lg:px-14 lg:py-10">
