@@ -2807,8 +2807,12 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
   }
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans selection:bg-emerald-500/30 relative`}>
-      <div className="liquid-container">
+    <div 
+      className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans selection:bg-emerald-500/30 relative z-0`}
+      style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+    >
+      <div className="absolute inset-0 bg-black/10 dark:bg-black/30 pointer-events-none -z-10" />
+      <div className="liquid-container z-10 opacity-50">
         <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/30 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
         <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/30 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
         <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/20 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
@@ -2864,8 +2868,12 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                 </nav>
               </div>
               <div className="flex items-center gap-1 sm:gap-2 md:gap-4 shrink-0">
-                  <button onClick={() => setFastMode(!fastMode)} className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors text-[10px] font-bold ${fastMode ? 'border-amber-500/50 bg-amber-500/20 text-amber-500' : 'border-neutral-500/30 bg-neutral-500/10 text-neutral-500 opacity-50'}`}>
-                      <Zap className="w-3 h-3" />
+                  <button onClick={() => setFastMode(!fastMode)} className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors text-[10px] font-bold ${
+                      fastMode 
+                        ? (isDarkMode ? 'border-amber-500/50 bg-amber-500/20 text-amber-400' : 'border-amber-600/50 bg-amber-500/20 text-amber-800') 
+                        : (isDarkMode ? 'border-white/30 bg-white/5 text-white/80' : 'border-black/20 bg-black/5 text-black/70')
+                  }`}>
+                      <Zap className={`w-3 h-3 ${fastMode ? (isDarkMode ? 'text-amber-400' : 'text-amber-800') : (isDarkMode ? 'text-white/80' : 'text-black/70')}`} />
                       <span>{fastMode ? 'FLASH UI ON' : 'FLASH UI'}</span>
                   </button>
                   {user && (

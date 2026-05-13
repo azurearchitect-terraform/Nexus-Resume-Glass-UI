@@ -79,8 +79,12 @@ export function ProfessionalWelcomePage({
   }`;
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface} relative overflow-hidden`}>
-      <div className="liquid-container">
+    <div 
+      className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface} relative overflow-hidden z-0`}
+      style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+    >
+      <div className="absolute inset-0 bg-black/10 dark:bg-black/30 pointer-events-none -z-10" />
+      <div className="liquid-container z-10 opacity-50">
         <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/30 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
         <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/30 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
         <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/20 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
