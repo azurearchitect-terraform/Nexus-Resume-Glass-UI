@@ -83,11 +83,11 @@ export function ProfessionalWelcomePage({
       className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface} relative overflow-hidden z-0`}
       style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
-      <div className="absolute inset-0 bg-black/10 dark:bg-black/30 pointer-events-none -z-10" />
+      <div className="absolute inset-0 pointer-events-none -z-10" />
       <div className="liquid-container z-10 opacity-50">
-        <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/30 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
-        <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/30 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
-        <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/20 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
+        <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/10 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
+        <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/10 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
+        <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/8 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
       </div>
       <main className="min-h-screen grid lg:grid-cols-[1.08fr_0.92fr] relative z-10">
         <section className="flex flex-col justify-between px-6 py-6 sm:px-10 lg:px-14 lg:py-10">
@@ -140,7 +140,7 @@ export function ProfessionalWelcomePage({
           <p className={`hidden text-xs sm:block ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>Built for repeated applications, not one-off resume decoration.</p>
         </section>
 
-        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10 saturate-[150%]' : 'bg-white/10 border-slate-200'}`}>
+        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10' : 'bg-white/10 border-slate-200'}`}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}

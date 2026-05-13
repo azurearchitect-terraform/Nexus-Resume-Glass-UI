@@ -105,7 +105,7 @@ export function AuthModal({ isOpen, onClose, isDarkMode, onSuccess }: AuthModalP
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className={`w-full max-w-md rounded-3xl shadow-2xl border overflow-hidden ${
-          isDarkMode ? 'bg-[#141414] border-white/10 text-white' : 'bg-white border-black/5 text-black'
+          isDarkMode ? 'glass-thick border-white/10 text-white' : 'glass-panel-light border-black/5 text-black'
         }`}
       >
         <div className="p-6 border-b border-black/5 dark:border-white/5 flex items-center justify-between">

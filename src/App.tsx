@@ -1110,13 +1110,30 @@ export default function App() {
         }
       } else {
         const theme = BACKGROUND_THEMES.find(t => t.id === savedThemeId);
-        if (theme) setActiveTheme(theme);
+        if (theme) {
+          setActiveTheme(theme);
+        } else {
+          setActiveTheme(BACKGROUND_THEMES[0]);
+          localStorage.setItem('nexus_bg_theme', BACKGROUND_THEMES[0].id);
+        }
       }
     }
   }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--glass-bg-image', `url('${activeTheme.url}')`);
+    if ((activeTheme as any).blobs) {
+      document.documentElement.style.setProperty('--blob-color', (activeTheme as any).blobs[0]);
+      document.documentElement.style.setProperty('--blob-color-secondary', (activeTheme as any).blobs[1] || (activeTheme as any).blobs[0]);
+    }
+    if ((activeTheme as any).font) {
+      document.documentElement.style.setProperty('--font-sans', (activeTheme as any).font);
+    }
+    if ((activeTheme as any).isSolid) {
+      document.documentElement.classList.add('theme-solid');
+    } else {
+      document.documentElement.classList.remove('theme-solid');
+    }
     localStorage.setItem('nexus_bg_theme', activeTheme.id);
     if (activeTheme.id === 'custom') {
       localStorage.setItem('nexus_custom_bg_url', activeTheme.url);
@@ -2788,7 +2805,14 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
   if (!user) {
     return (
       <Suspense fallback={
-        <div className={`h-screen flex flex-col items-center justify-center ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'}`}>
+        <div 
+          className={`h-screen flex flex-col items-center justify-center ${isDarkMode ? 'text-white' : 'text-neutral-900'} relative`}
+          style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+        >
+          <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+          <div className="liquid-container z-0 opacity-30">
+            <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/20 -top-1/2 -left-1/4" />
+          </div>
           <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4" />
           <h2 className="text-xl font-bold tracking-tighter opacity-50 uppercase">Loading Welcome Suite...</h2>
         </div>
@@ -2812,10 +2836,11 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
       style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
       <div className="absolute inset-0 bg-black/10 dark:bg-black/30 pointer-events-none -z-10" />
-      <div className="liquid-container z-10 opacity-50">
-        <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/30 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
-        <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/30 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
-        <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/20 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
+      <div className="liquid-container z-10 opacity-30">
+        <div className="liquid-blob w-[110vw] h-[110vh] -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
+        <div className="liquid-blob liquid-blob-secondary w-[80vw] h-[80vh] top-1/2 right-1/4" style={{ animationDelay: '-5s' }} />
+        <div className="liquid-blob w-[90vw] h-[90vh] top-1/2 -right-1/4" style={{ animationDelay: '-12s' }} />
+        <div className="liquid-blob liquid-blob-secondary w-[100vw] h-[100vh] -bottom-1/4 left-1/3" style={{ animationDelay: '-18s' }} />
       </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <DriveFolderPicker 
@@ -3007,8 +3032,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           <Zap className="w-5 h-5 text-emerald-500" />
                         </div>
                         <div>
-                          <h2 className="font-bold text-lg tracking-tight">Resume Optimizer</h2>
-                          <p className="text-[10px] opacity-40 uppercase font-black tracking-widest">Tailored Content Engine</p>
+                          <h2 className="font-bold text-lg tracking-tight text-white">Resume Optimizer</h2>
+                          <p className="text-[10px] opacity-70 uppercase font-black tracking-widest text-emerald-400">Tailored Content Engine</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -3030,17 +3055,17 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                         >
                           {/* Targeting Content */}
                           <div className="space-y-4">
-                            <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">1. Targeting</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-white/80">1. Targeting</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'opacity-50' : 'opacity-70'}`}>Target Role *</label>
+                                <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-white/70' : 'text-slate-800'}`}>Target Role *</label>
                                 <div className="relative">
-                                  <Target className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30`} />
+                                  <Target className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60 text-white`} />
                                   <input 
                                     type="text"
                                     placeholder="e.g. Senior Azure Cloud Architect"
                                     className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
-                                      isDarkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-white/50 border-black/5 text-black placeholder:text-black/30'
+                                      isDarkMode ? 'bg-white/10 border-white/20 text-white placeholder:text-white/40' : 'bg-white/50 border-black/10 text-black placeholder:text-black/40'
                                     } backdrop-blur-sm shadow-inner`}
                                     value={targetRole}
                                     onChange={(e) => setTargetRole(e.target.value)}
@@ -3048,14 +3073,14 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 </div>
                               </div>
                               <div>
-                                <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'opacity-50' : 'opacity-70'}`}>Company Name *</label>
+                                <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-white/70' : 'text-slate-800'}`}>Company Name *</label>
                                 <div className="relative">
-                                  <Building className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30`} />
+                                  <Building className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60 text-white`} />
                                   <input 
                                     type="text"
                                     placeholder="e.g. Microsoft"
                                     className={`w-full pl-10 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
-                                      isDarkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20' : 'bg-white/50 border-black/5 text-black placeholder:text-black/30'
+                                      isDarkMode ? 'bg-white/10 border-white/20 text-white placeholder:text-white/40' : 'bg-white/50 border-black/10 text-black placeholder:text-black/40'
                                     } backdrop-blur-sm shadow-inner`}
                                     value={companyName}
                                     onChange={(e) => setCompanyName(e.target.value)}
@@ -3067,7 +3092,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
 
                           {/* Analysis Content */}
                           <div className="space-y-4">
-                            <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">2. Job Analysis</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-white/80">2. Job Analysis</h3>
                             {activeAudience && results[activeAudience] && results[activeAudience].match_score !== undefined && (
                               <div className={`p-4 rounded-xl border flex items-center justify-between ${isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'}`}>
                                 <div>
@@ -3090,7 +3115,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                             )}
                             <div className="relative" ref={audienceDropdownRef}>
                               <div className="flex items-center justify-between mb-2">
-                                <label className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'opacity-50' : 'opacity-70'}`}>Target Audiences (Multi-select)</label>
+                                <label className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-white/70' : 'text-slate-800'}`}>Target Audiences (Multi-select)</label>
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -3105,7 +3130,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               <button
                                 onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
                                 className={`w-full px-3 py-2 text-xs border rounded-lg flex items-center justify-between transition-all ${
-                                  isDarkMode ? 'glass-panel border-white/10 text-white' : 'glass-panel-light border-black/5 text-black'
+                                  isDarkMode ? 'glass-panel border-white/20 text-white' : 'glass-panel-light border-black/10 text-black'
                                 }`}
                               >
                                 <span className="truncate flex items-center gap-2">
@@ -3164,14 +3189,14 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                             </div>
                             
                             <div>
-                              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'opacity-50' : 'opacity-70'}`}>Job Description / URL</label>
+                              <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-white/70' : 'text-slate-800'}`}>Job Description / URL</label>
                               <div className="space-y-3">
                                 <div className="relative group">
                                   <input 
                                     type="url"
                                     placeholder="Paste Job Posting URL here"
                                     className={`w-full px-4 py-3 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all pr-12 ${
-                                      isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
+                                      isDarkMode ? 'bg-white/10 border-white/20 text-white placeholder:text-white/40' : 'bg-[#F9F9F9] border-black/10 text-black'
                                     }`}
                                     value={jobUrl}
                                     onChange={(e) => setJobUrl(e.target.value)}
@@ -3186,7 +3211,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   ref={jdTextareaRef}
                                   placeholder="Or paste the full job description text here..."
                                   className={`w-full h-32 p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-y text-sm leading-relaxed ${
-                                    isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
+                                    isDarkMode ? 'bg-white/10 border-white/20 text-white placeholder:text-white/40' : 'bg-[#F9F9F9] border-black/10 text-black'
                                   }`}
                                   value={jobDescription}
                                   onChange={(e) => setJobDescription(e.target.value)}
@@ -3410,7 +3435,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   <div className="relative">
                                     <select 
                                       className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none ${
-                                        isDarkMode ? 'bg-[#1A1A1A] border-white/10 text-white' : 'bg-white border-black/10 text-black'
+                                        isDarkMode ? 'glass-dark border-white/10 text-white' : 'glass-light border-black/10 text-black'
                                       }`}
                                       value={engineConfig[selectedEngine === 'gemini' ? 'gemini' : 'openai'].model}
                                       onChange={(e) => setEngineConfig({
@@ -3794,7 +3819,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   transition={{ duration: 0.2 }}
                   className="space-y-6"
                 >
-                  <section className={`rounded-2xl border p-6 shadow-xl transition-colors ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/5'}`}>
+                  <section className={`rounded-2xl border p-6 shadow-xl transition-colors ${isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'}`}>
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <Users className={`w-5 h-5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
@@ -4317,7 +4342,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                 >
                   {/* Resume Preview Pane */}
                   <div className={`flex-1 flex flex-col rounded-3xl overflow-hidden ${isDarkMode ? 'glass-panel border border-white/10' : 'glass-panel-light border border-black/5 shadow-2xl'}`}>
-                    <div className={`p-2 md:p-4 border-b flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 md:gap-4 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/5'}`}>
+                    <div className={`p-2 md:p-4 border-b flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 md:gap-4 ${isDarkMode ? 'glass-thin border-white/5' : 'bg-black/5 border-black/5'}`}>
                       <div className="flex flex-row items-center gap-2 md:gap-3">
                         <div className="flex flex-row gap-1 bg-black/20 dark:bg-white/5 p-1 rounded-lg">
                           <button 

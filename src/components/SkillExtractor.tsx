@@ -87,7 +87,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-inherit overflow-hidden">
-      <div className={`sticky top-0 z-10 flex items-center justify-between p-6 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'} pt-16`}>
+      <div className={`sticky top-0 z-10 flex items-center justify-between p-6 border-b ${isDarkMode ? 'glass-thin border-white/5' : 'bg-white border-black/5'} pt-16`}>
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
@@ -180,7 +180,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
             {/* Left Column: Input or Priority */}
             <div className="lg:col-span-2 space-y-6">
               {!extractedData ? (
-                <div className={`p-8 rounded-3xl border shadow-xl ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'}`}>
+                <div className={`p-8 rounded-3xl border shadow-xl ${isDarkMode ? 'glass-panel border-white/10' : 'bg-white border-black/10'}`}>
                   <label className="block text-sm font-bold uppercase tracking-widest opacity-40 mb-4">Paste Job Description</label>
                   <textarea
                     value={jdText}
@@ -217,7 +217,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
               ) : (
                 <div className="space-y-6">
                   {/* Priority / High-Impact Skills */}
-                  <div className={`p-8 rounded-3xl border shadow-xl ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-black/10'}`}>
+                  <div className={`p-8 rounded-3xl border shadow-xl ${isDarkMode ? 'glass-panel border-white/10' : 'bg-white border-black/10'}`}>
                      <div className="flex items-center justify-between mb-6">
                         <h3 className="text-xl font-bold flex items-center gap-3">
                           <Target className="w-6 h-6 text-amber-500" />
@@ -289,7 +289,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
 
             {/* Right Column: Master Resume Skills */}
             <div className="space-y-6">
-              <div className={`p-6 rounded-3xl border flex flex-col h-full ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'}`}>
+              <div className={`p-6 rounded-3xl border flex flex-col h-full ${isDarkMode ? 'glass-thick border-white/10' : 'bg-white border-black/10'}`}>
                 <div className="flex items-center gap-3 mb-6">
                   <div className={`p-2 rounded-xl ${isDarkMode ? 'bg-blue-500/20' : 'bg-blue-500/10'}`}>
                     <ListChecks className="w-5 h-5 text-blue-500" />

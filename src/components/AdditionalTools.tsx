@@ -430,7 +430,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
   };
 
   return (
-    <div className={`rounded-xl border p-4 ${isDarkMode ? 'bg-[#141414] border-white/10' : 'bg-white border-black/5'} min-h-[400px]`}>
+    <div className={`rounded-xl border p-4 ${isDarkMode ? 'glass-panel border-white/5' : 'bg-white border-black/5'} min-h-[400px]`}>
       
       {!activeTab ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-6">
@@ -455,7 +455,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'skillGap' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -470,7 +470,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'linkedin' 
                 ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -485,7 +485,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'interview' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -500,7 +500,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'coverLetter' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -515,7 +515,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'recruiterMessage' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -530,7 +530,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'headline' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -545,7 +545,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'masterResumeManager' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -560,7 +560,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'masterResumeGenerator' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -575,7 +575,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'history' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">
@@ -590,7 +590,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
             className={`flex flex-col items-start gap-2 p-3 rounded-xl transition-all border ${
               activeTab === 'whyThisJob' 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                : (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
+                : (isDarkMode ? 'glass-card border-white/5 text-white/60 hover:text-white' : 'bg-black/5 border-black/5 text-black/60 hover:bg-black/10 hover:text-black')
             }`}
           >
             <div className="flex items-center gap-2">

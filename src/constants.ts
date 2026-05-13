@@ -50,8 +50,7 @@ export const MODEL_PRICING: Record<string, { input: number, output: number }> = 
 };
 
 export const BACKGROUND_THEMES = [
-  { id: 'glass-aurora', label: 'Aurora', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop' },
-  { id: 'glass-mesh', label: 'Mesh', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2670&auto=format&fit=crop' },
-  { id: 'glass-cosmic', label: 'Cosmic', url: 'https://images.unsplash.com/photo-1464802686167-b939a8175b5f?q=80&w=2669&auto=format&fit=crop' },
-  { id: 'glass-liquid', label: 'Liquid', url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2574&auto=format&fit=crop' },
+  { id: 'midnight', label: 'Midnight', url: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2671&auto=format&fit=crop' },
+  { id: 'frosted', label: 'Frosted', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2670&auto=format&fit=crop' },
+  { id: 'cosmic', label: 'Cosmic', url: 'https://images.unsplash.com/photo-1464802686167-b939a8175b5f?q=80&w=2669&auto=format&fit=crop' },
 ];
