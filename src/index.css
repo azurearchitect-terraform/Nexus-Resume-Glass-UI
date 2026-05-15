@@ -1,0 +1,413 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Executive Grayscale & Accent Palette */
+  --color-slate-900: #0f172a;
+  --color-slate-800: #1e293b;
+  --color-slate-700: #334155;
+  --color-slate-200: #e2e8f0;
+  --color-emerald-600: #059669;
+  --color-emerald-500: #10b981;
+}
+
+:root {
+  --glass-bg-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased text-white overflow-hidden;
+    background: #000000;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Global Bright Text Enhancements */
+  .text-white {
+    color: #FFFFFF !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  
+  .opacity-50 {
+    opacity: 0.8 !important; /* Globally boosting dimmed text */
+  }
+  
+  .text-white\/50 {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+}
+
+@keyframes liquid-float {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(10vw, 5vh) scale(1.1) rotate(5deg); }
+  66% { transform: translate(-5vw, 10vh) scale(0.9) rotate(-5deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
+@layer components {
+  .liquid-container {
+    @apply fixed inset-0 -z-10 overflow-hidden pointer-events-none;
+  }
+
+  /* Layer 1: Noise/Grain Overlay to prevent banding */
+  .liquid-container::after {
+    content: "";
+    @apply absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .liquid-blob {
+    @apply absolute rounded-full filter blur-[10px] opacity-10 mix-blend-screen;
+    background: var(--blob-color, rgba(59, 130, 246, 0.2));
+    animation: liquid-float 40s ease-in-out infinite;
+  }
+  
+  .liquid-blob-secondary {
+    background: var(--blob-color-secondary, rgba(16, 185, 129, 0.2));
+  }
+
+  /* --- Apple HIG Tiered Material System --- */
+  
+  :root {
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-light: rgba(255, 255, 255, 0.25);
+  }
+
+  /* Ultra Thin: High transparency, subtle blur */
+  .glass-thin {
+    background: rgba(255, 255, 255, 0.01);
+    backdrop-filter: blur(2px) saturate(140%);
+    -webkit-backdrop-filter: blur(2px) saturate(140%);
+    border: 0.5px solid var(--glass-border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.01);
+    transition: background 0.3s ease, backdrop-filter 0.3s ease;
+  }
+
+  .theme-solid .glass-thin {
+    background: #0D0D0D;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-color: rgba(255,255,255,0.05);
+  }
+
+  /* Regular Material: The standard Apple Glass */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.01);
+    backdrop-filter: blur(1px) saturate(110%);
+    -webkit-backdrop-filter: blur(1px) saturate(110%);
+    border: 0.5px solid var(--glass-border);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01), 0 2px 10px rgba(0,0,0,0.02);
+    transition: background 0.3s ease, backdrop-filter 0.3s ease;
+  }
+
+  .theme-solid .glass-panel {
+    background: #080808;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-color: rgba(255,255,255,0.05);
+  }
+
+  .glass-panel-light {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px) saturate(150%);
+    -webkit-backdrop-filter: blur(4px) saturate(150%);
+    border: 1px solid var(--glass-border-light);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01), 0 10px 30px rgba(31,38,135,0.01);
+  }
+
+  /* Thick Material: Deep blur, for complex layering */
+  .glass-thick {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 20px 40px rgba(0,0,0,0.1);
+  }
+
+  .glass-card {
+    @apply transition-all duration-700 ease-in-out;
+    background: rgba(255, 255, 255, 0.01);
+    backdrop-filter: blur(1px) saturate(110%);
+    -webkit-backdrop-filter: blur(1px) saturate(110%);
+    border: 1px solid rgba(255, 255, 255, 0.01);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+    border-radius: 1.5rem;
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  }
+
+  .ios-control {
+    @apply saturate-[210%] bg-white/10 border border-white/15 rounded-2xl;
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.1), 0 10px 30px rgba(0,0,0,0.15);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.4);
+  }
+
+  /* Utility classes for quick application */
+  .glass {
+    @apply bg-white/40 border border-white/30 shadow-lg;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .glass-dark {
+    @apply bg-slate-950/10 border border-white/5 shadow-2xl;
+    backdrop-filter: blur(4px) saturate(140%);
+    -webkit-backdrop-filter: blur(4px) saturate(140%);
+  }
+  .glass-morphic {
+    @apply bg-white/10 border border-white/20 shadow-2xl;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+  .glass-card-dark {
+    @apply bg-slate-950/10 border border-white/5 hover:border-white/10 transition-all duration-500;
+    backdrop-filter: blur(4px) saturate(130%);
+    -webkit-backdrop-filter: blur(4px) saturate(130%);
+  }
+
+  .page-break-after-always {
+    page-break-after: always;
+  }
+
+  /* Force standard colors for PDF generation to avoid html2canvas oklab/oklch and color-mix errors */
+  .legacy-colors {
+    color: #1a1a1a; /* Explicitly set to prevent inheriting oklch from body */
+    background-color: #ffffff;
+    
+    --color-emerald-50: #ecfdf5;
+    --color-emerald-100: #d1fae5;
+    --color-emerald-200: #a7f3d0;
+    --color-emerald-300: #6ee7b7;
+    --color-emerald-400: #34d399;
+    --color-emerald-500: #10b981;
+    --color-emerald-600: #059669;
+    --color-emerald-700: #047857;
+    --color-emerald-800: #065f46;
+    --color-emerald-900: #064e3b;
+    
+    --color-gray-50: #f9fafb;
+    --color-gray-100: #f3f4f6;
+    --color-gray-200: #e5e7eb;
+    --color-gray-300: #d1d5db;
+    --color-gray-400: #9ca3af;
+    --color-gray-500: #6b7280;
+    --color-gray-600: #4b5563;
+    --color-gray-700: #374151;
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
+    --color-gray-950: #030712;
+
+    --color-red-50: #fef2f2;
+    --color-red-100: #fee2e2;
+    --color-red-200: #fecaca;
+    --color-red-300: #fca5a5;
+    --color-red-400: #f87171;
+    --color-red-500: #ef4444;
+    --color-red-600: #dc2626;
+    --color-red-700: #b91c1c;
+    --color-red-800: #991b1b;
+    --color-red-900: #7f1d1d;
+
+    --color-orange-50: #fff7ed;
+    --color-orange-100: #ffedd5;
+    --color-orange-200: #fed7aa;
+    --color-orange-300: #fdba74;
+    --color-orange-400: #fb923c;
+    --color-orange-500: #f97316;
+    --color-orange-600: #ea580c;
+    --color-orange-700: #c2410c;
+    --color-orange-800: #9a3412;
+    --color-orange-900: #7c2d12;
+
+    --color-yellow-50: #fefce8;
+    --color-yellow-100: #fef9c3;
+    --color-yellow-200: #fef08a;
+    --color-yellow-300: #fde047;
+    --color-yellow-400: #facc15;
+    --color-yellow-500: #eab308;
+    --color-yellow-600: #ca8a04;
+    --color-yellow-700: #a16207;
+    --color-yellow-800: #854d0e;
+    --color-yellow-900: #713f12;
+
+    --color-blue-50: #eff6ff;
+    --color-blue-100: #dbeafe;
+    --color-blue-200: #bfdbfe;
+    --color-blue-300: #93c5fd;
+    --color-blue-400: #60a5fa;
+    --color-blue-500: #3b82f6;
+    --color-blue-600: #2563eb;
+    --color-blue-700: #1d4ed8;
+    --color-blue-800: #1e40af;
+    --color-blue-900: #1e3a8a;
+
+    --color-amber-50: #fffbeb;
+    --color-amber-100: #fef3c7;
+    --color-amber-200: #fde68a;
+    --color-amber-300: #fcd34d;
+    --color-amber-400: #fbbf24;
+    --color-amber-500: #f59e0b;
+    --color-amber-600: #d97706;
+    --color-amber-700: #b45309;
+    --color-amber-800: #92400e;
+    --color-amber-900: #78350f;
+
+    --color-green-50: #f0fdf4;
+    --color-green-100: #dcfce7;
+    --color-green-200: #bbf7d0;
+    --color-green-300: #86efac;
+    --color-green-400: #4ade80;
+    --color-green-500: #22c55e;
+    --color-green-600: #16a34a;
+    --color-green-700: #15803d;
+    --color-green-800: #166534;
+    --color-green-900: #14532d;
+    
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-transparent: transparent;
+  }
+
+  /* Override color-mix usages since html2canvas doesn't support it */
+  .legacy-colors .bg-emerald-50\/50 { background-color: rgba(236, 253, 245, 0.5) !important; }
+  .legacy-colors .bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.1) !important; }
+  .legacy-colors .bg-emerald-500\/20 { background-color: rgba(16, 185, 129, 0.2) !important; }
+  .legacy-colors .bg-emerald-500\/30 { background-color: rgba(16, 185, 129, 0.3) !important; }
+  .legacy-colors .bg-emerald-500\/50 { background-color: rgba(16, 185, 129, 0.5) !important; }
+  .legacy-colors .border-emerald-500\/20 { border-color: rgba(16, 185, 129, 0.2) !important; }
+  .legacy-colors .border-emerald-500\/50 { border-color: rgba(16, 185, 129, 0.5) !important; }
+
+  .legacy-colors .bg-red-500\/10 { background-color: rgba(239, 68, 68, 0.1) !important; }
+  .legacy-colors .bg-red-500\/20 { background-color: rgba(239, 68, 68, 0.2) !important; }
+  .legacy-colors .bg-red-500\/50 { background-color: rgba(239, 68, 68, 0.5) !important; }
+  .legacy-colors .border-red-500\/20 { border-color: rgba(239, 68, 68, 0.2) !important; }
+
+  .legacy-colors .bg-orange-500\/10 { background-color: rgba(249, 115, 22, 0.1) !important; }
+  .legacy-colors .border-orange-500\/20 { border-color: rgba(249, 115, 22, 0.2) !important; }
+
+  .legacy-colors .bg-yellow-500\/10 { background-color: rgba(234, 179, 8, 0.1) !important; }
+  .legacy-colors .bg-yellow-500\/50 { background-color: rgba(234, 179, 8, 0.5) !important; }
+
+  .legacy-colors .bg-green-500\/50 { background-color: rgba(34, 197, 94, 0.5) !important; }
+
+  .legacy-colors .bg-amber-500\/10 { background-color: rgba(245, 158, 11, 0.1) !important; }
+  .legacy-colors .border-amber-500\/20 { border-color: rgba(245, 158, 11, 0.2) !important; }
+
+  .legacy-colors .bg-gray-200\/50 { background-color: rgba(229, 231, 235, 0.5) !important; }
+
+  .legacy-colors .text-white\/40 { color: rgba(255, 255, 255, 0.4) !important; }
+  .legacy-colors .text-white\/60 { color: rgba(255, 255, 255, 0.6) !important; }
+  .legacy-colors .text-white\/30 { color: rgba(255, 255, 255, 0.3) !important; }
+  .legacy-colors .text-black\/40 { color: rgba(0, 0, 0, 0.4) !important; }
+  .legacy-colors .text-black\/60 { color: rgba(0, 0, 0, 0.6) !important; }
+  .legacy-colors .text-black\/30 { color: rgba(0, 0, 0, 0.3) !important; }
+
+  .legacy-colors .bg-black\/5 { background-color: rgba(0, 0, 0, 0.05) !important; }
+  .legacy-colors .bg-black\/10 { background-color: rgba(0, 0, 0, 0.1) !important; }
+  .legacy-colors .bg-black\/20 { background-color: rgba(0, 0, 0, 0.2) !important; }
+  .legacy-colors .bg-white\/5 { background-color: rgba(255, 255, 255, 0.05) !important; }
+  .legacy-colors .bg-white\/10 { background-color: rgba(255, 255, 255, 0.1) !important; }
+  .legacy-colors .bg-white\/80 { background-color: rgba(255, 255, 255, 0.8) !important; }
+
+  .legacy-colors .border-black\/5 { border-color: rgba(0, 0, 0, 0.05) !important; }
+  .legacy-colors .border-black\/10 { border-color: rgba(0, 0, 0, 0.1) !important; }
+  .legacy-colors .border-black\/20 { border-color: rgba(0, 0, 0, 0.2) !important; }
+  .legacy-colors .border-black\/30 { border-color: rgba(0, 0, 0, 0.3) !important; }
+  .legacy-colors .border-white\/5 { border-color: rgba(255, 255, 255, 0.05) !important; }
+  .legacy-colors .border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
+  .legacy-colors .border-white\/30 { border-color: rgba(255, 255, 255, 0.3) !important; }
+
+  /* Professional Bullet Point Alignment - Using semantic ul/li as requested */
+  /* Professional Bullet Point Alignment */
+  .resume-bullet-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 4px;
+  }
+
+  .resume-bullet-dot {
+    width: 4px;
+    height: 4px;
+    min-width: 4px;
+    background-color: #000000;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px; /* Align with first line of text */
+  }
+
+  .resume-bullet-text {
+    flex: 1;
+  }
+
+  .resume-list {
+    list-style-type: disc;
+    padding-left: 18px;
+    margin: 0;
+  }
+
+  .resume-list li {
+    margin-bottom: 6px;
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  /* Page margins and typography system */
+  .resume-page {
+    width: 210mm;
+    min-width: 210mm;
+    min-height: 297mm;
+    overflow: visible; /* Allow content to flow naturally */
+    background-color: white;
+    padding: 12mm;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    color: #000000;
+  }
+
+  @media print {
+    .resume-page {
+      overflow: visible !important;
+      height: auto !important;
+      min-height: 297mm !important;
+      display: block !important; /* Flex can sometimes mess up print pagination */
+    }
+    .resume-section {
+      /* Allow sections to break across pages */
+    }
+    .resume-item {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+  }
+
+  .resume-section {
+    position: relative;
+    width: 100%;
+  }
+}
