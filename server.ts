@@ -36,14 +36,14 @@ const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 // Helper to get API keys from Firestore securely
 async function getApiKeys(idToken: string) {
-    if (idToken === "SYSTEM_PIPELINE") return null;
+    if (idToken === "SYSTEM_PIPELINE") return { keys: null, uid: "SYSTEM" };
     try {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const uid = decodedToken.uid;
       const doc = await db.collection("users").doc(uid).get();
       
       if (!doc.exists) {
-        return null; // Return null instead of throwing
+        return { keys: null, uid }; // Return null instead of throwing
       }
       
       let data = doc.data();
@@ -59,22 +59,22 @@ async function getApiKeys(idToken: string) {
       }
 
       if (!data || !data.encryptedApiKey) {
-        return null; // Return null instead of throwing
+        return { keys: null, uid }; // Return null instead of throwing
       }
 
       // Decrypt the keys before returning
       try {
         const decrypted = decrypt(data.encryptedApiKey);
         try {
-          return JSON.parse(decrypted);
+          return { keys: JSON.parse(decrypted), uid };
         } catch (e) {
           // Fallback for older single-key format
-          return { gemini: decrypted };
+          return { keys: { gemini: decrypted }, uid };
         }
       } catch (error: any) {
         if (error.message.includes("DECRYPTION_FAILED")) {
           console.warn(`[Server] Decryption failed for user ${uid}. Treating as no key found.`);
-          return null;
+          return { keys: null, uid };
         }
         throw error;
       }
@@ -87,10 +87,29 @@ async function getApiKeys(idToken: string) {
 // Function to log usage to Firestore
 async function logUsage(log: UsageLog) {
   try {
+    // 1. Add to general analytics
     await db.collection("analytics").add({
       ...log,
       timestamp: FieldValue.serverTimestamp()
     });
+
+    // 2. Add to user-specific collection
+    if (log.userId && log.userId !== "anonymous" && log.userId !== "SYSTEM") {
+       const month = new Date(log.timestamp || Date.now()).toISOString().substring(0, 7);
+       const usageRef = db.collection(`users/${log.userId}/tokenUsage`).doc(month);
+       
+       const modelField = log.model.toLowerCase().includes('gemini') ? 'gemini' : 'openai';
+       
+       await usageRef.set({
+           userId: log.userId,
+           month,
+           [modelField]: {
+               input: FieldValue.increment(log.inputTokens),
+               output: FieldValue.increment(log.outputTokens)
+           },
+           updatedAt: FieldValue.serverTimestamp()
+       }, { merge: true });
+    }
   } catch (error) {
     console.error("Error logging usage to Firestore:", error);
   }
@@ -589,6 +608,30 @@ async function startServer() {
     res.json({ success: true, message: "Cache cleared successfully" });
   });
 
+  app.get("/api/user/token-usage", async (req, res) => {
+    const authHeader = req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const idToken = authHeader.split('Bearer ')[1];
+    
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const uid = decodedToken.uid;
+        
+        const snapshot = await db.collection(`users/${uid}/tokenUsage`).get();
+        const usage = snapshot.docs.map(doc => ({
+            month: doc.id,
+            ...doc.data()
+        }));
+        
+        res.json(usage);
+    } catch (error) {
+        console.error("Error fetching user token usage:", error);
+        res.status(500).json({ error: "Failed to fetch user token usage" });
+    }
+  });
+
   // Admin Analytics Endpoints
   app.get("/api/admin/stats", async (req, res) => {
     try {
@@ -738,7 +781,7 @@ async function startServer() {
       if (cachedResult) {
         // Log cache hit
         logUsage({
-          userId: "anonymous",
+          userId: uid,
           model: "cache",
           inputTokens: 0,
           outputTokens: 0,
@@ -894,7 +937,7 @@ async function startServer() {
           const genOutput = chatCompletion.usage?.completion_tokens || 0;
 
           logUsage({
-            userId: "anonymous",
+            userId: uid,
             model: usedModel,
             inputTokens: genInput,
             outputTokens: genOutput,
@@ -907,7 +950,7 @@ async function startServer() {
 
           // Log Gemini Extraction
           logUsage({
-            userId: "anonymous",
+            userId: uid,
             model: extractionModelUsed,
             inputTokens: geminiUsage.promptTokenCount,
             outputTokens: geminiUsage.candidatesTokenCount,
@@ -1061,6 +1104,31 @@ async function startServer() {
         // STEP 4: Agentic Review (Multi-Agent Refinement)
         console.log("[Pipeline] Step 4: Multi-Agent Review...");
         const agentFeedback = await runAgents(finalResult, geminiKey);
+
+        logUsage({
+          userId: uid,
+          model: usedModel,
+          inputTokens: metaResponse.usageMetadata?.promptTokenCount || 0,
+          outputTokens: metaResponse.usageMetadata?.candidatesTokenCount || 0,
+          totalTokens: metaResponse.usageMetadata?.totalTokenCount || 0,
+          cacheHit: false,
+          endpoint: "/api/v2/optimize",
+          timestamp: Date.now(),
+          cost: calculateCost(usedModel, metaResponse.usageMetadata?.promptTokenCount || 0, metaResponse.usageMetadata?.candidatesTokenCount || 0)
+        });
+        
+        // Log Gemini Extraction
+        logUsage({
+          userId: uid,
+          model: extractionModelUsed,
+          inputTokens: geminiUsage.promptTokenCount,
+          outputTokens: geminiUsage.candidatesTokenCount,
+          totalTokens: geminiUsage.totalTokenCount,
+          cacheHit: false,
+          endpoint: "/api/v2/optimize",
+          timestamp: Date.now(),
+          cost: calculateCost(extractionModelUsed, geminiUsage.promptTokenCount, geminiUsage.candidatesTokenCount)
+        });
 
         result = {
           result: JSON.stringify(finalResult),

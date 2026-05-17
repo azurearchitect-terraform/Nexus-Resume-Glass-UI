@@ -335,6 +335,9 @@ export default function App() {
             if (data.masterResume) {
               setResumeText(data.masterResume);
             }
+            if (data.resumes) {
+              setMasterResumes(data.resumes);
+            }
             if (data.customPrompt) {
               setCustomPrompt(data.customPrompt);
             }
@@ -633,6 +636,7 @@ export default function App() {
       const dataToSync: any = {
         userId: user.uid,
         masterResume: resumeText || "",
+        resumes: masterResumes || [],
         customPrompt: customPrompt || "",
         settings: {
           versioningEnabled,
@@ -671,6 +675,16 @@ export default function App() {
 
     return () => clearTimeout(timeoutId);
   }, [hasUnsavedChanges, user, resumeText, customPrompt, isDriveConnected, versioningEnabled, isAutosaveEnabled, selectedDriveFolder, driveAccessToken]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (user) {
+        signOut(auth);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [user]);
 
   const handleLogout = async () => {
     try {
