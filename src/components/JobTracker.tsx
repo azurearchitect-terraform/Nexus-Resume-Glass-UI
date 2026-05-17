@@ -353,7 +353,7 @@ export const JobTracker: React.FC<JobTrackerProps> = ({ isDarkMode, engineConfig
                       value={job.status}
                       onChange={(e) => updateStatus(job.id, e.target.value as any)}
                       className={`w-full text-xs p-1.5 rounded border focus:outline-none ${
-                        isDarkMode ? 'bg-black/50 border-white/10' : 'bg-gray-50 border-black/10'
+                        isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/10'
                       }`}
                     >
                       {stages.map(s => (

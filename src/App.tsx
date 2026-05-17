@@ -65,7 +65,7 @@ import { useResumeStore } from './store';
 import { ResumeData, SuitabilityResult, Certification, MasterResume } from './types';
 import { detectOverflow } from './overflowDetection';
 import { useFormatting, DEFAULT_STYLE } from './context/FormattingContext';
-import { optimizeResume, fetchJobDescription, analyzeBestAudiences, evaluateSuitability, OptimizationResult, EngineType, EngineConfig } from './services/geminiService';
+import { optimizeResume, fetchJobDescription, analyzeBestAudiences, evaluateSuitability, OptimizationResult, EngineType, EngineConfig, autoSelectPlayerCoachRole } from './services/geminiService';
 import { RouterConfig } from './services/aiRouter';
 import { extractTextFromPDFFile } from './lib/pdfUtils';
 import { saveAs } from 'file-saver';
@@ -113,7 +113,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-type OptimizationMode = 'conservative' | 'balanced' | 'aggressive' | 'Player-Coach';
+type OptimizationMode = 'conservative' | 'balanced' | 'aggressive' | 'automatic';
 
 import { CommandPalette } from './components/CommandPalette';
 
@@ -675,6 +675,7 @@ export default function App() {
   const handleLogout = async () => {
     try {
       await syncAllData();
+      clearInputs();
       await signOut(auth);
     } catch (err) {
       console.error("Logout Error:", err);
@@ -2426,11 +2427,15 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
   const clearInputs = () => {
     setJobDescription('');
     setTargetRole('');
+    setTargetCompany('none');
+    setBrainDump('');
     setCompanyName('');
     setJobUrl('');
     setResults({});
     setActiveAudience(null);
     setSuitabilityResult(null);
+    setOptimizationProgress(0);
+    setSelectedAudiences(['microsoft']);
     
     // Clear the backend cache
     fetch('/api/cache/clear', { method: 'POST' }).catch(err => console.error("Failed to clear backend cache", err));
@@ -2896,7 +2901,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col relative w-full h-full min-w-0">
-          <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'}`}>
+          <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/5'}`}>
               <div className="flex items-center gap-2 sm:gap-6">
                 <div className="font-bold text-xl tracking-tight flex items-center gap-2 sm:gap-3">
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex shrink-0 items-center justify-center transition-colors shadow-sm ${isDarkMode ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-neutral-900 border border-black'}`}>
@@ -3161,7 +3166,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               <button
                                 onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
                                 className={`w-full px-3 py-2 text-xs border rounded-lg flex items-center justify-between transition-all ${
-                                  isDarkMode ? 'glass-panel border-white/20 text-white' : 'glass-panel-light border-black/10 text-black'
+                                  isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/10'
                                 }`}
                               >
                                 <span className="truncate flex items-center gap-2">
@@ -3178,7 +3183,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               </button>
                               {isAudienceDropdownOpen && (
                                 <div className={`absolute z-50 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
-                                  isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'
+                                  isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/5'
                                 }`}>
                                   <div className="p-2 border-b border-white/10 flex gap-2">
                                     <button 
@@ -3287,7 +3292,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 <button
                                   onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
                                   className={`w-full px-4 py-3 text-xs border rounded-xl flex items-center justify-between transition-all ${
-                                    isDarkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-white border-black/5 text-black hover:bg-black/5'
+                                    isDarkMode ? 'bg-black border-white/10 text-white hover:bg-black/80' : 'bg-white border-black/5 text-black hover:bg-white/90'
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
@@ -3307,7 +3312,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                       animate={{ opacity: 1, y: 0 }}
                                       exit={{ opacity: 0, y: -10 }}
                                       className={`absolute left-0 right-0 mt-2 p-2 rounded-xl border shadow-2xl z-50 max-h-72 overflow-y-auto custom-scrollbar ${
-                                        isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'
+                                        isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/5'
                                       }`}
                                     >
                                       {TARGET_COMPANIES.map((company) => (
@@ -3320,7 +3325,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                           className={`w-full p-3 rounded-lg flex items-center gap-3 transition-all text-left ${
                                             targetCompany === company.id 
                                               ? (isDarkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-50 text-purple-600')
-                                              : (isDarkMode ? 'hover:bg-white/5 text-white/70' : 'hover:bg-black/5 text-black/70')
+                                              : (isDarkMode ? 'bg-black hover:bg-white/5 text-white/70' : 'bg-white hover:bg-black/5 text-black/70')
                                           }`}
                                         >
                                           <span className="text-xl shrink-0">{company.icon}</span>
@@ -3466,7 +3471,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   <div className="relative">
                                     <select 
                                       className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none ${
-                                        isDarkMode ? 'glass-panel border-white/10 text-white' : 'glass-panel-light border-black/10 text-black'
+                                        isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/10'
                                       }`}
                                       value={engineConfig[selectedEngine === 'gemini' ? 'gemini' : 'openai'].model}
                                       onChange={(e) => setEngineConfig({
@@ -4604,7 +4609,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     <div className="p-2 border-t border-white/10 flex justify-center bg-white/5">
                       <button 
                         onClick={downloadPDF}
-                        disabled={isDownloading}
+                        disabled={isDownloading || optimizationProgress < 100}
                         className="px-6 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-800 transition-all transform hover:scale-[1.02] font-semibold text-sm flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:hover:scale-100"
                       >
                         {isDownloading ? (

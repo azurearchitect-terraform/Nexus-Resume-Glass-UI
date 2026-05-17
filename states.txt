@@ -1,0 +1,100 @@
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isAuthProcessing, setIsAuthProcessing] = useState(false);
+  const [openaiApiKey, setOpenaiApiKey] = useState('');
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isApiKeySaved, setIsApiKeySaved] = useState(false);
+  const [encryptedApiKey, setEncryptedApiKey] = useState('');
+  const [isTestingDrive, setIsTestingDrive] = useState(false);
+  const [driveFiles, setDriveFiles] = useState<any[]>([]);
+  const [isFetchingDriveFiles, setIsFetchingDriveFiles] = useState(false);
+  const [renamingDriveFileId, setRenamingDriveFileId] = useState<string | null>(null);
+  const [newDriveFileName, setNewDriveFileName] = useState('');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [isDriveConnected, setIsDriveConnected] = useState(() => {
+  const [selectedDriveFolder, setSelectedDriveFolder] = useState<{id: string, name: string} | null>(() => {
+  const [isSelectingFolder, setIsSelectingFolder] = useState(false);
+  const [firestoreReadCount, setFirestoreReadCount] = useState<number>(() => {
+  const [driveAccessToken, setDriveAccessToken] = useState<string | null>(() => {
+  const [versioningEnabled, setVersioningEnabled] = useState(() => {
+  const [isAutosaveEnabled, setIsAutosaveEnabled] = useState(() => {
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  const [lastJobId, setLastJobId] = useState<string | null>(null);
+  const [showJsonViewer, setShowJsonViewer] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [resumeSource, setResumeSource] = useState<'local' | 'firestore'>('local');
+  const [masterResumes, setMasterResumes] = useState<MasterResume[]>(() => {
+  const [selectedResumeId, setSelectedResumeId] = useState<string>(() => {
+  const [resumeText, setResumeText] = useState(() => {
+  const [jobDescription, setJobDescription] = useState('');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [targetRole, setTargetRole] = useState('');
+  const [targetCompany, setTargetCompany] = useState('none');
+  const [brainDump, setBrainDump] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [mode, setMode] = useState<OptimizationMode>('balanced');
+  const [fastMode, setFastMode] = useState(false);
+  const [recruiterSimulationMode, setRecruiterSimulationMode] = useState(false);
+  const [selectedAudiences, setSelectedAudiences] = useState<string[]>(['microsoft']);
+  const [isAudienceDropdownOpen, setIsAudienceDropdownOpen] = useState(false);
+  const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string, onConfirm: () => void, onCancel: () => void } | null>(null);
+  const [linkedInUrl, setLinkedInUrl] = useState(() => localStorage.getItem('linkedInUrl') || '');
+  const [linkedInPdfText, setLinkedInPdfText] = useState(() => localStorage.getItem('linkedInPdfText') || '');
+  const [linkedInFileName, setLinkedInFileName] = useState(() => localStorage.getItem('linkedInFileName') || '');
+  const [jobUrl, setJobUrl] = useState('');
+  const [isExtractingLinkedIn, setIsExtractingLinkedIn] = useState(false);
+  const [isCareerToolActive, setIsCareerToolActive] = useState(false);
+  const [isAdditionalToolActive, setIsAdditionalToolActive] = useState(false);
+  const [isFetchingJob, setIsFetchingJob] = useState(false);
+  const [suitabilityResult, setSuitabilityResult] = useState<SuitabilityResult | null>(null);
+  const [isCheckingSuitability, setIsCheckingSuitability] = useState(false);
+  const [profileName, setProfileName] = useState(() => localStorage.getItem('profileName') || '');
+  const [profileLocation, setProfileLocation] = useState(() => localStorage.getItem('profileLocation') || 'Hyderabad, Telangana, India');
+  const [profileEmail, setProfileEmail] = useState(() => localStorage.getItem('profileEmail') || '');
+  const [profilePhone, setProfilePhone] = useState(() => localStorage.getItem('profilePhone') || '');
+  const [profileLinkedIn, setProfileLinkedIn] = useState(() => localStorage.getItem('profileLinkedIn') || '');
+  const [profileLinkedInText, setProfileLinkedInText] = useState(() => localStorage.getItem('profileLinkedInText') || '');
+  const [isResumePersistent, setIsResumePersistent] = useState(() => localStorage.getItem('isResumePersistent') !== 'false');
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [resumeVersions, setResumeVersions] = useState<any[]>([]);
+  const [expandedReports, setExpandedReports] = useState<Record<string, boolean>>({});
+  const [showInsights, setShowInsights] = useState(true);
+  const [engineConfig, setEngineConfig] = useState<Record<string, any>>({
+  const [selectedEngine, setSelectedEngine] = useState<'gemini' | 'openai' | 'hybrid-gemini' | 'hybrid-openai'>('gemini');
+  const [showEngineSettings, setShowEngineSettings] = useState(false);
+  const [configWidth, setConfigWidth] = useState(() => {
+  const [isResizingWidth, setIsResizingWidth] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isAutoZoom, setIsAutoZoom] = useState(true);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [activeTheme, setActiveTheme] = useState(BACKGROUND_THEMES[0]);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarPinned, setIsSidebarPinned] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(200);
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'standard' | 'simplified'>('standard');
+  const [viewMode, setViewMode] = useState<'resume' | 'insights'>('resume');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showModeInfo, setShowModeInfo] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [isAutoSelectingAudiences, setIsAutoSelectingAudiences] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [optimizationProgress, setOptimizationProgress] = useState(0);
+  const [optimizationStatus, setOptimizationStatus] = useState('');
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [tokenUsage, setTokenUsage] = useState({
+  const [isRefreshingTokens, setIsRefreshingTokens] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [contentHeight, setContentHeight] = useState(1123);
+  const [isPiiMasked, setIsPiiMasked] = useState(false);
+  const [customFonts, setCustomFonts] = useState<{name: string, url: string, format: string}[]>([]);
+  const [sectionOrder, setSectionOrder] = useState<string[]>([

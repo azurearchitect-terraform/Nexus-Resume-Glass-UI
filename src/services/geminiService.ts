@@ -477,6 +477,8 @@ STRICT PROFESSIONAL GUIDELINES:
 - IMPACT OVER TASKS: Focus solely on accomplishments and business outcomes.
 - HALLUCINATION PREVENTION: DO NOT invent, fabricate, suggest, or add any certifications, projects, experience, employers, or skills that are not explicitly present in the original resume text.
 - PRESERVE TITLES: Do not change job titles. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
+- DIFFERENTIATION: You MUST tailor the output specifically to the provided Job Description. Do not rely on generic templates from previous optimizations; if the JD differs, the optimized resume MUST reflect those specific needs.
+- TEAM SIZE: The user manages a 20-member team in their current role. Do not infer or hallucinate team sizes like "4".
 - INCLUDE ALL ROLES: You MUST include EVERY single role present in the input resume.
 - MAX 2 PAGES: Content must fit A4 layout.
 
