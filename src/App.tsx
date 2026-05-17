@@ -78,7 +78,8 @@ const ComparisonModal = lazy(() => import('./components/ComparisonModal').then(m
 const CareerQuizHelp = lazy(() => import('./components/CareerQuiz').then(m => ({ default: m.CareerQuiz }))); // Reusing for consistency if needed
 const NexusProInsights = lazy(() => import('./components/NexusProInsights').then(m => ({ default: m.NexusProInsights })));
 
-import { auth, db } from './firebase';
+import { auth, db, storage } from './firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { 
   onAuthStateChanged, 
   signInWithPopup, 
@@ -989,16 +990,28 @@ export default function App() {
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const themeInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCustomTheme = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomTheme = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const url = event.target?.result as string;
+      if (auth.currentUser) {
+        try {
+          const storageRef = ref(storage, `wallpapers/${auth.currentUser.uid}/custom`);
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
+          await setDoc(doc(db, 'users', auth.currentUser.uid), { wallpaperUrl: url }, { merge: true });
+          setActiveTheme({ id: 'custom', label: 'Custom', url });
+        } catch (error) {
+          console.error("Error uploading wallpaper:", error);
+          // Fallback to local URL if upload fails
+          const url = URL.createObjectURL(file);
+          setActiveTheme({ id: 'custom', label: 'Custom', url });
+        }
+      } else {
+        const url = URL.createObjectURL(file);
         setActiveTheme({ id: 'custom', label: 'Custom', url });
-        setIsThemeMenuOpen(false);
-      };
-      reader.readAsDataURL(file);
+        localStorage.setItem('nexus_custom_bg_url', url);
+      }
+      setIsThemeMenuOpen(false);
     }
   };
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -1102,23 +1115,41 @@ export default function App() {
 
   useEffect(() => {
     const savedThemeId = localStorage.getItem('nexus_bg_theme');
-    if (savedThemeId) {
-      if (savedThemeId === 'custom') {
-        const customUrl = localStorage.getItem('nexus_custom_bg_url');
-        if (customUrl) {
-          setActiveTheme({ id: 'custom', label: 'Custom', url: customUrl });
-        }
-      } else {
-        const theme = BACKGROUND_THEMES.find(t => t.id === savedThemeId);
-        if (theme) {
-          setActiveTheme(theme);
+    
+    const loadTheme = async () => {
+      if (savedThemeId) {
+        if (savedThemeId === 'custom') {
+          // If logged in, fetch from Firestore, otherwise from localStorage
+          if (auth.currentUser) {
+            try {
+              const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+              const wallpaperUrl = userDoc.data()?.wallpaperUrl;
+              if (wallpaperUrl) {
+                setActiveTheme({ id: 'custom', label: 'Custom', url: wallpaperUrl });
+                return; // success
+              }
+            } catch (e) {
+              console.error("Error loading wallpaper from firestore", e);
+            }
+          }
+          const customUrl = localStorage.getItem('nexus_custom_bg_url');
+          if (customUrl) {
+            setActiveTheme({ id: 'custom', label: 'Custom', url: customUrl });
+          }
         } else {
-          setActiveTheme(BACKGROUND_THEMES[0]);
-          localStorage.setItem('nexus_bg_theme', BACKGROUND_THEMES[0].id);
+          const theme = BACKGROUND_THEMES.find(t => t.id === savedThemeId);
+          if (theme) {
+            setActiveTheme(theme);
+          } else {
+            setActiveTheme(BACKGROUND_THEMES[0]);
+            localStorage.setItem('nexus_bg_theme', BACKGROUND_THEMES[0].id);
+          }
         }
       }
-    }
-  }, []);
+    };
+    loadTheme();
+  }, [user]);
+
 
   useEffect(() => {
     document.documentElement.style.setProperty('--glass-bg-image', `url('${activeTheme.url}')`);
@@ -2940,7 +2971,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className={`absolute top-full right-0 mt-2 w-48 p-2 rounded-2xl border shadow-2xl z-50 ${isDarkMode ? 'glass-panel border-white/20' : 'glass-panel-light border-black/10'}`}
+                            className={`fixed top-16 right-4 sm:right-8 md:right-8 w-48 p-2 rounded-2xl border shadow-2xl z-50 ${isDarkMode ? 'glass-panel border-white/20' : 'glass-panel-light border-black/10'}`}
                           >
                             <div className="space-y-1">
                               {BACKGROUND_THEMES.map(theme => (
@@ -3147,7 +3178,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                               </button>
                               {isAudienceDropdownOpen && (
                                 <div className={`absolute z-50 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
-                                  isDarkMode ? 'bg-[#1A1A1A] border-white/10' : 'bg-white border-black/5'
+                                  isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'
                                 }`}>
                                   <div className="p-2 border-b border-white/10 flex gap-2">
                                     <button 
@@ -3276,7 +3307,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                       animate={{ opacity: 1, y: 0 }}
                                       exit={{ opacity: 0, y: -10 }}
                                       className={`absolute left-0 right-0 mt-2 p-2 rounded-xl border shadow-2xl z-50 max-h-72 overflow-y-auto custom-scrollbar ${
-                                        isDarkMode ? 'bg-[#1A1A1A] border-white/10 shadow-black' : 'bg-white border-black/10 shadow-black/10'
+                                        isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-black/5'
                                       }`}
                                     >
                                       {TARGET_COMPANIES.map((company) => (
@@ -3383,7 +3414,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   className={`w-full py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-between border transition-all ${
                                     recruiterSimulationMode
                                       ? (isDarkMode ? 'bg-red-500/20 border-red-500 text-red-200' : 'bg-red-50 border-red-500 text-red-800')
-                                      : (isDarkMode ? 'glass-dark border-white/10 text-white/60' : 'glass border-black/5 text-black/60')
+                                      : (isDarkMode ? 'glass-panel border-white/10 text-white/60' : 'glass-panel-light border-black/5 text-black/60')
                                   }`}
                                 >
                                   Recruiter Simulation Mode
@@ -3435,7 +3466,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                   <div className="relative">
                                     <select 
                                       className={`w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none ${
-                                        isDarkMode ? 'glass-dark border-white/10 text-white' : 'glass-light border-black/10 text-black'
+                                        isDarkMode ? 'glass-panel border-white/10 text-white' : 'glass-panel-light border-black/10 text-black'
                                       }`}
                                       value={engineConfig[selectedEngine === 'gemini' ? 'gemini' : 'openai'].model}
                                       onChange={(e) => setEngineConfig({
@@ -4250,7 +4281,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.05 }}
                   className={`h-full min-h-[500px] flex flex-col items-center justify-start text-center p-8 md:p-16 rounded-3xl border border-dashed relative overflow-y-auto custom-scrollbar ${
-                    isDarkMode ? 'glass-dark border-white/10' : 'glass border-black/10'
+                    isDarkMode ? 'glass-panel border-white/20' : 'glass-panel-light border-black/10'
                   }`}
                 >
                   {/* Background Accents */}

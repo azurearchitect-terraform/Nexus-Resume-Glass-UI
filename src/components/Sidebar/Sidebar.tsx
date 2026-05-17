@@ -165,8 +165,8 @@ export const Sidebar = () => {
 
   return (
     <aside className={cn(
-      "w-72 h-full border-r flex flex-col overflow-hidden transition-all",
-      darkMode ? "glass-dark border-white/5" : "glass-panel-light border-gray-200/50"
+      "w-72 h-full border-r flex flex-col overflow-hidden transition-colors backdrop-blur-md",
+      darkMode ? "bg-gray-800/80 border-gray-700/50" : "bg-white/80 border-gray-200/50"
     )}>
       {/* Tabs */}
       <div className={cn(

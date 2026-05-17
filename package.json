@@ -1,7 +1,7 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "3.0.0",
+  "version": "4.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -27,7 +27,7 @@
     "express": "^4.21.2",
     "file-saver": "^2.0.5",
     "firebase": "^12.11.0",
-    "firebase-admin": "^13.9.0",
+    "firebase-admin": "^13.8.0",
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",
     "html2pdf.js": "^0.14.0",

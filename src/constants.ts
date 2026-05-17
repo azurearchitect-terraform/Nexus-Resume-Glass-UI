@@ -50,19 +50,7 @@ export const MODEL_PRICING: Record<string, { input: number, output: number }> = 
 };
 
 export const BACKGROUND_THEMES = [
-  { 
-    id: 'glass-mountain', 
-    label: 'Mountain Clear', 
-    url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2670&auto=format&fit=crop',
-    blobs: ['rgba(59, 130, 246, 0.2)', 'rgba(16, 185, 129, 0.2)'],
-    font: '"Inter", sans-serif'
-  },
-  { 
-    id: 'solid-dark', 
-    label: 'Solid Onyx', 
-    url: '', 
-    blobs: [], 
-    font: '"Inter", sans-serif',
-    isSolid: true
-  }
+  { id: 'cosmic', label: 'Cosmic', url: 'https://images.unsplash.com/photo-1464802686167-b939a8175b5f?q=80&w=2669&auto=format&fit=crop' },
+  { id: 'midnight', label: 'Midnight', url: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2671&auto=format&fit=crop' },
+  { id: 'frosted', label: 'Frosted', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2670&auto=format&fit=crop' },
 ];

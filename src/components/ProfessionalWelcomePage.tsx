@@ -40,8 +40,8 @@ export function ProfessionalWelcomePage({
   const displayError = externalError || error;
   const surface = isDarkMode ? 'text-white' : 'text-slate-950';
   const panel = isDarkMode ? 'glass-panel' : 'glass-panel-light';
-  const muted = isDarkMode ? 'text-white/50' : 'text-slate-600';
-  const softPanel = isDarkMode ? 'glass-thin' : 'glass-panel-light border-slate-200';
+  const muted = isDarkMode ? 'text-white/55' : 'text-slate-600';
+  const softPanel = isDarkMode ? 'glass-panel border-white/10' : 'glass-panel-light border-slate-200';
 
   const getMetricTone = (tone: string) => {
     if (tone === 'emerald') return isDarkMode ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : 'text-emerald-600 bg-emerald-50 border-emerald-100';
@@ -75,7 +75,7 @@ export function ProfessionalWelcomePage({
     'Reset Password';
 
   const inputClass = `w-full rounded-lg border py-3 pl-10 pr-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 ${
-    isDarkMode ? 'bg-white/10 border-white/20 text-white placeholder:text-white/50' : 'bg-white border-slate-300 text-slate-950'
+    isDarkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-white/25' : 'bg-white border-slate-300 text-slate-950'
   }`;
 
   return (
@@ -83,11 +83,11 @@ export function ProfessionalWelcomePage({
       className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface} relative overflow-hidden z-0`}
       style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
-      <div className="absolute inset-0 bg-black/5 dark:bg-black/20 pointer-events-none -z-10" />
-      <div className="liquid-container z-10 opacity-40">
-        <div className="liquid-blob w-[120vw] h-[120vh] -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
-        <div className="liquid-blob liquid-blob-secondary w-[100vw] h-[100vh] top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
-        <div className="liquid-blob w-[110vw] h-[110vh] -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
+      <div className="absolute inset-0 pointer-events-none -z-10" />
+      <div className="liquid-container z-10 opacity-50">
+        <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/10 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
+        <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/10 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
+        <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/8 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
       </div>
       <main className="min-h-screen grid lg:grid-cols-[1.08fr_0.92fr] relative z-10">
         <section className="flex flex-col justify-between px-6 py-6 sm:px-10 lg:px-14 lg:py-10">
@@ -115,10 +115,10 @@ export function ProfessionalWelcomePage({
               <ShieldCheck className="w-3.5 h-3.5" />
               Private resume data, role-specific outputs
             </div>
-            <h1 className="mt-6 text-4xl font-bold tracking-[-0.03em] sm:text-5xl lg:text-7xl leading-[1.05]">
+            <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               Tune every resume to the job before you apply.
             </h1>
-            <p className={`mt-5 max-w-xl text-base leading-relaxed sm:text-lg ${muted} tracking-tight`}>
+            <p className={`mt-5 max-w-xl text-base leading-7 sm:text-lg ${muted}`}>
               Paste a job description, compare fit signals, rewrite experience bullets, and export a clean ATS-ready resume from one focused workspace.
             </p>
 
@@ -140,7 +140,7 @@ export function ProfessionalWelcomePage({
           <p className={`hidden text-xs sm:block ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>Built for repeated applications, not one-off resume decoration.</p>
         </section>
 
-        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/5 border-white/10 backdrop-saturate-[180%]' : 'bg-white/5 border-slate-200 backdrop-saturate-[150%]'}`}>
+        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10' : 'bg-white/10 border-slate-200'}`}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}

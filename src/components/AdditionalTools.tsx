@@ -430,7 +430,7 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
   };
 
   return (
-    <div className={`rounded-xl border p-4 ${isDarkMode ? 'glass-panel border-white/5' : 'bg-white border-black/5'} min-h-[400px]`}>
+    <div className={`rounded-xl border p-4 ${isDarkMode ? 'glass-panel border-white/5' : 'glass-panel-light border-black/5'} min-h-[400px]`}>
       
       {!activeTab ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-6">

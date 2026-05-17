@@ -43,7 +43,7 @@ export const NexusProInsights: React.FC<NexusProInsightsProps> = ({ isDarkMode, 
 
   return (
     <div className={`rounded-3xl border shadow-2xl overflow-hidden flex flex-col h-full ${
-      isDarkMode ? 'glass-thick border-white/10' : 'bg-white border-black/10'
+      isDarkMode ? 'bg-[#0F0F0F] border-white/10' : 'bg-white border-black/10'
     }`}>
       {/* Header */}
       <div className={`p-6 border-b flex items-center justify-between ${isDarkMode ? 'border-white/5' : 'border-black/5'}`}>
@@ -105,8 +105,8 @@ export const NexusProInsights: React.FC<NexusProInsightsProps> = ({ isDarkMode, 
                     key={idx}
                     className={`rounded-2xl border transition-all ${
                       expandedStar === idx 
-                        ? (isDarkMode ? 'glass-panel border-purple-500/50' : 'bg-purple-50 border-purple-200')
-                        : (isDarkMode ? 'glass-card border-white/5' : 'border-black/5 hover:bg-black/5')
+                        ? (isDarkMode ? 'bg-white/5 border-purple-500/50' : 'bg-purple-50 border-purple-200')
+                        : (isDarkMode ? 'border-white/5 hover:bg-white/5' : 'border-black/5 hover:bg-black/5')
                     }`}
                   >
                     <button 
@@ -176,7 +176,7 @@ export const NexusProInsights: React.FC<NexusProInsightsProps> = ({ isDarkMode, 
                   </div>
 
                   <div className={`p-5 rounded-3xl border relative overflow-hidden ${
-                    isDarkMode ? 'glass-panel border-blue-500/20 backdrop-saturate-[180%]' : 'bg-blue-50/50 border-blue-200'
+                    isDarkMode ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50/50 border-blue-200'
                   }`}>
                     {/* Trajectory visualization */}
                     <div className="flex items-center gap-4 mb-4">

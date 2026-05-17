@@ -184,7 +184,7 @@ export const JobTracker: React.FC<JobTrackerProps> = ({ isDarkMode, engineConfig
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] max-h-[800px] relative">
-      <div className={`sticky top-0 z-10 flex items-start sm:items-center justify-between -mx-4 p-4 border-b ${isDarkMode ? 'glass-thin border-white/5' : 'bg-white border-black/5'} mb-6 flex-col sm:flex-row gap-4 pt-16`}>
+      <div className={`sticky top-0 z-10 flex items-start sm:items-center justify-between -mx-4 p-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'} mb-6 flex-col sm:flex-row gap-4 pt-16`}>
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
@@ -301,7 +301,7 @@ export const JobTracker: React.FC<JobTrackerProps> = ({ isDarkMode, engineConfig
       <div className="flex-1 overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-max h-full">
           {stages.map(stage => (
-            <div key={stage} className={`w-80 flex flex-col rounded-xl border ${isDarkMode ? 'glass-panel' : 'bg-gray-50 border-black/5'}`}>
+            <div key={stage} className={`w-80 flex flex-col rounded-xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-black/5'}`}>
               <div className="p-3 border-b font-bold flex items-center justify-between opacity-80">
                 <span>{stage}</span>
                 <span className="text-xs bg-black/10 dark:bg-white/10 px-2 py-0.5 rounded-full">
@@ -310,7 +310,7 @@ export const JobTracker: React.FC<JobTrackerProps> = ({ isDarkMode, engineConfig
               </div>
               <div className="p-2 flex-1 overflow-y-auto space-y-2 custom-scrollbar">
                 {filteredJobs.filter(j => j.status === stage).map(job => (
-                  <div key={job.id} className={`p-3 rounded-lg border shadow-sm ${isDarkMode ? 'glass-card border-white/5' : 'bg-white border-black/10'}`}>
+                  <div key={job.id} className={`p-3 rounded-lg border shadow-sm ${isDarkMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-black/10'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-bold text-sm leading-tight">{job.role} - {job.company}</h4>
                       <button onClick={() => deleteJob(job.id)} className="text-red-500 hover:bg-red-500/10 p-1 rounded opacity-50 hover:opacity-100 transition-all">
