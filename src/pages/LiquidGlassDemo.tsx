@@ -40,7 +40,7 @@ export default function LiquidGlassDemo({ isDarkMode }: LiquidGlassDemoProps) {
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-indigo-950/60 to-slate-900/80 pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-tr from-white/15 via-transparent to-white/5 pointer-events-none" />
       <div className="liquid-container z-0 opacity-70">
-        <div className="liquid-blob w-[75vw] h-[75vw] -top-1/4 -left-1/6" style={{ animationDelay: '-3s' }} />
+        <div className="liquid-blob w-[75vw] h-[75vw] -top-1/4 -left-[16.666667%]" style={{ animationDelay: '-3s' }} />
         <div className="liquid-blob liquid-blob-secondary w-[60vw] h-[60vw] top-1/3 right-0" style={{ animationDelay: '-9s' }} />
         <div className="liquid-blob w-[55vw] h-[55vw] -bottom-1/4 left-1/3" style={{ animationDelay: '-15s', background: 'rgba(168, 85, 247, 0.42)' }} />
       </div>

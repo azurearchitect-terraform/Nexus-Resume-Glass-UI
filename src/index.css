@@ -60,7 +60,7 @@
   }
 
   .liquid-blob {
-    @apply absolute rounded-full filter blur-[80px] opacity-60 mix-blend-screen;
+    @apply absolute rounded-full blur-[80px] opacity-60 mix-blend-screen;
     background: var(--blob-color, rgba(16, 185, 129, 0.55));
     animation: liquid-float 40s ease-in-out infinite;
   }
@@ -91,7 +91,7 @@
     background: linear-gradient(135deg, var(--glass-edge-top) 0%, transparent 35%, transparent 65%, var(--glass-edge-bottom) 100%);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
-            mask-composite: exclude;
+    mask-composite: exclude;
     pointer-events: none;
   }
 
