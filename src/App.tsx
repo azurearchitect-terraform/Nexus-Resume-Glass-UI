@@ -708,11 +708,13 @@ export default function App() {
     }
 
     setIsSavingProfile(true);
+    console.log("Saving profile - started.");
     try {
       let finalEncryptedKey = encryptedApiKey;
 
       // If the user entered a new API key (not the placeholder)
       if ((openaiApiKey && openaiApiKey !== '') || (geminiApiKey && geminiApiKey !== '')) {
+        console.log("Saving profile - encrypting keys.");
         const keysToEncrypt = JSON.stringify({
           gemini: geminiApiKey !== '' ? geminiApiKey : '',
           openai: openaiApiKey !== '' ? openaiApiKey : ''
@@ -733,8 +735,10 @@ export default function App() {
         if (openaiApiKey) setOpenaiApiKey('');
         if (geminiApiKey) setGeminiApiKey('');
         setIsApiKeySaved(true);
+        console.log("Saving profile - keys encrypted.");
       }
 
+      console.log("Saving profile - updating Firestore.");
       await setDoc(doc(db, 'users', user.uid), {
         userId: user.uid,
         encryptedApiKey: finalEncryptedKey,
@@ -746,7 +750,11 @@ export default function App() {
           isDriveConnected: !!driveAccessToken || isDriveConnected
         },
         updatedAt: serverTimestamp()
-      }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, 'users/' + user.uid));
+      }, { merge: true }).catch(err => {
+          console.error("Saving profile - Error updating Firestore:", err);
+          handleFirestoreError(err, OperationType.WRITE, 'users/' + user.uid);
+      });
+      console.log("Saving profile - Firestore updated.");
 
       showToast("Profile saved successfully!", "success");
     } catch (err) {
