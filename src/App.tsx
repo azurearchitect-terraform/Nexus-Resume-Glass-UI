@@ -66,7 +66,6 @@ import { ResumeData, SuitabilityResult, Certification, MasterResume } from './ty
 import { detectOverflow } from './overflowDetection';
 import { useFormatting, DEFAULT_STYLE } from './context/FormattingContext';
 import { optimizeResume, fetchJobDescription, analyzeBestAudiences, evaluateSuitability, OptimizationResult, EngineType, EngineConfig, autoSelectPlayerCoachRole } from './services/geminiService';
-import { selectBestResume } from './services/aiService';
 import { RouterConfig } from './services/aiRouter';
 import { extractTextFromPDFFile } from './lib/pdfUtils';
 import { saveAs } from 'file-saver';
@@ -329,15 +328,12 @@ export default function App() {
           if (docSnap && docSnap.exists()) {
             const data = docSnap.data();
             if (!data.hasAcceptedTerms) {
-              // setShowTermsModal(true);
+              setShowTermsModal(true);
             } else {
               setShowTermsModal(false);
             }
             if (data.masterResume) {
               setResumeText(data.masterResume);
-            }
-            if (data.resumes) {
-              setMasterResumes(data.resumes);
             }
             if (data.customPrompt) {
               setCustomPrompt(data.customPrompt);
@@ -637,7 +633,6 @@ export default function App() {
       const dataToSync: any = {
         userId: user.uid,
         masterResume: resumeText || "",
-        resumes: masterResumes || [],
         customPrompt: customPrompt || "",
         settings: {
           versioningEnabled,
@@ -708,13 +703,11 @@ export default function App() {
     }
 
     setIsSavingProfile(true);
-    console.log("Saving profile - started.");
     try {
       let finalEncryptedKey = encryptedApiKey;
 
       // If the user entered a new API key (not the placeholder)
       if ((openaiApiKey && openaiApiKey !== '') || (geminiApiKey && geminiApiKey !== '')) {
-        console.log("Saving profile - encrypting keys.");
         const keysToEncrypt = JSON.stringify({
           gemini: geminiApiKey !== '' ? geminiApiKey : '',
           openai: openaiApiKey !== '' ? openaiApiKey : ''
@@ -735,10 +728,8 @@ export default function App() {
         if (openaiApiKey) setOpenaiApiKey('');
         if (geminiApiKey) setGeminiApiKey('');
         setIsApiKeySaved(true);
-        console.log("Saving profile - keys encrypted.");
       }
 
-      console.log("Saving profile - updating Firestore.");
       await setDoc(doc(db, 'users', user.uid), {
         userId: user.uid,
         encryptedApiKey: finalEncryptedKey,
@@ -750,11 +741,7 @@ export default function App() {
           isDriveConnected: !!driveAccessToken || isDriveConnected
         },
         updatedAt: serverTimestamp()
-      }, { merge: true }).catch(err => {
-          console.error("Saving profile - Error updating Firestore:", err);
-          handleFirestoreError(err, OperationType.WRITE, 'users/' + user.uid);
-      });
-      console.log("Saving profile - Firestore updated.");
+      }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, 'users/' + user.uid));
 
       showToast("Profile saved successfully!", "success");
     } catch (err) {
@@ -1894,28 +1881,10 @@ export default function App() {
     setAbortController(controller);
 
     try {
-      let finalResumeText = resumeText || "";
+      const finalResumeText = resumeText || "";
       const finalTargetRole = targetRole || "Professional Candidate";
       
       const routerConfig = getRouterConfig();
-
-      if (masterResumes && masterResumes.length > 1) {
-          setOptimizationStatus("Selecting best resume for this JD...");
-          const bestResumeId = await selectBestResume(
-              masterResumes, 
-              jobDescription || jobUrl || "", 
-              finalTargetRole,
-              { aiEngine: selectedEngine, apiKey: routerConfig.geminiConfig.apiKey }
-          );
-          
-          const selectedResume = masterResumes.find(r => r.id === bestResumeId);
-          if (selectedResume) {
-              finalResumeText = JSON.stringify(selectedResume.data);
-              // Update masterResumes to set isActive to the selected one
-              setMasterResumes(prev => prev.map(r => ({ ...r, isActive: r.id === bestResumeId })));
-          }
-      }
-      
       let completedAudiences = 0;
       const totalAudiences = currentAudiences.length;
       const engineName = engineNameMap[selectedEngine as keyof typeof engineNameMap] || selectedEngine.toUpperCase();
@@ -3522,8 +3491,9 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                     >
                                       {selectedEngine === 'gemini' && (
                                         <>
-                                          <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Preview)</option>
-                                          <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite (Preview)</option>
+                                          <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                                          <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
+                                          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
                                           <option value="gemini-2.0-flash-thinking-exp-01-21">Gemini Thinking</option>
                                         </>
                                       )}
@@ -4061,6 +4031,29 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                       </div>
                     )}
                   </section>
+
+                  {/* Google Drive Status/Reconnect */}
+                  {!driveAccessToken && user && (
+                    <div className="mt-6 p-4 rounded-xl border border-dashed border-blue-500/30 bg-blue-500/5">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-blue-500/20 text-blue-500">
+                          <Cloud className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm">Cloud Backups</h3>
+                          <p className="text-[10px] opacity-60">Save & version your PDFs to Google Drive</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleConnectDrive}
+                        disabled={isAuthProcessing}
+                        className="w-full py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                      >
+                        {isAuthProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Cloud className="w-3.5 h-3.5" />}
+                        {isAuthProcessing ? "Connecting..." : "Connect Google Drive"}
+                      </button>
+                    </div>
+                  )}
 
                   {/* Google Drive Backups - Now integrated as a vertical component in profile */}
                   {driveAccessToken && (

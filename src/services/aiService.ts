@@ -1,77 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
 import { optimizeResume, getDecryptedKey } from "./geminiService";
-import { MasterResume } from "../types";
-
-const GEMINI_FALLBACK_MODELS = ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "gemini-3.1-flash-lite"];
-
-async function callAiWithFallback(ai: GoogleGenAI, prompt: string, mimeType?: string) {
-  for (const model of GEMINI_FALLBACK_MODELS) {
-    try {
-      return await ai.models.generateContent({
-         model: model,
-         contents: [{ parts: [{ text: prompt }] }],
-         config: mimeType ? { responseMimeType: mimeType } : undefined
-      });
-    } catch (e) {
-      console.warn(`Model ${model} failed, trying next...`);
-    }
-  }
-  throw new Error("All AI models failed");
-}
-
-export const selectBestResume = async (
-  resumes: MasterResume[],
-  jobDescription: string,
-  targetRole: string,
-  context?: { aiEngine?: string; apiKey?: string }
-): Promise<string> => {
-  try {
-    const apiKey = await getDecryptedKey(context?.apiKey || '');
-    const ai = new GoogleGenAI({ apiKey });
-    
-    // Create a simplified representation of resumes for comparing
-    const resumeSummaries = resumes.map(r => ({
-      id: r.id,
-      name: r.name,
-      summary: r.data.personal_info.summary,
-      skills: r.data.skills
-    }));
-
-    const prompt = `
-      You are an expert recruiter and career coach.
-      Your task is to select the most suitable resume from the provided list for a specific job application.
-      
-      Job Description:
-      "${jobDescription}"
-      
-      Target Role:
-      "${targetRole}"
-      
-      Available Resumes:
-      ${JSON.stringify(resumeSummaries)}
-      
-      Instructions:
-      1. Analyze the job description requirements and the target role.
-      2. Compare against the skills and summary of each available resume.
-      3. Select the ID of the resume that is the strongest match.
-      4. Return ONLY the ID of the selected resume as a JSON object: {"resumeId": "..."}
-      
-      Output:
-      - JSON object with "resumeId"
-    `;
-
-    const response = await callAiWithFallback(ai, prompt, "application/json");
-
-    const resultText = response.text?.trim();
-    if (!resultText) return resumes[0].id; // Fallback to first
-
-    const result = JSON.parse(resultText);
-    return result.resumeId || resumes[0].id;
-  } catch (error) {
-    console.error("AI Resume Selection Error:", error);
-    return resumes[0].id;
-  }
-};
 
 export const optimizeFullResume = async (
   resumeData: any,
@@ -117,6 +45,7 @@ export const improveTextWithAI = async (
   try {
     const apiKey = await getDecryptedKey(context?.apiKey || '');
     const ai = new GoogleGenAI({ apiKey });
+    const modelName = context?.aiEngine || "gemini-3-flash-preview";
     
     const prompt = `
       You are a professional resume strategist.
@@ -140,7 +69,10 @@ export const improveTextWithAI = async (
       ${context?.jobDescription ? `Job Description: ${context.jobDescription}` : ''}
     `;
 
-    const response = await callAiWithFallback(ai, prompt);
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: [{ parts: [{ text: prompt }] }],
+    });
 
     const result = response.text?.trim() || text;
     return result.replace(/Office IT [Cc]um Logistics/g, 'Officer IT cum Logistics');
@@ -158,6 +90,7 @@ export const rewriteSectionWithAI = async (
   try {
     const apiKey = await getDecryptedKey(context?.apiKey || '');
     const ai = new GoogleGenAI({ apiKey });
+    const modelName = context?.aiEngine || "gemini-3-flash-preview";
 
     const prompt = `
       You are a professional resume strategist.
@@ -182,7 +115,13 @@ export const rewriteSectionWithAI = async (
       ${JSON.stringify(content, null, 2)}
     `;
 
-    const response = await callAiWithFallback(ai, prompt, "application/json");
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: [{ parts: [{ text: prompt }] }],
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
 
     const result = response.text?.trim();
     if (!result) return content;

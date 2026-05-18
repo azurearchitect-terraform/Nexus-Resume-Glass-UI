@@ -50,7 +50,7 @@ Return ONLY a valid JSON array of strings containing the high-impact bullet poin
 
     try {
       const res = await genAI.models.generateContent({
-        model: "gemini-3.1-flash-lite-preview",
+        model: "gemini-3-flash-preview",
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: { responseMimeType: "application/json" }
       });

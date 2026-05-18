@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { AlertCircle, FileText, Check, X } from 'lucide-react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
 
@@ -14,27 +14,13 @@ interface TermsModalProps {
 export function TermsModal({ isOpen, onAccept, isDarkMode }: TermsModalProps) {
   if (!isOpen) return null;
 
-  const [isAccepting, setIsAccepting] = React.useState(false);
-
   const handleAccept = async () => {
-    setIsAccepting(true);
-    try {
-      if (auth.currentUser) {
-        console.log("Accepting terms for user:", auth.currentUser.uid);
-        await setDoc(doc(db, 'users', auth.currentUser.uid), {
-          hasAcceptedTerms: true
-        }, { merge: true });
-        console.log("Terms accepted successfully.");
-      } else {
-        console.warn("No user currenty signed in when accepting terms.");
-      }
-      onAccept();
-    } catch (e) {
-      console.error("Error accepting terms:", e);
-      alert("Error accepting terms. Please try again or refresh the page.");
-    } finally {
-      setIsAccepting(false);
+    if (auth.currentUser) {
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+        hasAcceptedTerms: true
+      });
     }
+    onAccept();
   };
 
   const handleDecline = async () => {
@@ -96,20 +82,10 @@ export function TermsModal({ isOpen, onAccept, isDarkMode }: TermsModalProps) {
           </button>
           <button
             onClick={handleAccept}
-            disabled={isAccepting}
             className="flex-1 px-4 py-3 rounded-xl bg-emerald-500 text-white font-bold hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-colors flex items-center justify-center gap-2"
           >
-            {isAccepting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Accepting...
-                </>
-            ) : (
-                <>
-                  <Check className="w-4 h-4" />
-                  I Accept the Terms
-                </>
-            )}
+            <Check className="w-4 h-4" />
+            I Accept the Terms
           </button>
         </div>
       </motion.div>
