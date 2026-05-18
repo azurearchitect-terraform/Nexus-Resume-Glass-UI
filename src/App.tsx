@@ -8,7 +8,6 @@ import {
   CheckCircle2, 
   AlertCircle, 
   ArrowRight, 
-  ArrowLeft,
   ChevronRight, 
   ChevronDown,
   ChevronLeft,
@@ -117,7 +116,6 @@ const LoadingSpinner = () => (
 type OptimizationMode = 'conservative' | 'balanced' | 'aggressive' | 'automatic';
 
 import { CommandPalette } from './components/CommandPalette';
-import LiquidGlassDemo from './pages/LiquidGlassDemo';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -265,7 +263,6 @@ export default function App() {
   const navigate = useNavigate();
   const activeTabOrigin = location.pathname.substring(1).split('/')[0] || 'build';
   const activeTab = activeTabOrigin as 'build' | 'profile' | 'tools';
-  const isLiquidGlassDemo = activeTabOrigin === 'liquid-glass';
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [targetRole, setTargetRole] = useState('');
@@ -2846,35 +2843,6 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
     return <AdminDashboard onBack={() => setShowAdminDashboard(false)} isDarkMode={isDarkMode} />;
   }
 
-  if (isLiquidGlassDemo) {
-    return (
-      <div
-        className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans relative z-0`}
-        style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
-        <div className="absolute inset-0 bg-black/20 pointer-events-none -z-10" />
-        <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'bg-black/40 text-white border-white/10' : 'bg-white/70 text-black border-black/10'}`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-white border border-emerald-500/30'}`}>
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-            </div>
-            <span className="text-sm sm:text-base font-bold tracking-wider uppercase">Liquid Glass Demo</span>
-          </div>
-          <Link
-            to="/build"
-            className={`ios-control glass-spec text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
-          >
-            <ArrowLeft className="w-4 h-4 inline mr-1.5" />
-            Back to App
-          </Link>
-        </header>
-        <main className="flex-1 min-h-0">
-          <LiquidGlassDemo isDarkMode={isDarkMode} />
-        </main>
-      </div>
-    );
-  }
-
   if (!isAuthReady) {
     return (
       <div className={`h-screen flex flex-col items-center justify-center ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'}`}>
@@ -2899,23 +2867,15 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           <h2 className="text-xl font-bold tracking-tighter opacity-50 uppercase">Loading Welcome Suite...</h2>
         </div>
       }>
-        <div className="relative h-screen">
-          <ProfessionalWelcomePage 
-            onLogin={handleGoogleLogin} 
-            onEmailLogin={handleEmailLogin}
-            onEmailSignUp={handleEmailSignUp}
-            onPasswordReset={handlePasswordReset}
-            externalError={error}
-            isDarkMode={isDarkMode}
-            setIsDarkMode={setIsDarkMode}
-          />
-          <Link
-            to="/liquid-glass"
-            className={`absolute top-4 right-4 z-30 ios-control ios-control-accent glass-spec text-xs sm:text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
-          >
-            View Liquid Glass Demo
-          </Link>
-        </div>
+        <ProfessionalWelcomePage 
+          onLogin={handleGoogleLogin} 
+          onEmailLogin={handleEmailLogin}
+          onEmailSignUp={handleEmailSignUp}
+          onPasswordReset={handlePasswordReset}
+          externalError={error}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+        />
       </Suspense>
     );
   }
@@ -2980,18 +2940,6 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                       <span className="hidden sm:inline">{tab === 'build' ? 'Optimizer' : tab}</span>
                     </Link>
                   ))}
-                  <Link
-                    to="/liquid-glass"
-                    className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-[9px] sm:text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 ${
-                      isLiquidGlassDemo
-                        ? (isDarkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-black text-white px-3 sm:px-5')
-                        : (isDarkMode ? 'hover:bg-white/5 opacity-50 hover:opacity-100' : 'hover:bg-black/5 opacity-50 hover:opacity-100')
-                    }`}
-                    title="Liquid Glass Demo"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 sm:hidden" />
-                    <span className="hidden sm:inline">Liquid Glass Demo</span>
-                  </Link>
                 </nav>
               </div>
               <div className="flex items-center gap-1 sm:gap-2 md:gap-4 shrink-0">

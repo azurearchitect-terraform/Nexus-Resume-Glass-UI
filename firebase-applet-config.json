@@ -1,10 +1,9 @@
 {
-  "projectId": "airesumebuider",
-  "appId": "1:469361802809:web:bad0c845d9dc4ae01697e8",
-  "apiKey": "AIzaSyAO5O_sQtlLxegwL3Imo451WHcqvTx-OQQ",
-  "authDomain": "airesumebuider.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-46d0b811-33d0-4b91-a2d2-d84e11607e87",
-  "storageBucket": "airesumebuider.firebasestorage.app",
-  "messagingSenderId": "469361802809",
+  "projectId": "optimized-resume-project",
+  "appId": "1:717650249115:web:8039dabe6f5c228f074d3e",
+  "apiKey": "AIzaSyBlPxXXvkqEVYzKnxZPX_sFb9ScmFCvA1E",
+  "authDomain": "optimized-resume-project.firebaseapp.com",
+  "storageBucket": "optimized-resume-project.firebasestorage.app",
+  "messagingSenderId": "717650249115",
   "measurementId": ""
 }
