@@ -329,7 +329,7 @@ export default function App() {
           if (docSnap && docSnap.exists()) {
             const data = docSnap.data();
             if (!data.hasAcceptedTerms) {
-              setShowTermsModal(true);
+              // setShowTermsModal(true);
             } else {
               setShowTermsModal(false);
             }
