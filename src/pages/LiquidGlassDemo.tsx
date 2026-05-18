@@ -51,7 +51,7 @@ export default function LiquidGlassDemo({ isDarkMode }: LiquidGlassDemoProps) {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.25em] text-white/70 mb-2">Liquid Glass Material System</p>
-                <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white mb-2">iOS-style visual demo page</h1>
+                <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white mb-2">Liquid Glass Material Showcase</h1>
                 <p className="text-sm md:text-base text-white/80 max-w-2xl">
                   Explore thin/panel/thick/card materials, capsule controls, modal glass, and spotlight overlay in one view.
                 </p>
