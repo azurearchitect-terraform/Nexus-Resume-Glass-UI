@@ -844,25 +844,40 @@ export async function selectBestMasterResume(
   jobDescription: string,
   config: RouterConfig
 ): Promise<string> {
+  if (!resumes || resumes.length === 0) return 'default';
+  if (resumes.length === 1) return resumes[0].id;
+
   const routedConfig = routeTask('rewrite_resume', config);
+  const apiKey = await getDecryptedKey(routedConfig.apiKey || '');
+  const ai = new GoogleGenAI({ apiKey });
+  const model = ai.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
+
+  const mastersSummary = resumes.map((m) => {
+    const content = typeof m.data === 'string' ? m.data : JSON.stringify(m.data);
+    return `ID: ${m.id}\nName: ${m.name}\nContext: ${content.substring(0, 1500)}...`;
+  }).join("\n\n---\n\n");
+
   const prompt = `
-    ROLE: Expert Career Coach.
-    TASK: Select the best master resume for a specific job posting from the provided list.
+    Analyze the following Job Description and the list of available "Master Resumes".
+    Pick the SINGLE Master Resume ID that is the most relevant and best starting point to optimize for this job.
     
     JOB DESCRIPTION:
     ${jobDescription}
     
-    MASTER RESUMES AVAILABLE:
-    ${resumes.map(r => `ID: ${r.id}, Name: ${r.name}, Description: ${r.description}`).join('\n')}
+    MASTER RESUMES:
+    ${mastersSummary}
     
-    OUTPUT:
-    Return ONLY the ID of the best matching master resume as a JSON string.
-    Example: { "selectedId": "resume_id_here" }
+    Return ONLY a JSON object: { "selectedId": "the-id", "reason": "why this matches best" }
   `;
 
   try {
-    const data = await callAI(prompt, 'gemini-3-flash-preview', 'gemini', routedConfig.apiKey);
-    const resultText = extractJson(data.result || "");
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" }
+    });
+    
+    const text = result.response.text();
+    const resultText = extractJson(text);
     const parsed = JSON.parse(resultText);
     return parsed.selectedId;
   } catch (error) {
@@ -1111,7 +1126,6 @@ export async function autoSelectPlayerCoachRole(
     return false;
   }
 }
-
 
 export async function generateMasterResume(
   data: { company: string, role: string, startYear: string, endYear: string, description: string },

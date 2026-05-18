@@ -65,7 +65,7 @@ import { useResumeStore } from './store';
 import { ResumeData, SuitabilityResult, Certification, MasterResume } from './types';
 import { detectOverflow } from './overflowDetection';
 import { useFormatting, DEFAULT_STYLE } from './context/FormattingContext';
-import { optimizeResume, fetchJobDescription, analyzeBestAudiences, evaluateSuitability, OptimizationResult, EngineType, EngineConfig, autoSelectPlayerCoachRole } from './services/geminiService';
+import { optimizeResume, fetchJobDescription, analyzeBestAudiences, evaluateSuitability, OptimizationResult, EngineType, EngineConfig, autoSelectPlayerCoachRole, selectBestMasterResume } from './services/geminiService';
 import { RouterConfig } from './services/aiRouter';
 import { extractTextFromPDFFile } from './lib/pdfUtils';
 import { saveAs } from 'file-saver';
@@ -1879,9 +1879,41 @@ export default function App() {
 
     const controller = new AbortController();
     setAbortController(controller);
+    
+    let finalResumeText = resumeText || "";
+
+    // SMART MASTER SELECTION STRATEGY
+    // If there are multiple resumes in Nexus Master, help the user pick the right base
+    if (masterResumes.length > 1) {
+      setOptimizationStatus("Selecting Best Master Resume profile...");
+      try {
+        const bestId = await selectBestMasterResume(
+          masterResumes,
+          jobDescription || jobUrl || "",
+          getRouterConfig()
+        );
+        
+        if (bestId) {
+          const selectedMaster = masterResumes.find(r => r.id === bestId);
+          if (selectedMaster) {
+            console.log("[Nexus AI] Auto-selected master resume:", selectedMaster.name);
+            setMasterResumes(prev => prev.map(r => ({ ...r, isActive: r.id === bestId })));
+            
+            const masterData = typeof selectedMaster.data === 'string' 
+              ? selectedMaster.data 
+              : JSON.stringify(selectedMaster.data, null, 2);
+              
+            finalResumeText = masterData;
+            setResumeText(masterData);
+            showToast(`Auto-selected Profile: ${selectedMaster.name}`, 'success', 5000);
+          }
+        }
+      } catch (err) {
+        console.error("[Nexus AI] Master selection failed, proceeding with default base:", err);
+      }
+    }
 
     try {
-      const finalResumeText = resumeText || "";
       const finalTargetRole = targetRole || "Professional Candidate";
       
       const routerConfig = getRouterConfig();
