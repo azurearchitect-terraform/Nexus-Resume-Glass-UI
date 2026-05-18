@@ -66,6 +66,7 @@ import { ResumeData, SuitabilityResult, Certification, MasterResume } from './ty
 import { detectOverflow } from './overflowDetection';
 import { useFormatting, DEFAULT_STYLE } from './context/FormattingContext';
 import { optimizeResume, fetchJobDescription, analyzeBestAudiences, evaluateSuitability, OptimizationResult, EngineType, EngineConfig, autoSelectPlayerCoachRole } from './services/geminiService';
+import { selectBestResume } from './services/aiService';
 import { RouterConfig } from './services/aiRouter';
 import { extractTextFromPDFFile } from './lib/pdfUtils';
 import { saveAs } from 'file-saver';
@@ -1885,10 +1886,28 @@ export default function App() {
     setAbortController(controller);
 
     try {
-      const finalResumeText = resumeText || "";
+      let finalResumeText = resumeText || "";
       const finalTargetRole = targetRole || "Professional Candidate";
       
       const routerConfig = getRouterConfig();
+
+      if (masterResumes && masterResumes.length > 1) {
+          setOptimizationStatus("Selecting best resume for this JD...");
+          const bestResumeId = await selectBestResume(
+              masterResumes, 
+              jobDescription || jobUrl || "", 
+              finalTargetRole,
+              { aiEngine: selectedEngine, apiKey: routerConfig.geminiConfig.apiKey }
+          );
+          
+          const selectedResume = masterResumes.find(r => r.id === bestResumeId);
+          if (selectedResume) {
+              finalResumeText = JSON.stringify(selectedResume.data);
+              // Update masterResumes to set isActive to the selected one
+              setMasterResumes(prev => prev.map(r => ({ ...r, isActive: r.id === bestResumeId })));
+          }
+      }
+      
       let completedAudiences = 0;
       const totalAudiences = currentAudiences.length;
       const engineName = engineNameMap[selectedEngine as keyof typeof engineNameMap] || selectedEngine.toUpperCase();
