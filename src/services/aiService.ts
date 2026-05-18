@@ -2,6 +2,23 @@ import { GoogleGenAI } from "@google/genai";
 import { optimizeResume, getDecryptedKey } from "./geminiService";
 import { MasterResume } from "../types";
 
+const GEMINI_FALLBACK_MODELS = ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "gemini-3.1-flash-lite"];
+
+async function callAiWithFallback(ai: GoogleGenAI, prompt: string, mimeType?: string) {
+  for (const model of GEMINI_FALLBACK_MODELS) {
+    try {
+      return await ai.models.generateContent({
+         model: model,
+         contents: [{ parts: [{ text: prompt }] }],
+         config: mimeType ? { responseMimeType: mimeType } : undefined
+      });
+    } catch (e) {
+      console.warn(`Model ${model} failed, trying next...`);
+    }
+  }
+  throw new Error("All AI models failed");
+}
+
 export const selectBestResume = async (
   resumes: MasterResume[],
   jobDescription: string,
@@ -11,7 +28,6 @@ export const selectBestResume = async (
   try {
     const apiKey = await getDecryptedKey(context?.apiKey || '');
     const ai = new GoogleGenAI({ apiKey });
-    const modelName = context?.aiEngine || "gemini-3-flash-preview";
     
     // Create a simplified representation of resumes for comparing
     const resumeSummaries = resumes.map(r => ({
@@ -44,13 +60,7 @@ export const selectBestResume = async (
       - JSON object with "resumeId"
     `;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
-        responseMimeType: "application/json",
-      }
-    });
+    const response = await callAiWithFallback(ai, prompt, "application/json");
 
     const resultText = response.text?.trim();
     if (!resultText) return resumes[0].id; // Fallback to first
@@ -107,7 +117,6 @@ export const improveTextWithAI = async (
   try {
     const apiKey = await getDecryptedKey(context?.apiKey || '');
     const ai = new GoogleGenAI({ apiKey });
-    const modelName = context?.aiEngine || "gemini-3-flash-preview";
     
     const prompt = `
       You are a professional resume strategist.
@@ -131,10 +140,7 @@ export const improveTextWithAI = async (
       ${context?.jobDescription ? `Job Description: ${context.jobDescription}` : ''}
     `;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }] }],
-    });
+    const response = await callAiWithFallback(ai, prompt);
 
     const result = response.text?.trim() || text;
     return result.replace(/Office IT [Cc]um Logistics/g, 'Officer IT cum Logistics');
@@ -152,7 +158,6 @@ export const rewriteSectionWithAI = async (
   try {
     const apiKey = await getDecryptedKey(context?.apiKey || '');
     const ai = new GoogleGenAI({ apiKey });
-    const modelName = context?.aiEngine || "gemini-3-flash-preview";
 
     const prompt = `
       You are a professional resume strategist.
@@ -177,13 +182,7 @@ export const rewriteSectionWithAI = async (
       ${JSON.stringify(content, null, 2)}
     `;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
-        responseMimeType: "application/json",
-      }
-    });
+    const response = await callAiWithFallback(ai, prompt, "application/json");
 
     const result = response.text?.trim();
     if (!result) return content;
