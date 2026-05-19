@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, BarChart3, CheckCircle2, FileText, Key, Lock, LogIn, Mail, Moon, ShieldCheck, Sparkles, Sun, Target, UserPlus } from 'lucide-react';
+import { AmbientBackground, GlassButton, GlassInput, PageTransition } from './ui';
 
 interface ProfessionalWelcomePageProps {
   onLogin: () => void;
@@ -74,15 +75,12 @@ export function ProfessionalWelcomePage({
     view === 'email-signup' ? 'Create Account' :
     'Reset Password';
 
-  const inputClass = `w-full rounded-lg border py-3 pl-10 pr-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 ${
-    isDarkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-white/25' : 'bg-white border-slate-300 text-slate-950'
-  }`;
-
   return (
     <div 
       className={`min-h-screen font-sans selection:bg-emerald-500/20 ${surface} relative overflow-hidden z-0`}
       style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
+      <AmbientBackground />
       <div className="absolute inset-0 pointer-events-none -z-10" />
       <div className="liquid-container z-10 opacity-50">
         <div className="liquid-blob w-[110vw] h-[110vh] bg-blue-500/10 -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
@@ -174,6 +172,7 @@ export function ProfessionalWelcomePage({
 
             <div className={`rounded-lg border p-6 shadow-sm ${panel}`}>
               <AnimatePresence mode="wait">
+                <PageTransition transitionKey={view}>
                 {view === 'welcome' ? (
                   <motion.div
                     key="welcome"
@@ -259,13 +258,13 @@ export function ProfessionalWelcomePage({
                         <label className={`mb-1.5 block text-xs font-semibold ${muted}`}>Email Address</label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <input
+                          <GlassInput
                             type="email"
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="name@example.com"
-                            className={inputClass}
+                            className={`pl-10 ${isDarkMode ? '' : 'border-slate-300 bg-white text-slate-950 placeholder:text-slate-400'}`}
                           />
                         </div>
                       </div>
@@ -286,13 +285,13 @@ export function ProfessionalWelcomePage({
                           </div>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                            <input
+                            <GlassInput
                               type="password"
                               required
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="••••••••"
-                              className={inputClass}
+                              className={`pl-10 ${isDarkMode ? '' : 'border-slate-300 bg-white text-slate-950 placeholder:text-slate-400'}`}
                             />
                           </div>
                         </div>
@@ -300,10 +299,11 @@ export function ProfessionalWelcomePage({
                     </div>
 
                     <div className="space-y-2 pt-1">
-                      <button
+                      <GlassButton
                         type="submit"
                         disabled={isLoading}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        variant="primary"
+                        className="w-full from-emerald-500/95 to-cyan-500/85"
                       >
                         {isLoading ? 'Processing...' : (
                           view === 'email-login' ? 'Login' :
@@ -311,7 +311,7 @@ export function ProfessionalWelcomePage({
                           'Send Reset Link'
                         )}
                         {!isLoading && <ArrowRight className="h-4 w-4" />}
-                      </button>
+                      </GlassButton>
                       <button
                         type="button"
                         onClick={() => setView('welcome')}
@@ -322,6 +322,7 @@ export function ProfessionalWelcomePage({
                     </div>
                   </motion.form>
                 )}
+                </PageTransition>
               </AnimatePresence>
             </div>
           </motion.div>
