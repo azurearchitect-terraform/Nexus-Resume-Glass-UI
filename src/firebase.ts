@@ -7,5 +7,21 @@ import firebaseConfig from '../firebase-applet-config.json';
 const { firestoreDatabaseId, ...config } = firebaseConfig;
 const app = initializeApp(config);
 export const auth = getAuth(app);
-export const db = getFirestore(app, firestoreDatabaseId);
+
+function initializeFirestore() {
+  const normalizedDatabaseId = firestoreDatabaseId?.trim();
+
+  if (!normalizedDatabaseId) {
+    return getFirestore(app);
+  }
+
+  try {
+    return getFirestore(app, normalizedDatabaseId);
+  } catch (error) {
+    console.warn('[Firebase] Failed to initialize the configured Firestore database. Falling back to the default database.', error);
+    return getFirestore(app);
+  }
+}
+
+export const db = initializeFirestore();
 export const storage = getStorage(app);

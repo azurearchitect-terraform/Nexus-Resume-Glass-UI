@@ -25,33 +25,149 @@ import { saveResumeVersion } from "./server/memory";
 
 dotenv.config();
 
-// Initialize Firebase Admin
-const firebaseConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "firebase-applet-config.json"), "utf8"));
-const app = admin.apps.length 
-  ? admin.apps[0] 
-  : admin.initializeApp({
-      projectId: firebaseConfig.projectId,
-    });
+type FirebaseAppletConfig = {
+  projectId?: string;
+  firestoreDatabaseId?: string;
+};
 
-// Robust Firestore initialization: fallback to default database if specific ID fails or is not provided
-let db: admin.firestore.Firestore;
-try {
-  const dbId = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "") 
-    ? firebaseConfig.firestoreDatabaseId 
-    : undefined;
-  db = getFirestore(app, dbId);
-} catch (e) {
-  console.warn("[Server] Failed to initialize Firestore with specified database ID, falling back to default.");
-  db = getFirestore(app);
+function toError(error: unknown) {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
+function normalizeFirestoreDatabaseId(firestoreDatabaseId?: string) {
+  const trimmedDatabaseId = firestoreDatabaseId?.trim();
+  return trimmedDatabaseId ? trimmedDatabaseId : undefined;
+}
+
+function loadFirebaseConfig(): FirebaseAppletConfig {
+  const firebaseConfigPath = path.join(process.cwd(), "firebase-applet-config.json");
+
+  try {
+    if (!fs.existsSync(firebaseConfigPath)) {
+      console.warn("[Server] firebase-applet-config.json not found. Firebase-backed endpoints will be unavailable.");
+      return {};
+    }
+
+    return JSON.parse(fs.readFileSync(firebaseConfigPath, "utf8"));
+  } catch (error) {
+    console.warn("[Server] Failed to load firebase-applet-config.json. Firebase-backed endpoints will be unavailable.", error);
+    return {};
+  }
+}
+
+const firebaseConfig = loadFirebaseConfig();
+
+let firebaseAdminApp: admin.app.App | null | undefined;
+let firebaseAdminInitError: Error | null = null;
+let db: admin.firestore.Firestore | null | undefined;
+let firestoreInitError: Error | null = null;
+
+function getFirebaseAdminApp() {
+  if (firebaseAdminApp !== undefined) {
+    return firebaseAdminApp;
+  }
+
+  try {
+    firebaseAdminApp = admin.apps.length
+      ? admin.apps[0]
+      : admin.initializeApp(firebaseConfig.projectId ? { projectId: firebaseConfig.projectId } : {});
+  } catch (error) {
+    firebaseAdminInitError = toError(error);
+    firebaseAdminApp = null;
+    console.warn("[Server] Firebase Admin initialization failed. Firebase-backed endpoints will be unavailable.", firebaseAdminInitError);
+  }
+
+  return firebaseAdminApp;
+}
+
+function getFirestoreDb() {
+  if (db !== undefined) {
+    return db;
+  }
+
+  const firebaseApp = getFirebaseAdminApp();
+  if (!firebaseApp) {
+    db = null;
+    return db;
+  }
+
+  const firestoreDatabaseId = normalizeFirestoreDatabaseId(firebaseConfig.firestoreDatabaseId);
+
+  try {
+    db = firestoreDatabaseId ? getFirestore(firebaseApp, firestoreDatabaseId) : getFirestore(firebaseApp);
+  } catch (error) {
+    if (firestoreDatabaseId) {
+      console.warn("[Server] Failed to initialize Firestore with the configured database ID. Falling back to the default database.", error);
+      try {
+        db = getFirestore(firebaseApp);
+      } catch (fallbackError) {
+        firestoreInitError = toError(fallbackError);
+        db = null;
+      }
+    } else {
+      firestoreInitError = toError(error);
+      db = null;
+    }
+
+    if (!db) {
+      console.warn("[Server] Firestore initialization failed. Firebase-backed endpoints will be unavailable.", firestoreInitError);
+    }
+  }
+
+  return db;
+}
+
+function createFirebaseUnavailableError(operation: string) {
+  const reason = firestoreInitError?.message || firebaseAdminInitError?.message || "missing Firebase configuration or credentials";
+  return new Error(`FIREBASE_UNAVAILABLE:${operation}:${reason}`);
+}
+
+function isFirebaseUnavailableError(error: unknown): error is Error {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.message.startsWith("FIREBASE_UNAVAILABLE:")
+    || error.message.includes("Unable to detect a Project Id")
+    || error.message.includes("Could not load the default credentials")
+    || error.message.includes("Credential implementation provided to initializeApp()")
+    || error.message.includes("The default Firebase app does not exist");
+}
+
+function requireFirestoreDb(operation: string) {
+  const firestore = getFirestoreDb();
+  if (!firestore) {
+    throw createFirebaseUnavailableError(operation);
+  }
+  return firestore;
+}
+
+function sendFirebaseUnavailable(res: any, operation: string, error?: unknown) {
+  const details = error instanceof Error
+    ? (error.message.startsWith("FIREBASE_UNAVAILABLE:")
+        ? error.message.split(":").slice(2).join(":")
+        : error.message)
+    : firestoreInitError?.message || firebaseAdminInitError?.message || "missing Firebase configuration or credentials";
+
+  return res.status(503).json({
+    error: `${operation} is unavailable because Firebase Admin/Firestore is not configured for this environment.`,
+    details,
+  });
 }
 
 // Helper to get API keys from Firestore securely
 async function getApiKeys(idToken: string) {
     if (idToken === "SYSTEM_PIPELINE") return null;
     try {
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const firebaseApp = getFirebaseAdminApp();
+      if (!firebaseApp) {
+        throw createFirebaseUnavailableError("API key lookup");
+      }
+
+      const firestore = requireFirestoreDb("API key lookup");
+      const decodedToken = await admin.auth(firebaseApp).verifyIdToken(idToken);
       const uid = decodedToken.uid;
-      const doc = await db.collection("users").doc(uid).get();
+      const doc = await firestore.collection("users").doc(uid).get();
       
       if (!doc.exists) {
         return null; // Return null instead of throwing
@@ -62,7 +178,7 @@ async function getApiKeys(idToken: string) {
       // FALLBACK: If current user has no key, check for a "shared" key in 'users/admin'
       if (!data || !data.encryptedApiKey) {
         console.log(`[Server] User ${uid} has no key. Checking for fallback in 'users/admin'...`);
-        const adminDoc = await db.collection("users").doc("admin").get();
+        const adminDoc = await firestore.collection("users").doc("admin").get();
         if (adminDoc.exists) {
           data = adminDoc.data();
           console.log(`[Server] Found fallback key in 'users/admin'.`);
@@ -90,6 +206,9 @@ async function getApiKeys(idToken: string) {
         throw error;
       }
     } catch (error) {
+      if (isFirebaseUnavailableError(error)) {
+        throw error;
+      }
       console.error("Error fetching API keys:", error);
       throw new Error("UNAUTHORIZED_OR_MISSING_KEYS");
     }
@@ -97,12 +216,22 @@ async function getApiKeys(idToken: string) {
 
 // Function to log usage to Firestore
 async function logUsage(log: UsageLog) {
+  const firestore = getFirestoreDb();
+  if (!firestore) {
+    console.warn("[Server] Skipping analytics log because Firestore is unavailable.");
+    return;
+  }
+
   try {
-    await db.collection("analytics").add({
+    await firestore.collection("analytics").add({
       ...log,
       timestamp: FieldValue.serverTimestamp()
     });
   } catch (error) {
+    if (isFirebaseUnavailableError(error)) {
+      console.warn("[Server] Skipping analytics log because Firestore is unavailable.", error.message);
+      return;
+    }
     console.error("Error logging usage to Firestore:", error);
   }
 }
@@ -609,7 +738,8 @@ async function startServer() {
   // Admin Analytics Endpoints
   app.get("/api/admin/stats", async (req, res) => {
     try {
-      const snapshot = await db.collection("analytics").get();
+      const firestore = requireFirestoreDb("Admin stats");
+      const snapshot = await firestore.collection("analytics").get();
       const logs = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -631,6 +761,9 @@ async function startServer() {
         cacheHitRatio
       });
     } catch (error) {
+      if (isFirebaseUnavailableError(error)) {
+        return sendFirebaseUnavailable(res, "Admin stats", error);
+      }
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ error: "Failed to fetch admin stats" });
     }
@@ -638,7 +771,8 @@ async function startServer() {
 
   app.get("/api/admin/usage-by-day", async (req, res) => {
     try {
-      const snapshot = await db.collection("analytics").get();
+      const firestore = requireFirestoreDb("Usage-by-day analytics");
+      const snapshot = await firestore.collection("analytics").get();
       const logs = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -665,6 +799,9 @@ async function startServer() {
 
       res.json(result);
     } catch (error) {
+      if (isFirebaseUnavailableError(error)) {
+        return sendFirebaseUnavailable(res, "Usage-by-day analytics", error);
+      }
       console.error("Error fetching usage by day:", error);
       res.status(500).json({ error: "Failed to fetch usage by day" });
     }
@@ -672,7 +809,8 @@ async function startServer() {
 
   app.get("/api/admin/model-usage", async (req, res) => {
     try {
-      const snapshot = await db.collection("analytics").get();
+      const firestore = requireFirestoreDb("Model-usage analytics");
+      const snapshot = await firestore.collection("analytics").get();
       const logs = snapshot.docs.map(doc => doc.data() as UsageLog);
 
       const modelData: Record<string, number> = {};
@@ -689,6 +827,9 @@ async function startServer() {
 
       res.json(result);
     } catch (error) {
+      if (isFirebaseUnavailableError(error)) {
+        return sendFirebaseUnavailable(res, "Model-usage analytics", error);
+      }
       console.error("Error fetching model usage:", error);
       res.status(500).json({ error: "Failed to fetch model usage" });
     }
@@ -1111,6 +1252,9 @@ async function startServer() {
       res.json(result);
     }
     } catch (error: any) {
+      if (isFirebaseUnavailableError(error)) {
+        return sendFirebaseUnavailable(res, "Resume optimization", error);
+      }
       console.error("V2 Optimization Error:", error);
       res.status(500).json({ error: "Failed to optimize resume via V2 pipeline", details: error.message });
     }
@@ -1192,11 +1336,24 @@ async function startServer() {
       // ===============================
       // 6. SAVE MEMORY
       // ===============================
-      await saveResumeVersion(db, "anonymous", {
-        input: resumeData,
-        output: cleaned,
-        score: totalScore
-      });
+      const firestore = getFirestoreDb();
+      if (firestore) {
+        try {
+          await saveResumeVersion(firestore, "anonymous", {
+            input: resumeData,
+            output: cleaned,
+            score: totalScore
+          });
+        } catch (error) {
+          if (isFirebaseUnavailableError(error)) {
+            console.warn("[Server] Skipping resume version persistence because Firestore is unavailable.", error.message);
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        console.warn("[Server] Skipping resume version persistence because Firestore is unavailable.");
+      }
   
       // ===============================
       // 7. RESPONSE
@@ -1208,6 +1365,9 @@ async function startServer() {
       });
   
     } catch (error: any) {
+      if (isFirebaseUnavailableError(error)) {
+        return sendFirebaseUnavailable(res, "Optimization", error);
+      }
       console.error("V3 Error:", error);
       res.status(500).json({
         error: "Optimization failed",
