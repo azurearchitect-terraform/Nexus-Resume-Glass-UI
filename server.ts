@@ -234,7 +234,7 @@ async function logUsage(log: UsageLog) {
     });
   } catch (error) {
     if (isFirebaseUnavailableError(error)) {
-      console.warn("[Server] Skipping analytics log because Firestore is unavailable.", error.message);
+      console.warn("[Server] Skipping analytics log because Firestore is unavailable.", getFirebaseUnavailableDetails(error));
       return;
     }
     console.error("Error logging usage to Firestore:", error);
@@ -1351,7 +1351,7 @@ async function startServer() {
           });
         } catch (error) {
           if (isFirebaseUnavailableError(error)) {
-            console.warn("[Server] Skipping resume version persistence because Firestore is unavailable at write time.", error.message);
+            console.warn("[Server] Skipping resume version persistence because Firestore is unavailable at write time.", getFirebaseUnavailableDetails(error));
           } else {
             throw error;
           }
