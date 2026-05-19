@@ -1346,7 +1346,7 @@ async function startServer() {
           });
         } catch (error) {
           if (isFirebaseUnavailableError(error)) {
-            console.warn("[Server] Skipping resume version persistence because Firestore is unavailable.", error.message);
+            console.warn("[Server] Skipping resume version persistence because Firestore is unavailable at write time.", error.message);
           } else {
             throw error;
           }
@@ -1366,7 +1366,7 @@ async function startServer() {
   
     } catch (error: any) {
       if (isFirebaseUnavailableError(error)) {
-        return sendFirebaseUnavailable(res, "Optimization", error);
+        return sendFirebaseUnavailable(res, "Resume optimization", error);
       }
       console.error("V3 Error:", error);
       res.status(500).json({
