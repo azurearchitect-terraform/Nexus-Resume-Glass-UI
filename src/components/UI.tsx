@@ -1,5 +1,5 @@
 import React from 'react';
-import { GlassButton, NotificationToast, PremiumModal } from './ui';
+import { GlassButton, NotificationToast, PremiumModal } from './ui/index';
 
 export const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error' | 'info', onClose: () => void }) => {
   return (
