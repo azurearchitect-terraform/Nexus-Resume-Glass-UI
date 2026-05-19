@@ -189,3 +189,25 @@ export default function App() {
       document.removeEventListener('toggle-admin-dashboard', handleToggleAdmin);
     };
   }, []);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // Add resumeSource state: 'local' (default) or 'firestore'
+  const [resumeSource, setResumeSource] = useState<'local' | 'firestore'>('local');
+  const isInitialLoad = useRef(true);
+
+  // Load master resume when preference changes
+  useEffect(() => {
+    if (resumeSource === 'firestore' && user) {
+       const loadFromFirestore = async () => {
+         const docRef = doc(db, 'users', user.uid);
+         const docSnap = await getDoc(docRef);
+         if (docSnap.exists() && docSnap.data().masterResume) {
+            setResumeText(docSnap.data().masterResume);
+         }
+       };
+       loadFromFirestore();
+    } else if (resumeSource === 'local') {
+        setResumeText(JSON.stringify(defaultMasterResume, null, 2));
+    }
+  }, [resumeSource, user]);
