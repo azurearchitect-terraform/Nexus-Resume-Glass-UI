@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, BarChart3, CheckCircle2, FileText, Key, Lock, LogIn, Mail, Moon, ShieldCheck, Sparkles, Sun, Target, UserPlus } from 'lucide-react';
-import { AmbientBackground, GlassButton, GlassInput, PageTransition } from './ui';
+import { AmbientBackground, GlassButton, GlassInput, PageTransition } from './ui/index';
 
 interface ProfessionalWelcomePageProps {
   onLogin: () => void;
@@ -101,7 +101,7 @@ export function ProfessionalWelcomePage({
             </div>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`rounded-lg border p-2 transition-colors ${isDarkMode ? 'border-white/10 bg-white/5 text-amber-300 hover:bg-white/10' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100'}`}
+              className={`rounded-lg border p-2 transition-colors ${isDarkMode ? 'border-white/10 bg-white/5 text-amber-300 hover:bg-white/10' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
               title="Toggle theme"
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -138,7 +138,7 @@ export function ProfessionalWelcomePage({
           <p className={`hidden text-xs sm:block ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>Built for repeated applications, not one-off resume decoration.</p>
         </section>
 
-        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10' : 'bg-white/10 border-slate-200'}`}>
+        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10' : 'bg-white/60 border-slate-200'}`}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -199,7 +199,7 @@ export function ProfessionalWelcomePage({
                         onLogin();
                       }}
                       disabled={isLoading}
-                      className={`flex w-full items-center justify-center gap-3 rounded-lg border py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${isDarkMode ? 'border-white/10 bg-white text-black hover:bg-white/90' : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50'}`}
+                      className={`flex w-full items-center justify-center gap-3 rounded-lg border py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${isDarkMode ? 'border-white/10 bg-white text-slate-950 hover:bg-slate-100' : 'border-slate-200 bg-slate-950 text-white hover:bg-slate-800'}`}
                     >
                       {isLoading ? (
                         <span className="h-4 w-4 rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
@@ -315,7 +315,7 @@ export function ProfessionalWelcomePage({
                       <button
                         type="button"
                         onClick={() => setView('welcome')}
-                        className={`w-full rounded-lg py-2 text-sm font-semibold transition-colors ${isDarkMode ? 'text-white/50 hover:bg-white/5 hover:text-white' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+                        className={`w-full rounded-lg py-2 text-sm font-semibold transition-colors ${isDarkMode ? 'text-white/50 hover:bg-white/5 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
                       >
                         Back to options
                       </button>
