@@ -3,8 +3,18 @@ import fs from 'fs';
 import path from 'path';
 
 async function buildZip() {
+  const publicDir = path.join(process.cwd(), 'public');
+  const extensionDir = path.join(publicDir, 'extension');
+
+  if (!fs.existsSync(extensionDir)) {
+    console.log("Skipping extension zip creation because public/extension does not exist.");
+    return;
+  }
+
   return new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(path.join(process.cwd(), 'public', 'extension.zip'));
+    fs.mkdirSync(publicDir, { recursive: true });
+
+    const output = fs.createWriteStream(path.join(publicDir, 'extension.zip'));
     const archive = archiver('zip', { zlib: { level: 9 } });
 
     output.on('close', () => {
@@ -16,7 +26,7 @@ async function buildZip() {
       reject(err);
     });
     archive.pipe(output);
-    archive.directory(path.join(process.cwd(), 'public', 'extension'), false);
+    archive.directory(extensionDir, false);
     archive.finalize();
   });
 }
