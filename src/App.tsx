@@ -116,6 +116,7 @@ const LoadingSpinner = () => (
 type OptimizationMode = 'conservative' | 'balanced' | 'aggressive' | 'automatic';
 
 import { CommandPalette } from './components/CommandPalette';
+import { AmbientBackground, Navbar } from './components/ui';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -2913,6 +2914,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
       className={`h-screen flex flex-col overflow-hidden transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans selection:bg-emerald-500/30 relative z-0`}
       style={{ backgroundImage: 'var(--glass-bg-image)', backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
+      <AmbientBackground />
       <div className="absolute inset-0 bg-black/10 dark:bg-black/30 pointer-events-none -z-10" />
       <div className="liquid-container z-10 opacity-30">
         <div className="liquid-blob w-[110vw] h-[110vh] -top-1/2 -left-1/4" style={{ animationDelay: '-2s' }} />
@@ -2943,7 +2945,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col relative w-full h-full min-w-0">
-          <header className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/5'}`}>
+          <Navbar className={`shrink-0 border-b z-30 transition-colors w-full h-16 flex items-center justify-between px-4 md:px-8 ${isDarkMode ? 'bg-black/35 text-white border-white/10' : 'bg-white/65 text-black border-black/5'}`}>
               <div className="flex items-center gap-2 sm:gap-6">
                 <div className="font-bold text-xl tracking-tight flex items-center gap-2 sm:gap-3">
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex shrink-0 items-center justify-center transition-colors shadow-sm ${isDarkMode ? 'bg-emerald-500/20 border border-emerald-500/50' : 'bg-neutral-900 border border-black'}`}>
@@ -3076,7 +3078,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     )}
                   </Link>
               </div>
-          </header>
+          </Navbar>
 
           {/* Main Workspace Area */}
           <main className="flex-1 flex flex-col sm:flex-row overflow-hidden relative w-full min-h-0 bg-transparent" ref={containerRef}>
