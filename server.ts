@@ -202,7 +202,7 @@ async function getApiKeys(idToken: string) {
           // Fallback for older single-key format
           return { gemini: decrypted };
         }
-      } catch (error: unknown) {
+      } catch (error) {
         const normalizedError = toError(error);
         if (normalizedError.message.includes("DECRYPTION_FAILED")) {
           console.warn(`[Server] Decryption failed for user ${uid}. Treating as no key found.`);
@@ -1256,12 +1256,13 @@ async function startServer() {
       Optimization.saveToCache(cacheKey, result);
       res.json(result);
     }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (isFirebaseUnavailableError(error)) {
         return sendFirebaseUnavailable(res, "Resume optimization", error);
       }
+      const normalizedError = toError(error);
       console.error("V2 Optimization Error:", error);
-      res.status(500).json({ error: "Failed to optimize resume via V2 pipeline", details: error.message });
+      res.status(500).json({ error: "Failed to optimize resume via V2 pipeline", details: normalizedError.message });
     }
   });
   
@@ -1369,14 +1370,15 @@ async function startServer() {
         _engine: "multi-agent-v3"
       });
   
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (isFirebaseUnavailableError(error)) {
         return sendFirebaseUnavailable(res, "Resume optimization", error);
       }
+      const normalizedError = toError(error);
       console.error("V3 Error:", error);
       res.status(500).json({
         error: "Optimization failed",
-        details: error.message
+        details: normalizedError.message
       });
     }
   });
