@@ -7,7 +7,7 @@ async function buildZip() {
   const extensionDir = path.join(publicDir, 'extension');
 
   if (!fs.existsSync(extensionDir)) {
-    console.log('Skipping extension zip creation because public/extension does not exist.');
+    console.log("Skipping extension zip creation because public/extension does not exist.");
     return;
   }
 

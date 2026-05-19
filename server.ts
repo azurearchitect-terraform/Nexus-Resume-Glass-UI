@@ -134,6 +134,16 @@ function isFirebaseUnavailableError(error: unknown): error is Error {
     || error.message.includes("The default Firebase app does not exist");
 }
 
+function getFirebaseUnavailableDetails(error?: unknown) {
+  if (error instanceof Error) {
+    return error.message.startsWith("FIREBASE_UNAVAILABLE:")
+      ? error.message.split(":").slice(2).join(":")
+      : error.message;
+  }
+
+  return firestoreInitError?.message || firebaseAdminInitError?.message || "missing Firebase configuration or credentials";
+}
+
 function requireFirestoreDb(operation: string) {
   const firestore = getFirestoreDb();
   if (!firestore) {
@@ -143,15 +153,9 @@ function requireFirestoreDb(operation: string) {
 }
 
 function sendFirebaseUnavailable(res: any, operation: string, error?: unknown) {
-  const details = error instanceof Error
-    ? (error.message.startsWith("FIREBASE_UNAVAILABLE:")
-        ? error.message.split(":").slice(2).join(":")
-        : error.message)
-    : firestoreInitError?.message || firebaseAdminInitError?.message || "missing Firebase configuration or credentials";
-
   return res.status(503).json({
     error: `${operation} is unavailable because Firebase Admin/Firestore is not configured for this environment.`,
-    details,
+    details: getFirebaseUnavailableDetails(error),
   });
 }
 
@@ -198,12 +202,13 @@ async function getApiKeys(idToken: string) {
           // Fallback for older single-key format
           return { gemini: decrypted };
         }
-      } catch (error: any) {
-        if (error.message.includes("DECRYPTION_FAILED")) {
+      } catch (error: unknown) {
+        const normalizedError = toError(error);
+        if (normalizedError.message.includes("DECRYPTION_FAILED")) {
           console.warn(`[Server] Decryption failed for user ${uid}. Treating as no key found.`);
           return null;
         }
-        throw error;
+        throw normalizedError;
       }
     } catch (error) {
       if (isFirebaseUnavailableError(error)) {
