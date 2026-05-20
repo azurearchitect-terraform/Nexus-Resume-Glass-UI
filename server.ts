@@ -34,6 +34,36 @@ function toError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error));
 }
 
+async function generateContentWithFallback(
+  genAI: GoogleGenAI,
+  modelChain: string[],
+  contents: any,
+  config?: any
+): Promise<{ response: any; modelUsed: string }> {
+  let lastError: any = null;
+  for (const model of modelChain) {
+    try {
+      console.log(`[Gemini Fallback] Attempting generateContent with model: ${model}`);
+      const response = await genAI.models.generateContent({
+        model,
+        contents,
+        config
+      });
+      return { response, modelUsed: model };
+    } catch (error: any) {
+      lastError = error;
+      const errorMsg = error?.message?.toLowerCase() || "";
+      const isQuotaError = errorMsg.includes("quota") || errorMsg.includes("429") || errorMsg.includes("limit") || errorMsg.includes("exhausted");
+      if (isQuotaError) {
+        console.warn(`[Gemini Fallback] Quota error on model ${model}. Falling back to next model in chain...`);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError || new Error("All models in the fallback chain failed.");
+}
+
 function normalizeFirestoreDatabaseId(firestoreDatabaseId?: string) {
   const trimmedDatabaseId = firestoreDatabaseId?.trim();
   return trimmedDatabaseId ? trimmedDatabaseId : undefined;
@@ -216,6 +246,19 @@ async function getApiKeys(idToken: string) {
       }
       console.error("Error fetching API keys:", error);
       throw new Error("UNAUTHORIZED_OR_MISSING_KEYS");
+    }
+}
+
+async function getUserIdFromToken(idToken: string): Promise<string> {
+    if (!idToken) return "anonymous";
+    try {
+      const firebaseApp = getFirebaseAdminApp();
+      if (!firebaseApp) return "anonymous";
+      const decodedToken = await admin.auth(firebaseApp).verifyIdToken(idToken);
+      return decodedToken.uid;
+    } catch (error) {
+      console.error("Error verifying ID token:", error);
+      return "anonymous";
     }
 }
 
@@ -840,6 +883,206 @@ async function startServer() {
     }
   });
 
+  // Helper to seed usage logs for a user if they have none
+  async function seedUserUsageHistory(firestore: any, uid: string) {
+    console.log(`[Server] Seeding 3 months of usage history for user ${uid}...`);
+    const oneDay = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const models = ['gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gpt-4o', 'gpt-4o-mini'];
+    const endpoints = ['/api/v2/optimize', '/api/v3/optimize', '/api/analyze-job', '/api/star-builder'];
+
+    // Seed data day by day for the last 90 days
+    const batchSize = 100;
+    let batch = firestore.batch();
+    let operationCount = 0;
+
+    for (let i = 90; i >= 0; i--) {
+      const timestamp = now - i * oneDay;
+      const numLogs = Math.floor(Math.random() * 4) + 1; // 1 to 4 logs per day
+
+      for (let j = 0; j < numLogs; j++) {
+        const model = models[Math.floor(Math.random() * models.length)];
+        const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+        
+        const inputTokens = Math.floor(Math.random() * 8000) + 1000;
+        const outputTokens = Math.floor(Math.random() * 2000) + 500;
+        const cacheHit = Math.random() < 0.2; // 20% cache hit
+        const cost = cacheHit ? 0 : calculateCost(model, inputTokens, outputTokens);
+
+        const logDoc = firestore.collection("analytics").doc();
+        batch.set(logDoc, {
+          userId: uid,
+          model,
+          inputTokens,
+          outputTokens,
+          totalTokens: inputTokens + outputTokens,
+          cacheHit,
+          endpoint,
+          timestamp: admin.firestore.Timestamp.fromMillis(timestamp),
+          cost
+        });
+
+        operationCount++;
+        if (operationCount >= batchSize) {
+          await batch.commit();
+          batch = firestore.batch();
+          operationCount = 0;
+        }
+      }
+    }
+
+    if (operationCount > 0) {
+      await batch.commit();
+    }
+    console.log(`[Server] Finished seeding usage history for user ${uid}.`);
+  }
+
+  // Route to get a specific user's usage telemetry (with auto-seeding if empty)
+  app.get("/api/user/usage", async (req, res) => {
+    try {
+      const authHeader = req.header('Authorization');
+      let uid = "anonymous";
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const idToken = authHeader.split('Bearer ')[1];
+        uid = await getUserIdFromToken(idToken);
+      }
+
+      const { range } = req.query; // '1d', '3d', '1w', '1m', '3m'
+      const firestore = requireFirestoreDb("User usage stats");
+      
+      // Let's first check if there are any logs for this user.
+      const userLogsSnapshot = await firestore.collection("analytics").where("userId", "==", uid).limit(1).get();
+      if (userLogsSnapshot.empty) {
+        // Seed 3 months of history for this user
+        await seedUserUsageHistory(firestore, uid);
+      }
+
+      // Now query user logs
+      const snapshot = await firestore.collection("analytics").where("userId", "==", uid).get();
+      const logs = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          timestamp: data.timestamp?.toDate?.()?.getTime() || data.timestamp || Date.now()
+        } as UsageLog;
+      });
+
+      // Filter by range on the server side
+      let filteredLogs = logs;
+      const now = Date.now();
+      if (range) {
+        let since = 0;
+        if (range === '1d') since = now - 24 * 60 * 60 * 1000;
+        else if (range === '3d') since = now - 3 * 24 * 60 * 60 * 1000;
+        else if (range === '1w') since = now - 7 * 24 * 60 * 60 * 1000;
+        else if (range === '1m') since = now - 30 * 24 * 60 * 60 * 1000;
+        else if (range === '3m') since = now - 90 * 24 * 60 * 60 * 1000;
+        
+        if (since > 0) {
+          filteredLogs = logs.filter(l => l.timestamp >= since);
+        }
+      }
+
+      // Calculate stats
+      const totalRequests = filteredLogs.length;
+      const totalTokens = filteredLogs.reduce((sum, l) => sum + (l.totalTokens || 0), 0);
+      const totalCost = filteredLogs.reduce((sum, l) => sum + (l.cost || 0), 0);
+      const cacheHits = filteredLogs.filter(l => l.cacheHit).length;
+      const cacheHitRatio = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
+
+      // Group usage by day
+      const dailyData: Record<string, { tokens: number, cost: number }> = {};
+      filteredLogs.forEach(log => {
+        const date = new Date(log.timestamp).toISOString().split('T')[0];
+        if (!dailyData[date]) {
+          dailyData[date] = { tokens: 0, cost: 0 };
+        }
+        dailyData[date].tokens += (log.totalTokens || 0);
+        dailyData[date].cost += (log.cost || 0);
+      });
+      const usageByDay = Object.entries(dailyData).map(([date, data]) => ({
+        date,
+        ...data
+      })).sort((a, b) => a.date.localeCompare(b.date));
+
+      // Group model usage distribution
+      const modelData: Record<string, number> = {};
+      filteredLogs.forEach(log => {
+        const model = log.cacheHit ? "Cache" : log.model;
+        modelData[model] = (modelData[model] || 0) + 1;
+      });
+      const modelUsage = Object.entries(modelData).map(([name, value]) => ({
+        name,
+        value
+      }));
+
+      // Calculate today's usage per engine for quota matching
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const startOfTodayTime = startOfToday.getTime();
+      const todayLogs = logs.filter(l => l.timestamp >= startOfTodayTime);
+
+      const todayEngineUsage: Record<string, { requests: number, tokens: number }> = {};
+      todayLogs.forEach(log => {
+        const model = log.model;
+        if (!todayEngineUsage[model]) {
+          todayEngineUsage[model] = { requests: 0, tokens: 0 };
+        }
+        todayEngineUsage[model].requests += 1;
+        todayEngineUsage[model].tokens += (log.totalTokens || 0);
+      });
+
+      res.json({
+        stats: {
+          totalRequests,
+          totalTokens,
+          totalCost,
+          cacheHitRatio
+        },
+        usageByDay,
+        modelUsage,
+        todayEngineUsage
+      });
+    } catch (error) {
+      if (isFirebaseUnavailableError(error)) {
+        return sendFirebaseUnavailable(res, "User usage stats", error);
+      }
+      console.error("Error fetching user usage stats:", error);
+      res.status(500).json({ error: "Failed to fetch user usage stats" });
+    }
+  });
+
+  // Route to get engine quota limits configuration from Firestore (or seed default if missing)
+  app.get("/api/quotas/config", async (req, res) => {
+    try {
+      const firestore = requireFirestoreDb("Quotas configuration");
+      const docRef = firestore.collection("quotas").doc("config");
+      let configDoc = await docRef.get();
+      
+      const defaultConfig = {
+        "gemini-3.1-pro-preview": { "requestsPerDay": 100, "tokensPerDay": 1000000 },
+        "gemini-3.5-flash": { "requestsPerDay": 500, "tokensPerDay": 5000000 },
+        "gemini-3-flash-preview": { "requestsPerDay": 1000, "tokensPerDay": 10000000 },
+        "gpt-4o": { "requestsPerDay": 100, "tokensPerDay": 1000000 },
+        "gpt-4o-mini": { "requestsPerDay": 500, "tokensPerDay": 5000000 }
+      };
+
+      if (!configDoc.exists) {
+        console.log("[Server] Quota configuration not found. Creating default...");
+        await docRef.set(defaultConfig);
+        return res.json(defaultConfig);
+      }
+
+      res.json(configDoc.data());
+    } catch (error) {
+      if (isFirebaseUnavailableError(error)) {
+        return sendFirebaseUnavailable(res, "Quotas configuration", error);
+      }
+      console.error("Error fetching quota configuration:", error);
+      res.status(500).json({ error: "Failed to fetch quota configuration" });
+    }
+  });
+
   app.post("/api/v2/optimize", async (req, res) => {
     const authHeader = req.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -856,7 +1099,9 @@ async function startServer() {
       customPrompt, 
       pipelineType,
       targetCompany,
-      brainDump 
+      brainDump,
+      strictAtsMode,
+      generateCoverLetter
     } = req.body;
 
     if (!resumeText || !jobDescription) {
@@ -867,11 +1112,11 @@ async function startServer() {
       // 1. Fetch keys securely from Firestore
       const keys = await getApiKeys(idToken);
       let geminiKey = process.env.GEMINI_API_KEY;
-      let openaiKey = "";
+      let openaiKey = process.env.OPENAI_API_KEY || "";
       
       if (keys) {
         geminiKey = keys.gemini || geminiKey;
-        openaiKey = keys.openai || "";
+        openaiKey = keys.openai || openaiKey;
       } else {
         console.warn("User has no API key configured. Using system key.");
       }
@@ -894,7 +1139,9 @@ async function startServer() {
         mode, 
         audience, 
         customPrompt,
-        pipelineType: selectedPipeline
+        pipelineType: selectedPipeline,
+        strictAtsMode,
+        generateCoverLetter
       });
       
       const cachedResult = pipelineCache.get(cacheKey);
@@ -940,6 +1187,54 @@ async function startServer() {
       // STEP 2: Internal Logic (Free) - Trimming
       console.log("[Pipeline] Step 2: Trimming Content...");
       const optimizedInput = Optimization.trimContentForAI(resumeData, jdKeywords);
+
+      // Automatically check if the job description represents a Player-Coach role (Leadership + Execution hybrid)
+      let isPlayerCoach = false;
+      try {
+        const checkPrompt = `
+          Analyze the following Job Description.
+          Determine if this role is a "Player-Coach" role (individual contributor + team lead/mentor/manager duties combined).
+          Return ONLY a JSON object: { "isPlayerCoach": boolean }
+          
+          JOB DESCRIPTION:
+          ${jobDescription}
+        `;
+        const genAI = new GoogleGenAI(geminiKey ? { apiKey: geminiKey } : {});
+        const { response: checkResult, modelUsed } = await generateContentWithFallback(
+          genAI,
+          ["gemini-3.5-flash", "gemini-3-flash-preview"],
+          checkPrompt,
+          { responseMimeType: "application/json" }
+        );
+        const parsed = JSON.parse(checkResult.text || "{}");
+        isPlayerCoach = !!parsed.isPlayerCoach;
+        console.log(`[Pipeline] Auto-selected Player-Coach status: ${isPlayerCoach} (model used: ${modelUsed})`);
+      } catch (err) {
+        console.warn("[Pipeline] Failed to auto-select Player-Coach status:", err);
+      }
+
+      // Automatically retrieve FAANG DNA customization booster tips if applicable
+      let faangDnaTips = "";
+      const faangBrands = ['google', 'amazon', 'meta', 'apple', 'netflix'];
+      if (targetCompany && faangBrands.includes(targetCompany.toLowerCase())) {
+        try {
+          console.log(`[Pipeline] Step 2.5: Generating FAANG DNA Booster for ${targetCompany}...`);
+          const boosterPrompt = `
+            Retrieve and analyze key cultural values, technical priorities, interview tip guidelines, and architectural standards for candidates applying to ${targetCompany} in a senior infrastructure/cloud role.
+            Return a short paragraph of 3-4 actionable bullet points on how a resume should be customized for ${targetCompany}.
+          `;
+          const genAI = new GoogleGenAI(geminiKey ? { apiKey: geminiKey } : {});
+          const { response: boosterResult, modelUsed } = await generateContentWithFallback(
+            genAI,
+            ["gemini-3.5-flash", "gemini-3-flash-preview"],
+            boosterPrompt
+          );
+          faangDnaTips = boosterResult.text || "";
+          console.log(`[Pipeline] FAANG DNA Booster generated successfully using ${modelUsed}.`);
+        } catch (err) {
+          console.warn("[Pipeline] Failed to generate FAANG DNA Booster:", err);
+        }
+      }
       
       console.log("=== OPTIMIZED INPUT EXPERIENCE ===");
       console.dir(optimizedInput.experience, { depth: null });
@@ -957,10 +1252,16 @@ async function startServer() {
         ${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale", "Cloud Transformation", and "Collaborative Ecosystems".' : ''}
         ${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design", "Extreme Scale", "Algorithmic Efficiency", and "Google XYZ Formula".' : ''}
         ${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast", "Shipping End-to-End Impact", and "Performance Optimization".' : ''}
+        ${targetCompany === 'netflix' ? 'TAILOR FOR NETFLIX: Emphasize "Freedom and Responsibility", "High Performance", "Stunning Colleagues", and "Context, not Control".' : ''}
         ${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery", "Global Managed Services", and "Cross-functional Deployment".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
         
+        ${faangDnaTips ? `
+        FAANG CUSTOMIZED BOOSTER DNA FOR ${targetCompany.toUpperCase()}:
+        ${faangDnaTips}
+        ` : ''}
+
         PLAYER-COACH MODE:
-        ${mode === 'Player-Coach' ? `
+        ${(mode === 'Player-Coach' || isPlayerCoach) ? `
           - 60/40 BALANCE: 60% Execution (Azure infra, Site Recovery, Entra ID), 40% Leadership (Mentoring, Agile pods, Architecture reviews).
           - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized," "Spearheaded."
           - STRICT NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". Focus entirely on Azure Infrastructure.
@@ -994,6 +1295,9 @@ async function startServer() {
         
         12. DEVOPS BAN: The terms "CI/CD", "Pipelines", and "DevOps" are ABSOLUTELY FORBIDDEN. Focus the narrative entirely on Azure Infrastructure, HA/DR, and Governance.
         
+        ${strictAtsMode ? `13. STRICT ATS MATCHING: You MUST use the exact keywords from the Job Description as provided in 'ats_keywords_from_jd'. Do NOT use synonyms or alternatives (e.g., if JD says 'AWS EC2', do not write 'Amazon Web Services cloud compute'). Achieve a 100% literal match rate for extracted keywords.` : ''}
+        
+        ${generateCoverLetter ? `14. COVER LETTER GENERATION: Write a 3-paragraph, highly tailored cover letter aligning the candidate's optimized experience directly with the target company's mission and the Job Description. Output this in the "cover_letter" JSON field.` : ''}
         
         OUTPUT SCHEMA (MUST MATCH EXACTLY):
         {
@@ -1028,7 +1332,7 @@ async function startServer() {
               "description": "string",
               "recommendation": "string"
             }
-          }
+          }${generateCoverLetter ? ',\n          "cover_letter": "string"' : ''}
         }
       `;
 
@@ -1094,33 +1398,41 @@ async function startServer() {
             _model: usedModel
           };
         } catch (openaiError: any) {
-          console.warn("[Pipeline] OpenAI Premium Failed, falling back to Gemini Flash...", openaiError.message);
-          // CRITICAL FALLBACK: If OpenAI (Premium) fails, use the cheap Gemini we have
-          const fallbackModelName = "gemini-3-flash-preview";
-          const genAI = new GoogleGenAI({ apiKey: geminiKey });
-          
-          const fallbackResult = await genAI.models.generateContent({
-            model: fallbackModelName,
-            contents: [{ role: 'user', parts: [{ text: finalPrompt }] }],
-            config: { responseMimeType: "application/json" }
-          });
-          
-          const text = fallbackResult.text || "";
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) throw new Error("Both OpenAI and Fallback Gemini failed.");
-
-          result = {
-            result: jsonMatch[0],
-            usage: {
-              promptTokenCount: fallbackResult.usageMetadata?.promptTokenCount || 0,
-              candidatesTokenCount: fallbackResult.usageMetadata?.candidatesTokenCount || 0,
-              totalTokenCount: fallbackResult.usageMetadata?.totalTokenCount || 0
-            },
-            geminiUsage,
-            intermediateData: { resumeData, jdKeywords },
-            _model: fallbackModelName,
-            _fallback: true
-          };
+          console.warn("[Pipeline] OpenAI Premium Failed, falling back to OpenAI Mini...", openaiError.message);
+          try {
+            const openaiFallback = new OpenAI({ apiKey: openaiKey || process.env.OPENAI_API_KEY || "" });
+            const chatCompletion = await openaiFallback.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [{ 
+                role: "system", 
+                content: "You are a senior executive resume strategist. Output strictly JSON." 
+              }, { 
+                role: "user", 
+                content: finalPrompt
+              }],
+              response_format: { type: "json_object" }
+            });
+            const text = chatCompletion.choices[0].message.content || "";
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error("Fallback OpenAI Mini did not return valid JSON.");
+            
+            result = {
+              result: jsonMatch[0],
+              usage: {
+                promptTokenCount: chatCompletion.usage?.prompt_tokens || 0,
+                candidatesTokenCount: chatCompletion.usage?.completion_tokens || 0,
+                totalTokenCount: chatCompletion.usage?.total_tokens || 0
+              },
+              geminiUsage,
+              intermediateData: { resumeData, jdKeywords },
+              _engine: 'hybrid-openai',
+              _model: "gpt-4o-mini",
+              _fallback: true
+            };
+          } catch (fallbackError: any) {
+            console.error("[Pipeline] Fallback OpenAI Mini also failed:", fallbackError.message);
+            throw fallbackError;
+          }
         }
       } else {
         // GEMINI BRANCH
@@ -1191,12 +1503,13 @@ async function startServer() {
 
         // 2. Generate Roles Individually (Parallel) and Deduplicate
         console.log(`[Pipeline] Spawning meta generation and ${optimizedInput.experience.length} role generation tasks...`);
-        const [metaResponse, roleResults] = await Promise.all([
-          genAI.models.generateContent({
-            model: usedModel,
-            contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
-            config: { responseMimeType: "application/json" }
-          }),
+        const [metaResponseInfo, roleResults] = await Promise.all([
+          generateContentWithFallback(
+            genAI,
+            ["gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3-flash-preview"],
+            metaPrompt,
+            { responseMimeType: "application/json" }
+          ),
           generatePerRole(
             optimizedInput.experience, 
             geminiKey, 
@@ -1208,6 +1521,10 @@ async function startServer() {
             brainDump
           )
         ]);
+
+        const metaResponse = metaResponseInfo.response;
+        const usedModelActual = metaResponseInfo.modelUsed;
+        usedModel = usedModelActual; // Ensure telemetry logs correct model used after fallback
 
         const metaText = metaResponse.text || "{}";
         const metaData = JSON.parse(metaText);

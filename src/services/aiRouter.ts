@@ -14,7 +14,9 @@ export type TaskType =
   | 'evaluate_suitability'
   | 'linkedin_analysis'
   | 'optimize_headline'
-  | 'optimize_about';
+  | 'optimize_about'
+  | 'select_best_master_resume'
+  | 'select_player_coach';
 
 export interface RouterConfig {
   mode: EngineType | 'production';
@@ -25,7 +27,15 @@ export interface RouterConfig {
 export function routeTask(task: TaskType, config: RouterConfig): EngineConfig {
   if (config.mode !== 'production') {
     // If not in production mode, use the explicitly selected engine
-    return config.mode === 'gemini' ? config.geminiConfig : config.openaiConfig;
+    const engineConfig = config.mode === 'gemini' ? config.geminiConfig : config.openaiConfig;
+    if (config.mode === 'gemini') {
+      if (task === 'rewrite_resume') {
+        return { ...engineConfig, model: 'gemini-3.1-pro-preview' };
+      } else {
+        return { ...engineConfig, model: 'gemini-3.5-flash' };
+      }
+    }
+    return engineConfig;
   }
 
   // Production Mode Routing Logic
@@ -45,6 +55,8 @@ export function routeTask(task: TaskType, config: RouterConfig): EngineConfig {
     case 'optimize_about':
     case 'rewrite_resume':
     case 'cover_letter':
+    case 'select_best_master_resume':
+    case 'select_player_coach':
       selectedEngine = 'gemini';
       break;
 
@@ -61,8 +73,16 @@ export function routeTask(task: TaskType, config: RouterConfig): EngineConfig {
 
   const engineConfig = selectedEngine === 'gemini' ? config.geminiConfig : config.openaiConfig;
   
+  if (selectedEngine === 'gemini') {
+    if (task === 'rewrite_resume') {
+      return { ...engineConfig, model: 'gemini-3.1-pro-preview' };
+    } else {
+      return { ...engineConfig, model: 'gemini-3.5-flash' };
+    }
+  }
+  
   // Log the routing decision
-  console.log(`[Production Mode] Task: ${task} → ${selectedEngine === 'gemini' ? 'Gemini' : 'OpenAI'} (${engineConfig.model})`);
+  console.log(`[Production Mode] Task: ${task} → ${selectedEngine} (${engineConfig.model})`);
   
   return engineConfig;
 }

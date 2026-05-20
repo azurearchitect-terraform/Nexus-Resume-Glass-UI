@@ -42,6 +42,7 @@ export interface OptimizationResult {
   rejection_reasons?: string[];
   star_stories?: StarStory[];
   audit_report?: AuditReport;
+  cover_letter?: string;
   _usage?: {
     promptTokenCount: number;
     candidatesTokenCount: number;
@@ -146,6 +147,8 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
   return process.env.GEMINI_API_KEY || '';
 }
 
+const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash';
+
 async function callAI(prompt: string, model: string, engine: EngineType, encryptedKey?: string) {
   const idToken = await auth.currentUser?.getIdToken();
 
@@ -154,7 +157,6 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
   }
 
   // Fallback Logic definitions
-  const FALLBACK_GEMINI_MODEL = "gemini-3.1-flash-lite";
   
   if (engine === 'gemini') {
     // Gemini MUST be called from the frontend as per guidelines
@@ -167,10 +169,17 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
 
       const ai = new GoogleGenAI({ apiKey });
       
-      // Attempt primary model, fallback to gemini-3.1-flash-lite on error
+      // Attempt primary model, fallback on error
       const executeWithFallback = async (modelToTry: string): Promise<any> => {
         const isThinkingModel = modelToTry.includes('thinking') || modelToTry.includes(':thinking');
         const cleanModel = modelToTry.replace(':thinking', '').replace('gemini-1.5-pro', 'gemini-3.1-pro-preview').replace('gemini-1.5-flash', 'gemini-3-flash-preview');
+        
+        let nextModel: string | null = null;
+        if (cleanModel === 'gemini-3.1-pro-preview') {
+          nextModel = 'gemini-3.5-flash';
+        } else if (cleanModel === 'gemini-3.5-flash') {
+          nextModel = 'gemini-3-flash-preview';
+        }
               
         const config = {
           responseMimeType: prompt.toLowerCase().includes('json') ? "application/json" : "text/plain",
@@ -196,9 +205,9 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
           const errorMsg = innerError?.message?.toLowerCase() || "";
           const isQuotaError = errorMsg.includes("quota") || errorMsg.includes("429") || errorMsg.includes("limit") || errorMsg.includes("exhausted");
           
-          if (isQuotaError && modelToTry !== FALLBACK_GEMINI_MODEL) {
-            console.warn(`[Gemini Service] Quota reached for ${cleanModel}. Falling back to ${FALLBACK_GEMINI_MODEL}...`);
-            return await executeWithFallback(FALLBACK_GEMINI_MODEL);
+          if (isQuotaError && nextModel) {
+            console.warn(`[Gemini Service] Quota reached for ${cleanModel}. Falling back to ${nextModel}...`);
+            return await executeWithFallback(nextModel);
           }
           throw innerError;
         }
@@ -353,7 +362,9 @@ export async function optimizeResume(
   customPrompt?: string,
   pipelineType?: string,
   targetCompany?: string,
-  brainDump?: string
+  brainDump?: string,
+  strictAtsMode: boolean = false,
+  generateCoverLetter: boolean = false
 ): Promise<OptimizationResult> {
   const routedConfig = routeTask(recruiterSimulationMode ? 'recruiter_simulation' : 'rewrite_resume', config);
   
@@ -395,7 +406,9 @@ export async function optimizeResume(
           encryptedKey: config.openaiConfig.apiKey,
           pipelineType,
           targetCompany,
-          brainDump
+          brainDump,
+          strictAtsMode,
+          generateCoverLetter
         })
       });
 
@@ -847,10 +860,9 @@ export async function selectBestMasterResume(
   if (!resumes || resumes.length === 0) return 'default';
   if (resumes.length === 1) return resumes[0].id;
 
-  const routedConfig = routeTask('rewrite_resume', config);
+  const routedConfig = routeTask('select_best_master_resume', config);
   const apiKey = await getDecryptedKey(routedConfig.apiKey || '');
   const ai = new GoogleGenAI({ apiKey });
-  const model = ai.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
   const mastersSummary = resumes.map((m) => {
     const content = typeof m.data === 'string' ? m.data : JSON.stringify(m.data);
@@ -871,13 +883,8 @@ export async function selectBestMasterResume(
   `;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json" }
-    });
-    
-    const text = result.response.text();
-    const resultText = extractJson(text);
+    const { result } = await callAI(prompt, routedConfig.model, routedConfig.engine, routedConfig.apiKey);
+    const resultText = extractJson(result);
     const parsed = JSON.parse(resultText);
     return parsed.selectedId;
   } catch (error) {
@@ -1106,7 +1113,7 @@ export async function autoSelectPlayerCoachRole(
   jobDescription: string,
   config: RouterConfig
 ): Promise<boolean> {
-  const routedConfig = routeTask('rewrite_resume', config);
+  const routedConfig = routeTask('select_player_coach', config);
   const prompt = `
     Analyze the following Job Description.
     Determine if this role is a "Player-Coach" role (individual contributor + team lead/mentor).

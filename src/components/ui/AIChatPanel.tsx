@@ -3,6 +3,7 @@ import { GlassPanel } from './GlassPanel';
 
 interface AIChatPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
+  children?: React.ReactNode;
 }
 
 export function AIChatPanel({ title = 'AI Assistant', children, ...props }: AIChatPanelProps) {

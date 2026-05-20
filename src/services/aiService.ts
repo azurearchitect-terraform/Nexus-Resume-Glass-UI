@@ -69,10 +69,30 @@ export const improveTextWithAI = async (
       ${context?.jobDescription ? `Job Description: ${context.jobDescription}` : ''}
     `;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }] }],
-    });
+    const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview"];
+    let response: any = null;
+    let lastError: any = null;
+    for (const model of modelChain) {
+      try {
+        console.log(`[aiService] improveTextWithAI attempting with model: ${model}`);
+        response = await ai.models.generateContent({
+          model,
+          contents: [{ parts: [{ text: prompt }] }],
+        });
+        break;
+      } catch (err: any) {
+        lastError = err;
+        const errorMsg = err?.message?.toLowerCase() || "";
+        const isQuotaError = errorMsg.includes("quota") || errorMsg.includes("429") || errorMsg.includes("limit") || errorMsg.includes("exhausted");
+        if (isQuotaError) {
+          console.warn(`[aiService] Quota error on ${model}. Trying fallback...`);
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    if (!response) throw lastError || new Error("All models in fallback chain failed for improveTextWithAI");
 
     const result = response.text?.trim() || text;
     return result.replace(/Office IT [Cc]um Logistics/g, 'Officer IT cum Logistics');
@@ -115,13 +135,33 @@ export const rewriteSectionWithAI = async (
       ${JSON.stringify(content, null, 2)}
     `;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
-        responseMimeType: "application/json",
+    const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview"];
+    let response: any = null;
+    let lastError: any = null;
+    for (const model of modelChain) {
+      try {
+        console.log(`[aiService] rewriteSectionWithAI attempting with model: ${model}`);
+        response = await ai.models.generateContent({
+          model,
+          contents: [{ parts: [{ text: prompt }] }],
+          config: {
+            responseMimeType: "application/json",
+          }
+        });
+        break;
+      } catch (err: any) {
+        lastError = err;
+        const errorMsg = err?.message?.toLowerCase() || "";
+        const isQuotaError = errorMsg.includes("quota") || errorMsg.includes("429") || errorMsg.includes("limit") || errorMsg.includes("exhausted");
+        if (isQuotaError) {
+          console.warn(`[aiService] Quota error on ${model}. Trying fallback...`);
+          continue;
+        }
+        throw err;
       }
-    });
+    }
+
+    if (!response) throw lastError || new Error("All models in fallback chain failed for rewriteSectionWithAI");
 
     const result = response.text?.trim();
     if (!result) return content;

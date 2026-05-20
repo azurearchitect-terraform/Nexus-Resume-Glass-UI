@@ -5,6 +5,8 @@ import { cn } from './cn';
 interface DashboardWidgetProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
   value?: React.ReactNode;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 export function DashboardWidget({ title, value, className, children, ...props }: DashboardWidgetProps) {

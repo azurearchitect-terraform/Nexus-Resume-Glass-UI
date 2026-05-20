@@ -101,27 +101,47 @@ export const JobTracker: React.FC<JobTrackerProps> = ({ isDarkMode, engineConfig
         throw new Error("API key is missing. Please check your settings.");
       }
       const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Extract the following information from this job description. If not found, use "Not specified".\n\nJD:\n${newJd}`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              company: { type: Type.STRING, description: "Company name" },
-              role: { type: Type.STRING, description: "Job title" },
-              salary: { type: Type.STRING, description: "Salary range or compensation details" },
-              skills: { 
-                type: Type.ARRAY, 
-                items: { type: Type.STRING },
-                description: "Top 5 must-have skills"
+      const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview"];
+      let response: any = null;
+      let lastError: any = null;
+      for (const model of modelChain) {
+        try {
+          console.log(`[JobTracker] Attempting extraction with model: ${model}`);
+          response = await ai.models.generateContent({
+            model,
+            contents: `Extract the following information from this job description. If not found, use "Not specified".\n\nJD:\n${newJd}`,
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  company: { type: Type.STRING, description: "Company name" },
+                  role: { type: Type.STRING, description: "Job title" },
+                  salary: { type: Type.STRING, description: "Salary range or compensation details" },
+                  skills: { 
+                    type: Type.ARRAY, 
+                    items: { type: Type.STRING },
+                    description: "Top 5 must-have skills"
+                  }
+                },
+                required: ["company", "role", "salary", "skills"]
               }
-            },
-            required: ["company", "role", "salary", "skills"]
+            }
+          });
+          break;
+        } catch (err: any) {
+          lastError = err;
+          const errorMsg = err?.message?.toLowerCase() || "";
+          const isQuotaError = errorMsg.includes("quota") || errorMsg.includes("429") || errorMsg.includes("limit") || errorMsg.includes("exhausted");
+          if (isQuotaError) {
+            console.warn(`[JobTracker] Quota error on ${model}. Trying fallback...`);
+            continue;
           }
+          throw err;
         }
-      });
+      }
+
+      if (!response) throw lastError || new Error("All models in fallback chain failed for JobTracker extraction");
 
       const data = JSON.parse(response.text || "{}");
       

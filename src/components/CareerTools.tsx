@@ -1,26 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Brain, Target, ArrowRightLeft, HelpCircle, Code, Briefcase, ChevronRight, MessageSquare, FileInput, IndianRupee, Linkedin, Key, Search } from 'lucide-react';
+import { Brain, Target, ArrowRightLeft, HelpCircle, Code, Briefcase, ChevronRight, MessageSquare, FileInput, IndianRupee, Linkedin, Key, Search, FileText, Sparkles } from 'lucide-react';
 import { JobTracker } from './JobTracker';
 import { CareerQuiz } from './CareerQuiz';
 import { ATSAutofillHelper } from './ATSAutofillHelper';
 import { LinkedInImporter } from './LinkedInImporter';
-
 import { SkillExtractor } from './SkillExtractor';
-
+import { SystemDesignSimulator } from './SystemDesignSimulator';
+import { STARBuilder } from './STARBuilder';
+import { TakeHomeGhostwriter } from './TakeHomeGhostwriter';
+import { AdditionalTools } from './AdditionalTools';
 import { User } from 'firebase/auth';
+import { Server, Terminal } from 'lucide-react';
 
 interface CareerToolsProps {
   isDarkMode: boolean;
   engineConfig: Record<string, any>;
-  selectedEngine: 'gemini' | 'openai' | 'hybrid';
+  selectedEngine: 'gemini' | 'openai' | 'hybrid' | 'hybrid-gemini' | 'hybrid-openai';
   resumeData: any;
   jobDescription?: string;
   user: User | null;
   onToolActive?: (isActive: boolean) => void;
   linkedinProps: any;
+  resumeText?: string;
+  targetRole?: string;
+  companyName?: string;
+  masterResumes?: any[];
+  setMasterResumes?: React.Dispatch<React.SetStateAction<any[]>>;
+  selectedResumeId?: string;
+  setSelectedResumeId?: React.Dispatch<React.SetStateAction<string>>;
+  handleSetActiveResume?: (id: string) => void;
+  handleDuplicateResume?: (id: string) => void;
+  results?: any;
+  activeAudience?: string;
+  selectedAudiences?: string[];
+  setResumeText?: (text: string) => void;
+  handleOptimizeResume?: () => Promise<void>;
 }
 
-export const CareerTools: React.FC<CareerToolsProps> = ({ isDarkMode, engineConfig, selectedEngine, resumeData, jobDescription, user, onToolActive, linkedinProps }) => {
+export const CareerTools: React.FC<CareerToolsProps> = ({ 
+  isDarkMode, 
+  engineConfig, 
+  selectedEngine, 
+  resumeData, 
+  jobDescription = '', 
+  user, 
+  onToolActive, 
+  linkedinProps,
+  resumeText = '',
+  targetRole = '',
+  companyName = '',
+  masterResumes = [],
+  setMasterResumes = () => {},
+  selectedResumeId = '',
+  setSelectedResumeId = () => {},
+  handleSetActiveResume = () => {},
+  handleDuplicateResume = () => {},
+  results = {},
+  activeAudience = '',
+  selectedAudiences = [],
+  setResumeText = () => {},
+  handleOptimizeResume = async () => {}
+}) => {
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,6 +125,54 @@ export const CareerTools: React.FC<CareerToolsProps> = ({ isDarkMode, engineConf
       icon: Key,
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10'
+    },
+    {
+      id: 'system_design',
+      title: 'System Design Mock',
+      description: 'Practice whiteboard system design interviews for tech leadership and FAANG roles.',
+      icon: Server,
+      color: 'text-indigo-500',
+      bgColor: 'bg-indigo-500/10'
+    },
+    {
+      id: 'star_builder',
+      title: 'Amazon LP STAR Builder',
+      description: 'Generate perfect Behavioral STAR stories mapped to Amazon Leadership Principles.',
+      icon: Target,
+      color: 'text-rose-500',
+      bgColor: 'bg-rose-500/10'
+    },
+    {
+      id: 'take_home',
+      title: 'Take-Home Ghostwriter',
+      description: 'Instantly generate IaC (Terraform) boilerplates and README architectures for take-home assessments.',
+      icon: Terminal,
+      color: 'text-amber-500',
+      bgColor: 'bg-amber-500/10'
+    },
+    {
+      id: 'cover_letter',
+      title: 'Cover Letter Builder',
+      description: 'Draft an impeccable, tailored cover letter matching the target job description parameters.',
+      icon: FileText,
+      color: 'text-emerald-500',
+      bgColor: 'bg-emerald-500/10'
+    },
+    {
+      id: 'recruiter_msg',
+      title: 'Recruiter Message',
+      description: 'Draft a direct message targeting recruiters and hiring managers.',
+      icon: MessageSquare,
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-500/10'
+    },
+    {
+      id: 'why_this_job',
+      title: 'Why This Job Statement',
+      description: 'Draft a concise response answering the common interview/portal question: "Why are you interested in this role?"',
+      icon: Sparkles,
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-500/10'
     }
   ];
 
@@ -98,6 +186,50 @@ export const CareerTools: React.FC<CareerToolsProps> = ({ isDarkMode, engineConf
 
   if (activeTool === 'skill_extractor') {
     return <SkillExtractor isDarkMode={isDarkMode} resumeData={resumeData} onBack={() => setActiveTool(null)} engineConfig={engineConfig} initialJd={jobDescription} />;
+  }
+
+  if (activeTool === 'system_design') {
+    return <SystemDesignSimulator isDarkMode={isDarkMode} onBack={() => setActiveTool(null)} />;
+  }
+
+  if (activeTool === 'star_builder') {
+    return <STARBuilder isDarkMode={isDarkMode} resumeData={resumeData} onBack={() => setActiveTool(null)} />;
+  }
+
+  if (activeTool === 'take_home') {
+    return <TakeHomeGhostwriter isDarkMode={isDarkMode} onBack={() => setActiveTool(null)} />;
+  }
+
+  if (activeTool === 'cover_letter' || activeTool === 'recruiter_msg' || activeTool === 'why_this_job') {
+    const tabMap: Record<string, 'coverLetter' | 'recruiterMessage' | 'whyThisJob'> = {
+      cover_letter: 'coverLetter',
+      recruiter_msg: 'recruiterMessage',
+      why_this_job: 'whyThisJob'
+    };
+    return (
+      <AdditionalTools 
+        masterResumes={masterResumes}
+        setMasterResumes={setMasterResumes}
+        selectedResumeId={selectedResumeId}
+        setSelectedResumeId={setSelectedResumeId}
+        onSetActive={handleSetActiveResume}
+        onDuplicate={handleDuplicateResume}
+        resumeText={resumeText}
+        jobDescription={jobDescription}
+        targetRole={targetRole}
+        companyName={companyName}
+        isDarkMode={isDarkMode}
+        engineConfig={engineConfig}
+        selectedEngine={selectedEngine as any}
+        currentResults={results}
+        activeAudience={activeAudience}
+        selectedAudiences={selectedAudiences}
+        setResumeText={setResumeText}
+        runOptimization={handleOptimizeResume}
+        initialTab={tabMap[activeTool]}
+        onBack={() => setActiveTool(null)}
+      />
+    );
   }
 
   if (activeTool) {

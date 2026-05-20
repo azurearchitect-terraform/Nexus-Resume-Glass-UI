@@ -16,10 +16,10 @@ export function trimInput(text: string, maxLength: number = 8000): string {
 }
 
 export async function extractRelevantResumeData(resumeText: string, geminiApiKey: string, openaiApiKey: string = '', pipelineType: string = 'hybrid-gemini') {
-  const isHybridOpenAI = pipelineType === 'hybrid-openai' && openaiApiKey;
+  const isHybridOpenAI = pipelineType === 'hybrid-openai' && (openaiApiKey || process.env.OPENAI_API_KEY);
 
   if (isHybridOpenAI) {
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+    const openai = new OpenAI({ apiKey: openaiApiKey || process.env.OPENAI_API_KEY || '' });
     const trimmedResume = trimInput(resumeText, 15000);
     const prompt = `
       Extract essential professional data from this resume. 
@@ -106,7 +106,7 @@ export async function extractRelevantResumeData(resumeText: string, geminiApiKey
   `;
 
   // Stage 1: Extraction
-  let primaryModel = "gemini-3.1-pro-preview";
+  let primaryModel = "gemini-3.5-flash";
   let fallbackModel = "gemini-3-flash-preview";
 
   try {
@@ -152,10 +152,10 @@ export async function extractRelevantResumeData(resumeText: string, geminiApiKey
 }
 
 export async function extractJDKeywords(jobDescription: string, geminiApiKey: string, openaiApiKey: string = '', pipelineType: string = 'hybrid-gemini') {
-  const isHybridOpenAI = pipelineType === 'hybrid-openai' && openaiApiKey;
+  const isHybridOpenAI = pipelineType === 'hybrid-openai' && (openaiApiKey || process.env.OPENAI_API_KEY);
 
   if (isHybridOpenAI) {
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+    const openai = new OpenAI({ apiKey: openaiApiKey || process.env.OPENAI_API_KEY || '' });
     const trimmedJD = trimInput(jobDescription, 10000);
     const prompt = `
       Extract the top 12 essential keywords and requirements from this job description.
@@ -198,7 +198,7 @@ export async function extractJDKeywords(jobDescription: string, geminiApiKey: st
   `;
 
   // Stage 1: JD Analysis
-  let primaryModel = "gemini-3.1-pro-preview";
+  let primaryModel = "gemini-3.5-flash";
   let fallbackModel = "gemini-3-flash-preview";
 
   try {

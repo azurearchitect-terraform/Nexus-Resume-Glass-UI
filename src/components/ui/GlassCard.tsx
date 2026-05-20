@@ -3,6 +3,8 @@ import { cn } from './cn';
 
 interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 export function GlassCard({ className, interactive = false, ...props }: GlassCardProps) {

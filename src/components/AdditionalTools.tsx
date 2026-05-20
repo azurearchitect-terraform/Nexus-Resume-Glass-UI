@@ -31,6 +31,8 @@ interface AdditionalToolsProps {
   keySkills?: string[];
   onToolActive?: (isActive: boolean) => void;
   linkedinProps?: any;
+  initialTab?: 'skillGap' | 'interview' | 'history' | 'coverLetter' | 'recruiterMessage' | 'headline' | 'whyThisJob' | 'linkedin' | 'masterResumeGenerator' | 'masterResumeManager' | null;
+  onBack?: () => void;
 }
 
 export const AdditionalTools: React.FC<AdditionalToolsProps> = ({ 
@@ -57,9 +59,11 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
   resumeSummary = "",
   keySkills = [],
   onToolActive,
-  linkedinProps
+  linkedinProps,
+  initialTab,
+  onBack
 }) => {
-  const [activeTab, setActiveTab] = useState<'skillGap' | 'interview' | 'history' | 'coverLetter' | 'recruiterMessage' | 'headline' | 'whyThisJob' | 'linkedin' | 'masterResumeGenerator' | 'masterResumeManager' | null>(null);
+  const [activeTab, setActiveTab] = useState<'skillGap' | 'interview' | 'history' | 'coverLetter' | 'recruiterMessage' | 'headline' | 'whyThisJob' | 'linkedin' | 'masterResumeGenerator' | 'masterResumeManager' | null>(initialTab || null);
 
   useEffect(() => {
     if (onToolActive) {
@@ -603,7 +607,13 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
       ) : (
         <div className={`sticky top-0 z-10 flex items-center justify-between -mx-4 p-4 border-b ${isDarkMode ? 'bg-[#141414] border-white/5' : 'bg-white border-black/5'} mb-6`}>
           <button 
-            onClick={() => setActiveTab(null)}
+            onClick={() => {
+              if (onBack) {
+                onBack();
+              } else {
+                setActiveTab(null);
+              }
+            }}
             className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
               isDarkMode ? 'hover:bg-white/10 text-white/70 hover:text-white' : 'hover:bg-black/5 text-black/70 hover:text-black'
             }`}

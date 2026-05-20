@@ -49,11 +49,30 @@ Return ONLY a valid JSON array of strings containing the high-impact bullet poin
 `;
 
     try {
-      const res = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        config: { responseMimeType: "application/json" }
-      });
+      const modelChain = ["gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3-flash-preview"];
+      let res: any = null;
+      let lastError: any = null;
+      for (const model of modelChain) {
+        try {
+          console.log(`[RoleGen] Attempting generation for role ${index + 1} with model: ${model}`);
+          res = await genAI.models.generateContent({
+            model,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            config: { responseMimeType: "application/json" }
+          });
+          break;
+        } catch (err: any) {
+          lastError = err;
+          const errorMsg = err?.message?.toLowerCase() || "";
+          const isQuotaError = errorMsg.includes("quota") || errorMsg.includes("429") || errorMsg.includes("limit") || errorMsg.includes("exhausted");
+          if (isQuotaError) {
+            console.warn(`[RoleGen] Quota error on ${model}. Trying fallback...`);
+            continue;
+          }
+          throw err;
+        }
+      }
+      if (!res) throw lastError || new Error("All models in the chain failed for role optimization");
 
       const text = res.text || "[]";
       let bullets = [];

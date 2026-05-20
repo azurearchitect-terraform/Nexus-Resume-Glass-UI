@@ -30,6 +30,7 @@ export const TARGET_COMPANIES = [
   { id: 'google', label: 'Google', icon: '🔍', signal: 'Systems Design, Scale, Algorithmic Impact' },
   { id: 'meta', label: 'Meta', icon: '♾️', signal: 'Move Fast, Ship Impact, Performance' },
   { id: 'apple', label: 'Apple', icon: '🍎', signal: 'Precision, User Experience, Discretion' },
+  { id: 'netflix', label: 'Netflix', icon: '🎥', signal: 'Freedom & Responsibility, High Performance' },
   { id: 'accenture', label: 'Accenture', icon: '📈', signal: 'Client Value, Global Delivery' },
   { id: 'infosys', label: 'Infosys', icon: '🌐', signal: 'Managed Services, Transformation' },
 ];

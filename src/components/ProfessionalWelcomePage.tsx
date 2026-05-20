@@ -87,8 +87,8 @@ export function ProfessionalWelcomePage({
         <div className="liquid-blob w-[90vw] h-[90vh] bg-pink-500/10 top-1/2 -right-1/4" style={{ animationDelay: '-5s' }} />
         <div className="liquid-blob w-[100vw] h-[100vh] bg-amber-500/8 -bottom-1/4 left-1/3" style={{ animationDelay: '-8s' }} />
       </div>
-      <main className="min-h-screen grid lg:grid-cols-[1.08fr_0.92fr] relative z-10">
-        <section className="flex flex-col justify-between px-6 py-6 sm:px-10 lg:px-14 lg:py-10">
+      <main className="min-h-screen flex flex-col lg:grid lg:grid-cols-[1.08fr_0.92fr] relative z-10">
+        <section className="flex flex-col justify-between px-6 py-6 sm:px-10 lg:px-14 lg:py-10 shrink-0">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-white text-emerald-600' : 'bg-slate-950 text-emerald-300'}`}>
@@ -108,7 +108,7 @@ export function ProfessionalWelcomePage({
             </button>
           </div>
 
-          <div className="max-w-2xl py-10 sm:py-14 lg:py-20">
+          <div className="hidden lg:block max-w-2xl py-10 sm:py-14 lg:py-20">
             <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${isDarkMode ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
               <ShieldCheck className="w-3.5 h-3.5" />
               Private resume data, role-specific outputs
@@ -135,10 +135,10 @@ export function ProfessionalWelcomePage({
             </div>
           </div>
 
-          <p className={`hidden text-xs sm:block ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>Built for repeated applications, not one-off resume decoration.</p>
+          <p className={`hidden lg:block text-xs ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>Built for repeated applications, not one-off resume decoration.</p>
         </section>
 
-        <section className={`flex items-start justify-center border-t px-4 py-6 sm:items-center sm:py-8 lg:border-l lg:border-t-0 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10' : 'bg-white/60 border-slate-200'}`}>
+        <section className={`flex-1 flex items-center justify-center border-t lg:border-t-0 lg:border-l px-4 py-6 sm:py-8 lg:px-10 ${isDarkMode ? 'bg-black/10 border-white/10' : 'bg-white/60 border-slate-200'}`}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
