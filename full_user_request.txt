@@ -1,0 +1,134 @@
+<USER_REQUEST>
+You have to analysed the project first as this project have almost everything expect when I optimized resume pdf generation have some issue. I want that first you analysed all the project file and find the below mention codes to resolve the issues. I am sending you 3 files codes and based on that you have to setup pdf generation and download setup.
+This is app.tsx code
+
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
+import { 
+  FileText, 
+  Briefcase, 
+  Target, 
+  Zap, 
+  CheckCircle2, 
+  AlertCircle, 
+  ArrowRight, 
+  ChevronRight, 
+  ChevronDown,
+  ChevronLeft,
+  Download, 
+  Copy,
+  Search,
+  Layout,
+  LayoutGrid,
+  Cpu,
+  BarChart3,
+  Info,
+  Loader2,
+  Moon,
+  Sun,
+  Trash2,
+  Upload,
+  Users,
+  UserCircle,
+  Eye,
+  EyeOff,
+  FileDown,
+  Type,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Building,
+  HelpCircle,
+  Maximize,
+  HardDrive,
+  Cloud,
+  RefreshCw,
+  ExternalLink,
+  Edit2,
+  Check,
+  X,
+  ImagePlus,
+  ShieldCheck,
+  ShieldAlert,
+  Linkedin,
+  Sparkles,
+  Pin,
+  PinOff,
+  Menu,
+  Palette
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableSection } from './components/SortableSection';
+import { StatusIndicator } from './components/StatusIndicator';
+import { Toast, ConfirmDialog } from './components/UI.tsx';
+import { MODE_DESCRIPTIONS, AUDIENCES, MODEL_PRICING, TARGET_COMPANIES, BACKGROUND_THEMES } from './constants';
+import { downloadDOCX, downloadJSON } from './services/exportService';
+import { useResumeStore } from './store';
+import { ResumeData, SuitabilityResult, Certification, MasterResume, FAANGInsights } from './types';
+import { detectOverflow } from './overflowDetect
+<truncated 45216 bytes>
+shingTokens(true);
+    const currentMonth = getCurrentMonthStr();
+    const path = `users/${user.uid}/tokenUsage/${currentMonth}`;
+    const usageRef = doc(db, path);
+    
+    try {
+      const docSnap = await safeGetDoc(usageRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data() as any;
+        setTokenUsage({
+          gemini: data.gemini || { input: 0, output: 0 },
+          openai: data.openai || { input: 0, output: 0 }
+        });
+      } else {
+        setTokenUsage({
+          gemini: { input: 0, output: 0 },
+          openai: { input: 0, output: 0 }
+        });
+      }
+      showToast('Token usage updated', 'success');
+    } catch (err: any) {
+      handleFirestoreError(err, OperationType.GET, path);
+      console.error('Failed to refresh tokens:', err);
+      showToast('Failed to refresh tokens', 'error');
+    } finally {
+      setIsRefreshingTokens(false);
+    }
+  };
+
+  // Sync token usage to Firestore when it changes
+  const syncTokenUsage = async (engine: 'gemini' | 'openai', input: number, output: number) => {
+    if (!user) return;
+    const currentMonth = getCurrentMonthStr();
+    const path = `users/${user.uid}/tokenUsage/${currentMonth}`;
+    const usageRef = doc(db, path);
+    try {
+      await setDoc(usageRef, {
+        userId: user.uid,
+        month: currentMonth,
+        [engine]: {
+          input: increment(input),
+          output: increment(output)
+        },
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, path);
+    }
+  };
+
+  const generateTokenReport = async () => {
+    if (!user) return;
+    setIsDownloading(true);
+    try {
+      const usageCol = collection(db, 'users', user.uid, 'tokenUsage');
+      const q = query(usageCol, orderBy('month', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      let csv = "M
+<truncated 276683 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.
