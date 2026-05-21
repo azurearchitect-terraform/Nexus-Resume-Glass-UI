@@ -1241,12 +1241,90 @@ async function startServer() {
 
       // STEP 3: Gemini 3.1 Pro (Premium) - Final Generation
       const finalPrompt = `
-        You are a senior executive resume strategist. 
-        Optimize this structured resume data for the target role: ${targetRole}.
-        Audience: ${audience}. Mode: ${mode}.
-        ${customPrompt ? `Custom Instructions: ${customPrompt}` : ''}
-        ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
+        ACT AS:
+        You are a Senior Prompt Engineer with 5+ years of experience specializing in FAANG-level resume engineering, executive branding, ATS optimization, enterprise cloud leadership positioning, and STAR-method resume transformation for Microsoft, Google, Amazon, Meta, Oracle, Adobe, VMware, Accenture, Deloitte, and enterprise infrastructure organizations.
+
+        YOUR ROLE:
+        You are NOT a generic resume writer. You are:
+        * A Principal Resume Strategist
+        * A FAANG Technical Recruiter
+        * A Cloud Leadership Branding Expert
+        * An Executive Infrastructure Positioning Specialist
+        * A Senior ATS Optimization Consultant
+
+        PRIMARY OBJECTIVE:
+        Transform the candidate's resume into a STRICT FAANG-STYLE Senior Azure Infrastructure Leadership resume using authentic STAR methodology while maintaining COMPLETE FACTUAL ACCURACY.
         
+        POSITION STRONGLY FOR:
+        * Head of Cloud Operations
+        * Senior Cloud Infrastructure Architect
+        * Director of Cloud Infrastructure
+        * Cloud Operations Manager
+        * Infrastructure & Platform Operations Lead
+        * Azure Infrastructure Architect
+        * Enterprise Cloud Architect
+        * IT Infrastructure Manager
+        * Service Delivery Manager – Cloud
+        * Technical Operations Manager
+        * Infrastructure Governance Lead
+        * CTO-track Infrastructure Leadership Roles
+
+        DO NOT POSITION AS:
+        * Senior DevOps Engineer
+        * Kubernetes Architect
+        * Platform Engineer
+        * Cloud-Native Application Engineer
+        * Principal SRE
+        * Microservices Architect
+        * DevOps Automation Specialist
+        * Kubernetes Administrator
+
+        VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
+        * NEVER fabricate experience.
+        * NEVER create fake Kubernetes production experience.
+        * NEVER claim deep Terraform engineering expertise.
+        * NEVER create fake CI/CD ownership.
+        * NEVER exaggerate DevOps expertise.
+        * NEVER invent microservices architecture experience.
+        * NEVER add technologies not actually used.
+        * NEVER imply software engineering background.
+        * NEVER create fake coding-heavy experience.
+
+        CANDIDATE REAL BACKGROUND:
+        * 16+ years in enterprise infrastructure and cloud operations.
+        * Strong Azure Infrastructure and Hybrid Cloud expertise.
+        * Experienced in Azure governance, security, monitoring, HA/DR, resilience, and operational management.
+        * Strong experience with enterprise infrastructure modernization.
+        * Leadership and mentoring experience.
+        * Strong stakeholder communication and operational coordination.
+        * Experience handling enterprise infrastructure at scale.
+        * Strong operational reliability mindset.
+        * Good understanding of DevOps concepts and automation workflows.
+        * Basic Terraform understanding (can understand and work with scripts but not advanced engineering).
+        * No deep Kubernetes production administration experience.
+        * No deep microservices architecture experience.
+        * Strong cloud governance and operational transformation experience.
+
+        STRICT FAANG RESUME RULES:
+        1. EVERY bullet point MUST follow STAR methodology (Situation, Task, Action, Result).
+        2. EVERY bullet MUST: Start with a strong action verb, show ownership, show measurable impact, show scale, show business value, be concise, be technically dense, sound executive-level, architecture-focused, and leadership-oriented.
+        3. AVOID weak operational wording: Managed, Supported, Assisted, Helped, Worked on, Responsible for.
+        4. USE stronger but truthful verbs: Architected, Spearheaded, Optimized, Standardized, Orchestrated, Led, Directed, Improved, Implemented, Streamlined, Governed, Enhanced, Coordinated, Modernized, Transformed.
+        5. RESUME MUST SOUND LIKE: Enterprise Cloud Leadership, Azure Infrastructure Strategy, Reliability Engineering Leadership, Infrastructure Governance, Enterprise Operations Excellence, Cloud Transformation Leadership, Executive Infrastructure Management, Cloud Operations Architecture, Enterprise IT Modernization, Strategic Infrastructure Leadership.
+        6. RESUME MUST NOT SOUND LIKE: Helpdesk support, Junior sysadmin, Pure operations support, Developer-focused engineer, Kubernetes-heavy engineer, Hardcore DevOps engineer, Coding-heavy architect.
+        7. EMPHASIZE: Azure Landing Zones, Hybrid Cloud Architecture, Infrastructure Governance, Reliability & Resilience, Disaster Recovery, Business Continuity, Cloud Cost Optimization, Operational Excellence, Monitoring & Observability, Identity & Access Management, Infrastructure Standardization, Infrastructure Automation, Executive Reporting, Service Delivery, Stakeholder Management, Team Leadership, Infrastructure Security, Compliance Governance, Enterprise Transformation.
+        8. USE METRICS NATURALLY: Cost savings, MTTR reduction, Downtime reduction, Subscription scale, VM scale, Team size, Reliability improvement, Governance coverage, Compliance metrics, Operational efficiency, SLA improvements, Infrastructure availability.
+        9. ATS OPTIMIZATION TARGET KEYWORDS: Azure Infrastructure Architect, Cloud Infrastructure Leader, Enterprise Cloud Architect, Cloud Operations Manager, Director of Infrastructure, Infrastructure Governance, Hybrid Cloud, Cloud Reliability, HA/DR, Cloud Security, Azure Operations, Infrastructure Transformation, IT Service Delivery, Cloud Governance, Enterprise Infrastructure.
+        10. FORMATTING & BULLET QUANTITY RULES:
+            - Maximum 4 bullets per role.
+            - Prioritize recent experience.
+            - Provide 1 bullet point maximum for older roles (pre-2018).
+            - Keep technical density high and use concise executive-style language.
+            - Remove repetitive wording.
+        11. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
+        12. SOURCE ANCHORING (CRITICAL): Each experience entry contains ORIGINAL BULLETS. You MUST derive new bullets ONLY from that specific role’s original content. Do NOT borrow, reuse, or "hallucinate" content from other roles to fill gaps.
+        13. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
+
         CORPORATE DNA TAILORING:
         ${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results". Use terminology from Amazon Leadership Principles.' : ''}
         ${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale", "Cloud Transformation", and "Collaborative Ecosystems".' : ''}
@@ -1264,41 +1342,15 @@ async function startServer() {
         ${(mode === 'Player-Coach' || isPlayerCoach) ? `
           - 60/40 BALANCE: 60% Execution (Azure infra, Site Recovery, Entra ID), 40% Leadership (Mentoring, Agile pods, Architecture reviews).
           - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized," "Spearheaded."
-          - STRICT NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". Focus entirely on Azure Infrastructure.
         ` : ''}
 
-        INPUT DATA (Optimized):
+        ${strictAtsMode ? `STRICT ATS MATCHING: You MUST use the exact keywords from the Job Description as provided in 'ats_keywords_from_jd'. Do NOT use synonyms or alternatives (e.g., if JD says 'AWS EC2', do not write 'Amazon Web Services cloud compute'). Achieve a 100% literal match rate for extracted keywords.` : ''}
+        
+        ${generateCoverLetter ? `COVER LETTER GENERATION: Write a 3-paragraph, highly tailored cover letter aligning the candidate's optimized experience directly with the target company's mission and the Job Description. Output this in the "cover_letter" JSON field.` : ''}
+
+        INPUT DATA:
         ${JSON.stringify(optimizedInput, null, 2)}
-        
-        STRICT RULES:
-        1. TONE & FOCUS: Maintain a professional, concise, executive-level tone suitable for FAANG, Senior Cloud Architect, or Director-level infrastructure roles. Focus heavily on these JD keywords: ${optimizedInput.jd_keywords.join(', ')}.
-        
-        2. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
-        
-        3. INCLUDE ALL ROLES: You MUST include every single role provided in the INPUT DATA. Do not skip any jobs, even very old ones.
-        
-        4. NO HALLUCINATIONS: DO NOT invent, suggest, or add any certifications, skills, metrics, or experience that are not explicitly present in the INPUT DATA. Do not "suggest" certifications if the user doesn't have them.
-        
-        5. BREVITY & DENSITY: Bullet points MUST be dense and achievement-oriented (recommended length: 15-20 words). Prioritize hard skills, tools, and scale metrics over verbose filler jargon.
-        
-        6. RECENT ROLE EXPANSION (Post-2018) - ABSOLUTE REQUIREMENT: You MUST output EXACTLY 4 to 5 bullet points for EVERY single role that occurred after 2018. DO NOT merge, combine, or consolidate the original bullets, even if the role was only a few months long. If the input has 5 bullets for a recent role, you must rewrite and output exactly 4 or 5 bullets. No exceptions.
-        
-        7. OLDER ROLE COMPRESSION (Pre-2018): Provide EXACTLY one (1) bullet point maximum for roles and projects that occurred before 2018. Focus on foundational infrastructure experience.
-        
-        8. SOURCE ANCHORING (CRITICAL): Each experience entry contains ORIGINAL BULLETS. You MUST derive new bullets ONLY from that specific role’s original content. Do NOT borrow, reuse, or "hallucinate" content from other roles to fill gaps.
-        
-        9. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
-        
-        10. VERB CONTROL: Avoid forbidden buzzwords like "Spearheaded", "Visionary", "Dynamic", or "Guru". For execution bullets, use allowed verbs: "Deployed", "Maintained", "Utilized", "Provisioned".
-        
-        11. ANTI-DUPLICATION: Avoid semantic repetition across roles. Each role should demonstrate distinct business or technical impact. Do not repeat identical achievement phrasing.
-        
-        12. DEVOPS BAN: The terms "CI/CD", "Pipelines", and "DevOps" are ABSOLUTELY FORBIDDEN. Focus the narrative entirely on Azure Infrastructure, HA/DR, and Governance.
-        
-        ${strictAtsMode ? `13. STRICT ATS MATCHING: You MUST use the exact keywords from the Job Description as provided in 'ats_keywords_from_jd'. Do NOT use synonyms or alternatives (e.g., if JD says 'AWS EC2', do not write 'Amazon Web Services cloud compute'). Achieve a 100% literal match rate for extracted keywords.` : ''}
-        
-        ${generateCoverLetter ? `14. COVER LETTER GENERATION: Write a 3-paragraph, highly tailored cover letter aligning the candidate's optimized experience directly with the target company's mission and the Job Description. Output this in the "cover_letter" JSON field.` : ''}
-        
+
         OUTPUT SCHEMA (MUST MATCH EXACTLY):
         {
           "personal_info": { "name": "string", "location": "string", "email": "string", "phone": "string", "linkedin": "string", "linkedinText": "string" },
@@ -1442,11 +1494,46 @@ async function startServer() {
         
         // 1. Generate Meta Data (Summary, Skills, Why This Job, etc.)
         const metaPrompt = `
-          You are a senior executive resume strategist.
-          Optimize the meta-sections of this resume for: ${targetRole}.
+          ACT AS:
+          You are a Senior Prompt Engineer with 5+ years of experience specializing in FAANG-level resume engineering, executive branding, ATS optimization, enterprise cloud leadership positioning, and STAR-method resume transformation.
+
+          YOUR ROLE:
+          You are a Principal Resume Strategist, FAANG Technical Recruiter, and Cloud Leadership Branding Expert.
+
+          PRIMARY OBJECTIVE:
+          Optimize the meta-sections of this resume (summary, skills, projects, certifications, education) for: ${targetRole}.
           Audience: ${audience}. Mode: ${mode}.
           Keywords: ${optimizedInput.jd_keywords.join(', ')}.
           ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}` : ''}
+          
+          CANDIDATE REAL BACKGROUND:
+          * 16+ years in enterprise infrastructure and cloud operations.
+          * Strong Azure Infrastructure and Hybrid Cloud expertise.
+          * Experienced in Azure governance, security, monitoring, HA/DR, resilience, and operational management.
+          * Strong experience with enterprise infrastructure modernization.
+          * Leadership and mentoring experience.
+          * Strong stakeholder communication and operational coordination.
+          * Experience handling enterprise infrastructure at scale.
+          * Strong operational reliability mindset.
+          * Good understanding of DevOps concepts and automation workflows.
+          * Basic Terraform understanding (can understand and work with scripts but not advanced engineering).
+          * No deep Kubernetes production administration experience.
+          * No deep microservices architecture experience.
+          * Strong cloud governance and operational transformation experience.
+
+          POSITION STRONGLY FOR:
+          * Senior enterprise cloud infrastructure leadership roles (Head of Cloud Operations, Azure Infrastructure Architect, Director/Manager of Cloud Infrastructure).
+          * DO NOT position as Senior DevOps Engineer, Kubernetes Architect, SRE, Platform Engineer, or software developer.
+
+          RULES:
+          - Summary: Approx 100 words.
+          - Skills: Categorize into exactly 4 logical categories relevant to ${targetRole} (e.g., Azure Infrastructure Management, Enterprise Cloud Governance, Reliability & HA/DR, Infrastructure Operations & Optimization). Ensure no fabrication.
+          - Why This Job: 100-150 words compelling response.
+          - DO NOT invent certifications, skills, or projects not present in the input.
+          - Project Descriptions: Keep them concise and focused on Azure Migration, FinOps, HA/DR, and Governance. Use strong allowed verbs.
+          - Older Project Compression: Before 2018, provide EXACTLY one (1) bullet point maximum for projects.
+          - VERB CONTROL: Use allowed strong verbs (Architected, Spearheaded, Optimized, Standardized, Orchestrated, Led, Directed, Improved, Implemented, Streamlined, Governed, Enhanced, Coordinated, Modernized, Transformed). Avoid weak verbs (Managed, Supported, Helped, Worked on).
+          - TRUTHFULNESS: Never exaggerate DevOps, Terraform, or Kubernetes experience. Limit Terraform/IaC references to at most 2 bullets TOTAL across the entire resume.
           
           INPUT DATA:
           ${JSON.stringify({
@@ -1459,43 +1546,68 @@ async function startServer() {
             jd_keywords: optimizedInput.jd_keywords
           }, null, 2)}
           
-          RULES:
-          - Summary: Approx 100 words.
-          - Skills: Categorize into exactly 4 logical categories relevant to ${targetRole}. Rename 'DevOps & Automation' to 'Infrastructure Operations & Automation'. Strictly replace 'CI/CD Pipeline Design' with 'Infrastructure Provisioning'.
-          - Why This Job: 100-150 words compelling response.
-          - DO NOT invent certifications.
-          - Brevity & Density: Bullet points MUST be concise and dense (max 15 words). Prioritize hard skills, tools, and metrics over verbose jargon.
-          - Balanced IaC: Terraform/IaC permitted, limited to 2 bullet points TOTAL across entire resume. Forbidden verbs: "Architected", "Engineered", "Spearheaded". Allowed: "Deployed", "Maintained", "Utilized", "Provisioned".
-          - Pre-2018 Compression: Before 2018, provide EXACTLY one (1) bullet point maximum for projects.
-          - GLOBAL NEGATIVE CONSTRAINTS: ABSOLUTELY FORBIDDEN: "CI/CD", "Pipelines", "DevOps". These terms MUST NOT appear anywhere in the output, including project summaries, skill categories, or bullet points. Focus project summaries entirely on Azure Migration, FinOps, HA/DR, and Governance.
-          
           OUTPUT JSON SCHEMA:
           {
-            "personal_info": { ... },
-            "summary": "...",
-            "skills": { "Category 1": ["skill1", ...], ... },
-            "why_this_job": "...",
-            "projects": [...],
-            "education": [...],
-            "certifications": [...],
-            "ats_keywords_from_jd": [...],
-            "ats_keywords_added_to_resume": [...],
-            "keyword_gap": [...],
+            "personal_info": {
+              "name": "string",
+              "location": "string",
+              "email": "string",
+              "phone": "string",
+              "linkedin": "string",
+              "linkedinText": "string"
+            },
+            "summary": "string",
+            "skills": {
+              "Category 1": ["string"],
+              "Category 2": ["string"],
+              "Category 3": ["string"],
+              "Category 4": ["string"]
+            },
+            "why_this_job": "string",
+            "projects": [
+              {
+                "title": "string",
+                "description": "string"
+              }
+            ],
+            "education": ["string"],
+            "certifications": [
+              {
+                "name": "string",
+                "issuer": "string",
+                "date": "string"
+              }
+            ],
+            "ats_keywords_from_jd": ["string"],
+            "ats_keywords_added_to_resume": ["string"],
+            "keyword_gap": ["string"],
             "match_score": 85,
-            "improvement_notes": [...],
-            "audience_alignment_notes": "...",
+            "improvement_notes": ["string"],
+            "audience_alignment_notes": "string",
             "star_stories": [
-              { "bullet": "The highly optimized bullet", "situation": "...", "task": "...", "action": "...", "result": "..." }
+              {
+                "bullet": "string",
+                "situation": "string",
+                "task": "string",
+                "action": "string",
+                "result": "string"
+              }
             ],
             "audit_report": {
               "score": 85,
               "flags": [
-                { "id": "f1", "type": "...", "message": "...", "fix": "...", "severity": "high" }
+                {
+                  "id": "string",
+                  "type": "string",
+                  "message": "string",
+                  "fix": "string",
+                  "severity": "high"
+                }
               ],
               "trajectory": {
                 "stage": "acceleration",
-                "description": "...",
-                "recommendation": "..."
+                "description": "string",
+                "recommendation": "string"
               }
             }
           }

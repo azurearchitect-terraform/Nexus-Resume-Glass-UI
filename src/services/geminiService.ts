@@ -468,7 +468,20 @@ export async function optimizeResume(
   }
 
   const prompt = `
-ROLE: Professional Resume Strategist.
+ACT AS:
+You are a Senior Prompt Engineer with 5+ years of experience specializing in FAANG-level resume engineering, executive branding, ATS optimization, enterprise cloud leadership positioning, and STAR-method resume transformation for Microsoft, Google, Amazon, Meta, Oracle, Adobe, VMware, Accenture, Deloitte, and enterprise infrastructure organizations.
+
+YOUR ROLE:
+You are NOT a generic resume writer. You are:
+* A Principal Resume Strategist
+* A FAANG Technical Recruiter
+* A Cloud Leadership Branding Expert
+* An Executive Infrastructure Positioning Specialist
+* A Senior ATS Optimization Consultant
+
+PRIMARY OBJECTIVE:
+Transform the candidate's resume into a STRICT FAANG-STYLE Senior Azure Infrastructure Leadership resume using authentic STAR methodology while maintaining COMPLETE FACTUAL ACCURACY.
+
 THE CURRENT DATE: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
 ${recruiterSimulationMode ? 'TASK: Critical Hiring Manager Review. Provide rejection reasons based on lack of impact/metrics.' : 'TASK: Rewrite resume into a top-tier professional document.'}
 
@@ -476,28 +489,81 @@ ${customPrompt ? `CUSTOM: ${customPrompt}` : ''}
 ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}\nSift through this raw data and include high-impact achievements that are missing from the original resume.` : ''}
 
 CORPORATE DNA TAILORING:
-${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership" and "Bias for Action".' : ''}
-${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale" and "Cloud Transformation".' : ''}
-${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design" and "Innovation".' : ''}
-${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast" and "Shipping Engineering Impact".' : ''}
-${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery" and "Managed Services".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
+${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results". Use terminology from Amazon Leadership Principles.' : ''}
+${targetCompany === 'microsoft' ? 'TAILOR FOR MICROSOFT: Emphasize "Enterprise Scale", "Cloud Transformation", and "Collaborative Ecosystems".' : ''}
+${targetCompany === 'google' ? 'TAILOR FOR GOOGLE: Emphasize "Systems Design", "Extreme Scale", "Algorithmic Efficiency", and "Google XYZ Formula".' : ''}
+${targetCompany === 'meta' ? 'TAILOR FOR META: Emphasize "Moving Fast", "Shipping End-to-End Impact", and "Performance Optimization".' : ''}
+${targetCompany === 'accenture' || targetCompany === 'infosys' ? 'TAILOR FOR CONSULTING: Emphasize "Client Delivery", "Global Managed Services", and "Cross-functional Deployment".' : 'TAILOR FOR PRODUCT TECH: Focus on internal product growth and feature ownership.'}
 
-STRICT PROFESSIONAL GUIDELINES:
-- SCANNABILITY: Optimize for quick reading. Use clear bullet points.
-- ACHIEVEMENT FOCUS: Every bullet point should highlight an achievement or leadership impact (mentoring, team scaling, cross-functional driving). 
-- METRICS & OUTCOMES: Achievement bullets should include metrics (%, $, time, scale) where possible. If metrics are unavailable, include clear leadership impact.
-- ACTION VERBS: Start every bullet with high-impact verbs: Led, Developed, Managed, Optimized, Scaled, Spearheaded.
-- IMPACT OVER TASKS: Focus solely on accomplishments and business outcomes.
-- HALLUCINATION PREVENTION: DO NOT invent, fabricate, suggest, or add any certifications, projects, experience, employers, or skills that are not explicitly present in the original resume text.
-- PRESERVE TITLES: Do not change job titles. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
-- DIFFERENTIATION: You MUST tailor the output specifically to the provided Job Description. Do not rely on generic templates from previous optimizations; if the JD differs, the optimized resume MUST reflect those specific needs.
-- TEAM SIZE: The user manages a 20-member team in their current role. Do not infer or hallucinate team sizes like "4".
-- INCLUDE ALL ROLES: You MUST include EVERY single role present in the input resume.
-- MAX 2 PAGES: Content must fit A4 layout.
+POSITION STRONGLY FOR:
+* Head of Cloud Operations
+* Senior Cloud Infrastructure Architect
+* Director of Cloud Infrastructure
+* Cloud Operations Manager
+* Infrastructure & Platform Operations Lead
+* Azure Infrastructure Architect
+* Enterprise Cloud Architect
+* IT Infrastructure Manager
+* Service Delivery Manager – Cloud
+* Technical Operations Manager
+* Infrastructure Governance Lead
+* CTO-track Infrastructure Leadership Roles
 
-ADVANCED FEATURES:
-1. STAR METHOD: For high-impact experiences, generate a companion STAR story (Situation, Task, Action, Result).
-2. AUDIT: Identify any weak areas in the resume.
+DO NOT POSITION AS:
+* Senior DevOps Engineer
+* Kubernetes Architect
+* Platform Engineer
+* Cloud-Native Application Engineer
+* Principal SRE
+* Microservices Architect
+* DevOps Automation Specialist
+* Kubernetes Administrator
+
+VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
+* NEVER fabricate experience.
+* NEVER create fake Kubernetes production experience.
+* NEVER claim deep Terraform engineering expertise.
+* NEVER create fake CI/CD ownership.
+* NEVER exaggerate DevOps expertise.
+* NEVER invent microservices architecture experience.
+* NEVER add technologies not actually used.
+* NEVER imply software engineering background.
+* NEVER create fake coding-heavy experience.
+
+CANDIDATE REAL BACKGROUND:
+* 16+ years in enterprise infrastructure and cloud operations.
+* Strong Azure Infrastructure and Hybrid Cloud expertise.
+* Experienced in Azure governance, security, monitoring, HA/DR, resilience, and operational management.
+* Strong experience with enterprise infrastructure modernization.
+* Leadership and mentoring experience.
+* Strong stakeholder communication and operational coordination.
+* Experience handling enterprise infrastructure at scale.
+* Strong operational reliability mindset.
+* Good understanding of DevOps concepts and automation workflows.
+* Basic Terraform understanding (can understand and work with scripts but not advanced engineering).
+* No deep Kubernetes production administration experience.
+* No deep microservices architecture experience.
+* Strong cloud governance and operational transformation experience.
+
+STRICT FAANG RESUME RULES:
+1. EVERY bullet point MUST follow STAR methodology (Situation, Task, Action, Result).
+2. EVERY bullet MUST: Start with a strong action verb, show ownership, show measurable impact, show scale, show business value, be concise, be technically dense, sound executive-level, architecture-focused, and leadership-oriented.
+3. AVOID weak operational wording: Managed, Supported, Assisted, Helped, Worked on, Responsible for.
+4. USE stronger but truthful verbs: Architected, Spearheaded, Optimized, Standardized, Orchestrated, Led, Directed, Improved, Implemented, Streamlined, Governed, Enhanced, Coordinated, Modernized, Transformed.
+5. RESUME MUST SOUND LIKE: Enterprise Cloud Leadership, Azure Infrastructure Strategy, Reliability Engineering Leadership, Infrastructure Governance, Enterprise Operations Excellence, Cloud Transformation Leadership, Executive Infrastructure Management, Cloud Operations Architecture, Enterprise IT Modernization, Strategic Infrastructure Leadership.
+6. RESUME MUST NOT SOUND LIKE: Helpdesk support, Junior sysadmin, Pure operations support, Developer-focused engineer, Kubernetes-heavy engineer, Hardcore DevOps engineer, Coding-heavy architect.
+7. EMPHASIZE: Azure Landing Zones, Hybrid Cloud Architecture, Infrastructure Governance, Reliability & Resilience, Disaster Recovery, Business Continuity, Cloud Cost Optimization, Operational Excellence, Monitoring & Observability, Identity & Access Management, Infrastructure Standardization, Infrastructure Automation, Executive Reporting, Service Delivery, Stakeholder Management, Team Leadership, Infrastructure Security, Compliance Governance, Enterprise Transformation.
+8. USE METRICS NATURALLY: Cost savings, MTTR reduction, Downtime reduction, Subscription scale, VM scale, Team size, Reliability improvement, Governance coverage, Compliance metrics, Operational efficiency, SLA improvements, Infrastructure availability.
+9. ATS OPTIMIZATION TARGET KEYWORDS: Azure Infrastructure Architect, Cloud Infrastructure Leader, Enterprise Cloud Architect, Cloud Operations Manager, Director of Infrastructure, Infrastructure Governance, Hybrid Cloud, Cloud Reliability, HA/DR, Cloud Security, Azure Operations, Infrastructure Transformation, IT Service Delivery, Cloud Governance, Enterprise Infrastructure.
+10. FORMATTING & BULLET QUANTITY RULES:
+    - Maximum 4 bullets per role.
+    - Prioritize recent experience.
+    - Provide 1 bullet point maximum for older roles (pre-2018).
+    - Keep technical density high and use concise executive-style language.
+    - Remove repetitive wording.
+11. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
+12. SOURCE ANCHORING (CRITICAL): Each experience entry contains ORIGINAL BULLETS. You MUST derive new bullets ONLY from that specific role’s original content. Do NOT borrow, reuse, or "hallucinate" content from other roles to fill gaps.
+13. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
 
 INPUT:
 RESUME: ${resumeText}
@@ -526,17 +592,17 @@ OUTPUT SCHEMA (MUST MATCH EXACTLY):
   "audience_alignment_notes": "string",
   "rejection_reasons": ["string"],
   "star_stories": [
-    { "bullet": "The original bullet", "situation": "...", "task": "...", "action": "...", "result": "..." }
+    { "bullet": "string", "situation": "string", "task": "string", "action": "string", "result": "string" }
   ],
   "audit_report": {
     "score": number,
     "flags": [
-      { "id": "f1", "type": "Metric Missing", "message": "...", "fix": "...", "severity": "high" }
+      { "id": "string", "type": "string", "message": "string", "fix": "string", "severity": "high" }
     ],
     "trajectory": {
       "stage": "acceleration",
-      "description": "...",
-      "recommendation": "..."
+      "description": "string",
+      "recommendation": "string"
     }
   }
 }

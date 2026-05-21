@@ -244,6 +244,19 @@ export default function ResumeDashboard({
   const [activePreviewResume, setActivePreviewResume] = useState<any>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewTab, setPreviewTab] = useState<'formatted' | 'json'>('formatted');
+  const [isPdfGenerating, setIsPdfGenerating] = useState(false);
+
+  // Filter optimizations for the last 2 days (48 hours)
+  const lastTwoDaysVersions = resumeVersions.filter(v => {
+    if (!v.timestamp) return false;
+    try {
+      const vDate = v.timestamp.toDate ? v.timestamp.toDate() : new Date(v.timestamp);
+      const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000;
+      return vDate.getTime() >= twoDaysAgo;
+    } catch (e) {
+      return false;
+    }
+  });
 
   const startResizeSidebar = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -614,6 +627,22 @@ export default function ResumeDashboard({
     showToast("Resume copied to clipboard as Markdown!", "success");
   };
 
+  const handleAddMasterResume = (newResume: any) => {
+    setMasterResumes([...masterResumes, newResume]);
+  };
+
+  const handleUpdateMasterResume = (updatedResume: any) => {
+    setMasterResumes(masterResumes.map(r => r.id === updatedResume.id ? updatedResume : r));
+  };
+
+  const handleDeleteMasterResume = (id: string) => {
+    if (masterResumes.length <= 1) {
+      showToast("Cannot delete the last master resume.", "error");
+      return;
+    }
+    setMasterResumes(masterResumes.filter(r => r.id !== id));
+  };
+
   const handleImportToMaster = (data: any) => {
     if (!data) return;
     if (masterResumes.length >= 5) {
@@ -745,8 +774,7 @@ export default function ResumeDashboard({
               </button>
             ))}
           </div>
-
-          {/* Loaded Master Resumes Section */}
+          {/* Master Resumes Section */}
           <div className="pt-3 border-t border-white/5 space-y-2">
             <div className="flex items-center justify-between px-3">
               <span className="text-[9px] font-black uppercase text-white/30 tracking-widest block">Nexus Master Resumes</span>
@@ -755,14 +783,14 @@ export default function ResumeDashboard({
             {masterResumes.length === 0 ? (
               <p className="px-3 text-[10px] text-white/30 italic">No master resumes loaded.</p>
             ) : (
-              <div className="space-y-1.5 px-1 max-h-[140px] overflow-y-auto custom-scrollbar">
+              <div className="space-y-1.5 px-1 max-h-[160px] overflow-y-auto custom-scrollbar">
                 {masterResumes.map((resume) => (
                   <button
                     key={resume.id}
                     onClick={() => handleSetActiveResume(resume.id)}
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-all text-left border ${
-                      resume.isActive 
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold' 
+                      resume.isActive
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold'
                         : 'bg-white/5 border-transparent text-neutral-400 hover:text-white hover:bg-white/10'
                     }`}
                   >
@@ -779,9 +807,16 @@ export default function ResumeDashboard({
                 ))}
               </div>
             )}
+            <div className="px-2 pt-1">
+              <button 
+                onClick={() => setActiveNav('tools')}
+                className="w-full text-center text-[10px] uppercase tracking-wider font-bold text-neutral-400 hover:text-emerald-400 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/5 hover:border-emerald-500/30"
+              >
+                Manage / Upload
+              </button>
+            </div>
           </div>
         </div>
-
         {/* Sidebar Footer Link Profile/Settings & Drive status */}
         <div className="p-3 border-t border-white/5 bg-black/20 space-y-1">
           {/* Drive info */}
@@ -914,18 +949,18 @@ export default function ResumeDashboard({
                 <div className="p-5 bg-white/5 border border-white/5 rounded-3xl backdrop-blur-md">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-xs font-black uppercase tracking-widest text-emerald-400">Today's Optimized Resumes</h3>
+                      <h3 className="text-xs font-black uppercase tracking-widest text-emerald-400">Optimizations (Last 2 Days)</h3>
                       <p className="text-[10px] opacity-40">Click details to view JSON or export PDF metadata</p>
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    {resumeVersions.length === 0 ? (
-                      <div className="p-8 text-center text-xs opacity-30 italic">No optimized resumes generated. Get started with ATS Optimizer!</div>
+                  <div className="overflow-x-auto max-h-60 overflow-y-auto custom-scrollbar">
+                    {lastTwoDaysVersions.length === 0 ? (
+                      <div className="p-8 text-center text-xs opacity-30 italic">No optimized resumes generated in the last 2 days. Get started with ATS Optimizer!</div>
                     ) : (
                       <table className="w-full text-left text-xs">
                         <thead>
-                          <tr className="border-b border-white/5 text-neutral-400 font-black tracking-widest uppercase">
+                          <tr className="border-b border-white/5 text-neutral-400 font-black tracking-widest uppercase sticky top-0 bg-[#0c0d14] z-10">
                             <th className="pb-3">Timestamp</th>
                             <th className="pb-3">Target Profile</th>
                             <th className="pb-3">Target Company</th>
@@ -934,7 +969,7 @@ export default function ResumeDashboard({
                           </tr>
                         </thead>
                         <tbody>
-                          {resumeVersions.map((v, i) => (
+                          {lastTwoDaysVersions.map((v, i) => (
                             <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-all">
                               <td className="py-3.5 font-medium">
                                 {v.timestamp?.toDate ? v.timestamp.toDate().toLocaleString() : new Date(v.timestamp).toLocaleString()}
@@ -956,7 +991,7 @@ export default function ResumeDashboard({
                                   }}
                                   className="px-3 py-1.5 rounded bg-emerald-500 text-black text-[10px] font-black uppercase tracking-wider hover:bg-emerald-400 transition-all inline-flex items-center gap-1"
                                 >
-                                  <Eye className="w-3 h-3" /> Preview & Export
+                                  <Eye className="w-3.5 h-3.5" /> Preview & Export
                                 </button>
                               </td>
                             </tr>
@@ -1018,6 +1053,8 @@ export default function ResumeDashboard({
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500"
                             value={companyName}
                             onChange={(e) => setCompanyName(e.target.value)}
+                            autoComplete="off"
+                            data-1p-ignore
                           />
                         </div>
                       </div>
@@ -1031,6 +1068,8 @@ export default function ResumeDashboard({
                             className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500"
                             value={jobUrl}
                             onChange={(e) => setJobUrl(e.target.value)}
+                            autoComplete="off"
+                            data-1p-ignore
                           />
                           <button 
                             onClick={() => {
@@ -1831,35 +1870,54 @@ export default function ResumeDashboard({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="h-full"
+                className="flex flex-col gap-6 h-full"
               >
-                <CareerTools 
-                  isDarkMode={isDarkMode} 
-                  engineConfig={engineConfig} 
-                  selectedEngine={selectedEngine as any} 
-                  resumeData={results[activeAudience] || JSON.parse(resumeText || '{}')}
-                  jobDescription={jobDescription}
-                  user={user}
-                  linkedinProps={{}}
-                  resumeText={resumeText}
-                  targetRole={targetRole}
-                  companyName={companyName}
-                  masterResumes={masterResumes}
-                  setMasterResumes={setMasterResumes}
-                  selectedResumeId={selectedResumeId}
-                  setSelectedResumeId={setSelectedResumeId}
-                  handleSetActiveResume={handleSetActiveResume}
-                  handleDuplicateResume={handleDuplicateResume}
-                  results={results}
-                  activeAudience={activeAudience}
-                  selectedAudiences={selectedAudiences}
-                  setResumeText={setResumeText}
-                  handleOptimizeResume={handleOptimizeResume}
-                />
+                {/* Master Resumes Panel */}
+                <div className="p-5 bg-white/5 border border-white/10 rounded-2xl shrink-0">
+                  <MasterResumeManager
+                    resumes={masterResumes}
+                    onAdd={handleAddMasterResume}
+                    onUpdate={handleUpdateMasterResume}
+                    onDelete={handleDeleteMasterResume}
+                    onSetActive={handleSetActiveResume}
+                    onDuplicate={handleDuplicateResume}
+                    selectedId={selectedResumeId}
+                    onSelect={setSelectedResumeId}
+                    isDarkMode={isDarkMode}
+                  />
+                </div>
+
+                {/* Career Tools Suite */}
+                <div className="flex-1 min-h-0">
+                  <CareerTools 
+                    isDarkMode={isDarkMode} 
+                    engineConfig={engineConfig} 
+                    selectedEngine={selectedEngine as any} 
+                    resumeData={results[activeAudience] || JSON.parse(resumeText || '{}')}
+                    jobDescription={jobDescription}
+                    user={user}
+                    linkedinProps={{}}
+                    resumeText={resumeText}
+                    targetRole={targetRole}
+                    companyName={companyName}
+                    masterResumes={masterResumes}
+                    setMasterResumes={setMasterResumes}
+                    selectedResumeId={selectedResumeId}
+                    setSelectedResumeId={setSelectedResumeId}
+                    handleSetActiveResume={handleSetActiveResume}
+                    handleDuplicateResume={handleDuplicateResume}
+                    results={results}
+                    activeAudience={activeAudience}
+                    selectedAudiences={selectedAudiences}
+                    setResumeText={setResumeText}
+                    handleOptimizeResume={handleOptimizeResume}
+                  />
+                </div>
               </motion.div>
             )}
 
             {/* 8. Profile Settings Tab */}
+
             {activeNav === 'profile' && (
               <motion.div 
                 key="profile"
@@ -1941,144 +1999,6 @@ export default function ResumeDashboard({
         </div>
       </div>
 
-      {/* Resize handle between Middle and Right */}
-      <div 
-        ref={rightResizeRef}
-        onMouseDown={startResizeRightPanel}
-        className="w-1.5 h-full cursor-col-resize hover:bg-emerald-500/20 active:bg-emerald-500/50 transition-colors z-50 shrink-0"
-      />
-
-      {/* ─── RIGHT PANEL (Resizable) ─── */}
-      <aside 
-        style={{ width: `${rightPanelWidth}px`, minWidth: `${rightPanelWidth}px` }}
-        className="h-full bg-black/50 border-l border-white/5 backdrop-blur-md overflow-y-auto custom-scrollbar p-6 space-y-6 shrink-0 relative"
-      >
-        <AnimatePresence mode="wait">
-          
-          {/* If optimizer or profile settings are active: render Master Resume Manager */}
-          {(activeNav === 'optimizer' || activeNav === 'profile' || activeNav === 'dashboard') ? (
-            <motion.div 
-              key="master-resumes-widget"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6"
-            >
-              <div className="border-b border-white/5 pb-4">
-                <span className="text-[9px] font-black uppercase text-emerald-400 tracking-widest block mb-1">Source Material</span>
-                <h3 className="font-bold text-sm uppercase tracking-wider">Master Resumes</h3>
-              </div>
-
-              {/* Master Resume Manager Component */}
-              <MasterResumeManager 
-                resumes={masterResumes}
-                onAdd={(r) => {
-                  setMasterResumes([...masterResumes, r]);
-                }}
-                onUpdate={(updated) => {
-                  setMasterResumes(masterResumes.map(r => r.id === updated.id ? updated : r));
-                }}
-                onDelete={(id) => {
-                  setMasterResumes(masterResumes.filter(r => r.id !== id));
-                }}
-                onSetActive={handleSetActiveResume}
-                onDuplicate={handleDuplicateResume}
-                selectedId={selectedResumeId}
-                onSelect={(id) => {
-                  setSelectedResumeId(id);
-                }}
-                isDarkMode={isDarkMode}
-              />
-
-              {/* Configuration Settings */}
-              <div className="pt-4 border-t border-white/5 space-y-4">
-                <span className="text-[9px] font-black uppercase text-white/30 tracking-widest block">Optimizer Configuration</span>
-                
-                {/* Mask PII toggle */}
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-                  <div>
-                    <span className="text-xs font-bold block">Mask PII Parameters</span>
-                    <span className="text-[9px] text-neutral-400">Anonymizes personal information in optimization requests</span>
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    checked={isPiiMasked}
-                    onChange={(e) => setIsPiiMasked(e.target.checked)}
-                    className="w-4 h-4 accent-emerald-500 cursor-pointer"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            // For all other tabs, render Google Drive status & Sync controls
-            <motion.div 
-              key="drive-sync-widget"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6"
-            >
-              <div className="border-b border-white/5 pb-4">
-                <span className="text-[9px] font-black uppercase text-emerald-400 tracking-widest block mb-1">Integration Status</span>
-                <h3 className="font-bold text-sm uppercase tracking-wider">Google Drive Backup</h3>
-              </div>
-
-              {/* Google Drive Status Details */}
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
-                    <Cloud className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold">Cloud Backup Sync</h4>
-                    <span className="text-[9px] text-neutral-400">Syncs generated PDF versions to cloud storage</span>
-                  </div>
-                </div>
-
-                <div className="py-2 border-t border-white/5 text-xs space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-400">Connection Status:</span>
-                    <span className={`font-bold ${isDriveConnected ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {isDriveConnected ? 'Connected' : 'Not Connected'}
-                    </span>
-                  </div>
-                  {selectedDriveFolder && (
-                    <div className="flex justify-between">
-                      <span className="text-neutral-400">Backup Folder:</span>
-                      <span className="font-bold text-blue-400 truncate max-w-[150px]">{selectedDriveFolder.name}</span>
-                    </div>
-                  )}
-                </div>
-
-                <button 
-                  onClick={checkDriveConnection}
-                  className="w-full py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-blue-500 transition-all"
-                >
-                  {isDriveConnected ? 'Select Backup Folder' : 'Connect Google Drive'}
-                </button>
-              </div>
-
-              {/* Recent sync activity log */}
-              <div className="space-y-3">
-                <span className="text-[9px] font-black uppercase text-white/30 tracking-widest block">Backup Status Logs</span>
-                {[
-                  { action: 'Sync Success', file: 'Stripe_PM_v3.pdf', time: '12 min ago' },
-                  { action: 'Folder Created', file: 'Nexus_AI_Resumes', time: '2 hours ago' }
-                ].map((log, idx) => (
-                  <div key={idx} className="p-3 bg-white/5 rounded-xl border border-white/5 flex justify-between items-center text-xs">
-                    <div>
-                      <span className="font-bold block text-emerald-400">{log.action}</span>
-                      <span className="text-[10px] text-neutral-400">{log.file}</span>
-                    </div>
-                    <span className="text-[9px] text-neutral-500">{log.time}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-        </AnimatePresence>
-      </aside>
 
       {/* Resume Preview & Export Modal */}
       <AnimatePresence>
@@ -2136,12 +2056,17 @@ export default function ResumeDashboard({
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => handlePrintPDF(activePreviewResume)}
-                    className="px-3.5 py-1.5 rounded-lg bg-emerald-500 text-black text-xs font-black uppercase tracking-wider hover:bg-emerald-400 transition-all flex items-center gap-1.5"
+                    disabled={isPdfGenerating}
+                    className="px-3.5 py-1.5 rounded-lg bg-emerald-500 text-black text-xs font-black uppercase tracking-wider hover:bg-emerald-400 transition-all flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    <Download className="w-3.5 h-3.5" /> Download PDF (Print)
+                    {isPdfGenerating ? (
+                      <><div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" /> Generating...</>
+                    ) : (
+                      <><Download className="w-3.5 h-3.5" /> Download PDF</>
+                    )}
                   </button>
                   <button
                     onClick={() => handleDownloadJSON(activePreviewResume)}
@@ -2149,6 +2074,17 @@ export default function ResumeDashboard({
                   >
                     <Code className="w-3.5 h-3.5" /> Download JSON
                   </button>
+                  {previewTab === 'json' && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(activePreviewResume, null, 2));
+                        showToast('JSON copied to clipboard!', 'success');
+                      }}
+                      className="px-3.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copy JSON
+                    </button>
+                  )}
                   <button
                     onClick={() => handleCopyText(activePreviewResume)}
                     className="px-3.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"

@@ -4,9 +4,9 @@ export async function runAgents(input: any, geminiKey: string) {
   const genAI = new GoogleGenAI({ apiKey: geminiKey });
 
   const agents = {
-    hr: "Improve clarity, impact, and signal-to-noise ratio. ANTI-BUZZWORD rule: Replace 'Strategic', 'Visionary', 'Spearheaded' with direct outcomes.",
-    ats: "Optimize for ATS keywords. Ensure clean hierarchy.",
-    architect: "Enhance technical depth. ANTI-BUZZWORD rule: Forbidden: 'Architected', 'Engineered', 'Orchestrated'. Allowed: 'Designed', 'Built', 'Optimized'."
+    hr: "Improve clarity, impact, and alignment with STAR methodology. Flag weak verbs like 'Managed', 'Supported', 'Assisted'. Encourage stronger verbs like 'Spearheaded', 'Led', 'Directed'.",
+    ats: "Optimize for ATS keywords (Azure Infrastructure Architect, Cloud Infrastructure Leader, Enterprise Cloud Architect, Hybrid Cloud, HA/DR, Cloud Reliability, Cloud Governance). Ensure clean hierarchy.",
+    architect: "Enhance technical depth for Azure Infrastructure Leadership. Ensure no fake Kubernetes/DevOps exaggeration. Allowed verbs: 'Architected', 'Spearheaded', 'Optimized', 'Standardized', 'Orchestrated', 'Led', 'Modernized'."
   };
 
   const results: any = {};
