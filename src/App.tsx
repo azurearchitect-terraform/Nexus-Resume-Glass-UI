@@ -526,6 +526,8 @@ export default function App() {
           const data = await response.json();
           if (data.success) {
             showToast('File deleted successfully', 'success');
+            // Remove from selected list if present
+            setSelectedDriveFiles(prev => prev.filter(id => id !== fileId));
             fetchDriveFiles();
           } else {
             if (data.error && data.error.includes('AUTH_EXPIRED')) {
@@ -535,6 +537,57 @@ export default function App() {
           }
         } catch (err) {
           showToast('Failed to delete file', 'error');
+        }
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
+  };
+
+  const handleDeleteMultipleDriveFiles = async () => {
+    if (selectedDriveFiles.length === 0) return;
+    setConfirmDialog({
+      message: `Are you sure you want to delete ${selectedDriveFiles.length} file(s) from Google Drive? This action cannot be undone.`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        setIsFetchingDriveFiles(true);
+        let successCount = 0;
+        let failCount = 0;
+        try {
+          await Promise.all(selectedDriveFiles.map(async (fileId) => {
+            try {
+              const response = await fetch('/api/delete-drive-file', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  fileId,
+                  accessToken: driveAccessToken 
+                })
+              });
+              const data = await response.json();
+              if (data.success) {
+                successCount++;
+              } else {
+                failCount++;
+                if (data.error && data.error.includes('AUTH_EXPIRED')) {
+                  setDriveAccessToken(null);
+                }
+              }
+            } catch (err) {
+              failCount++;
+            }
+          }));
+          
+          if (successCount > 0) {
+            showToast(`Successfully deleted ${successCount} file(s) from Google Drive`, 'success');
+            setSelectedDriveFiles([]);
+            fetchDriveFiles();
+          } else if (failCount > 0) {
+            showToast('Failed to delete selected files', 'error');
+          }
+        } catch (err) {
+          showToast('Failed to complete deletion operations', 'error');
+        } finally {
+          setIsFetchingDriveFiles(false);
         }
       },
       onCancel: () => setConfirmDialog(null)
@@ -1615,12 +1668,32 @@ export default function App() {
     console.log("isOptimizing changed:", isOptimizing);
   }, [isOptimizing]);
 
+  const [selectedDriveFiles, setSelectedDriveFiles] = useState<string[]>([]);
+
   const extractTextFromPDF = async (file: File) => {
     setIsExtracting(true);
     setFileName(file.name);
     try {
       const text = await extractTextFromPDFFile(file);
       setResumeText(text);
+      
+      // Update or add to masterResumes
+      setMasterResumes(prev => {
+        const activeIndex = prev.findIndex(r => r.isActive);
+        const fallbackJson = { personal_info: { name: 'Harnish Jariwala', email: '', phone: '', location: '', summary: '' }, experience: [], skills: [], rawText: text } as any;
+        if (activeIndex !== -1) {
+          return prev.map((r, idx) => idx === activeIndex ? { ...r, data: fallbackJson, name: file.name.replace(/\.[^/.]+$/, "") } : r);
+        } else {
+          return [...prev, {
+            id: Date.now().toString(),
+            name: file.name.replace(/\.[^/.]+$/, ""),
+            description: 'Uploaded from file',
+            data: fallbackJson,
+            createdAt: Date.now(),
+            isActive: true
+          }];
+        }
+      });
     } catch (err) {
       console.error('Error extracting PDF text:', err);
       setError('Failed to extract text from PDF. Please try pasting the text manually.');
@@ -1670,9 +1743,12 @@ export default function App() {
     }
   }, [jobDescription]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []) as File[];
+    if (files.length === 0) return;
+
+    if (files.length === 1) {
+      const file = files[0];
       if (file.type === 'application/pdf') {
         extractTextFromPDF(file);
       } else if (file.type === 'text/plain' || file.type === 'application/json') {
@@ -1683,18 +1759,140 @@ export default function App() {
             try {
               const json = JSON.parse(content);
               setResumeText(JSON.stringify(json, null, 2));
+              
+              setMasterResumes(prev => {
+                const activeIndex = prev.findIndex(r => r.isActive);
+                if (activeIndex !== -1) {
+                  return prev.map((r, idx) => idx === activeIndex ? { ...r, data: json, name: file.name.replace(/\.[^/.]+$/, "") } : r);
+                } else {
+                  return [...prev, {
+                    id: Date.now().toString(),
+                    name: file.name.replace(/\.[^/.]+$/, ""),
+                    description: 'Uploaded from file',
+                    data: json,
+                    createdAt: Date.now(),
+                    isActive: true
+                  }];
+                }
+              });
             } catch (e) {
               setError('Invalid JSON file.');
               return;
             }
           } else {
             setResumeText(content);
+            setMasterResumes(prev => {
+              const activeIndex = prev.findIndex(r => r.isActive);
+              const fallbackJson = { personal_info: { name: 'Harnish Jariwala', email: '', phone: '', location: '', summary: '' }, experience: [], skills: [], rawText: content } as any;
+              if (activeIndex !== -1) {
+                return prev.map((r, idx) => idx === activeIndex ? { ...r, data: fallbackJson, name: file.name.replace(/\.[^/.]+$/, "") } : r);
+              } else {
+                return [...prev, {
+                  id: Date.now().toString(),
+                  name: file.name.replace(/\.[^/.]+$/, ""),
+                  description: 'Uploaded from file',
+                  data: fallbackJson,
+                  createdAt: Date.now(),
+                  isActive: true
+                }];
+              }
+            });
           }
           setFileName(file.name);
+          showToast('Resume uploaded successfully!', 'success');
         };
         reader.readAsText(file);
       } else {
         setError('Please upload a PDF, TXT, or JSON file.');
+      }
+    } else {
+      setIsExtracting(true);
+      showToast(`Processing ${files.length} resumes...`, 'info');
+      let newResumes = [...masterResumes];
+      let addedCount = 0;
+      let skippedCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (newResumes.length >= 5) {
+          skippedCount += files.length - i;
+          break;
+        }
+
+        try {
+          let dataContent: any = "";
+          let isJson = false;
+
+          if (file.type === 'application/pdf') {
+            dataContent = await extractTextFromPDFFile(file);
+          } else if (file.type === 'text/plain' || file.type === 'application/json') {
+            const text = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (event) => resolve(event.target?.result as string);
+              reader.onerror = (err) => reject(err);
+              reader.readAsText(file);
+            });
+
+            if (file.type === 'application/json') {
+              try {
+                dataContent = JSON.parse(text);
+                isJson = true;
+              } catch (err) {
+                showToast(`Invalid JSON in file ${file.name}`, 'error');
+                continue;
+              }
+            } else {
+              dataContent = text;
+            }
+          } else {
+            showToast(`Unsupported file type for ${file.name}`, 'error');
+            continue;
+          }
+
+          const newResumeItem: MasterResume = {
+            id: `uploaded-${Date.now()}-${i}`,
+            name: file.name.replace(/\.[^/.]+$/, ""),
+            description: `Uploaded from dashboard`,
+            data: isJson ? dataContent : { personal_info: { name: 'Harnish Jariwala', email: '', phone: '', location: '', summary: '' }, experience: [], skills: [], rawText: dataContent } as any,
+            createdAt: Date.now(),
+            isActive: false
+          };
+
+          if (newResumes.length === 0) {
+            newResumeItem.isActive = true;
+          }
+
+          newResumes.push(newResumeItem);
+          addedCount++;
+        } catch (err) {
+          console.error(`Error uploading ${file.name}:`, err);
+          showToast(`Failed to parse ${file.name}`, 'error');
+        }
+      }
+
+      setIsExtracting(false);
+
+      if (addedCount > 0) {
+        setMasterResumes(newResumes);
+        const lastAdded = newResumes[newResumes.length - 1];
+        if (lastAdded) {
+          const updatedWithActive = newResumes.map(r => ({
+            ...r,
+            isActive: r.id === lastAdded.id
+          }));
+          setMasterResumes(updatedWithActive);
+          setSelectedResumeId(lastAdded.id);
+          setResumeText(typeof lastAdded.data === 'string' ? lastAdded.data : JSON.stringify(lastAdded.data, null, 2));
+          setFileName(lastAdded.name);
+        }
+
+        let msg = `Successfully uploaded ${addedCount} resume(s).`;
+        if (skippedCount > 0) {
+          msg += ` Skipped ${skippedCount} file(s) (limit of 5 resumes reached).`;
+        }
+        showToast(msg, 'success');
+      } else {
+        showToast('No resumes were added.', 'error');
       }
     }
   };
@@ -4285,6 +4483,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           <input 
                             type="file"
                             accept=".pdf,.json,.txt"
+                            multiple
                             onChange={handleFileUpload}
                             className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${
                               isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-[#F9F9F9] border-black/5 text-black'
@@ -4401,12 +4600,53 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                           </div>
                         ) : driveFiles.length > 0 ? (
                           <div className="space-y-1">
+                            {/* Bulk selection actions toolbar */}
+                            <div className={`p-2 rounded-xl flex items-center justify-between border mb-2 text-xs transition-all ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/5'}`}>
+                              <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input 
+                                  type="checkbox"
+                                  checked={selectedDriveFiles.length === driveFiles.length && driveFiles.length > 0}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedDriveFiles(driveFiles.map(f => f.id));
+                                    } else {
+                                      setSelectedDriveFiles([]);
+                                    }
+                                  }}
+                                  className="w-3.5 h-3.5 text-emerald-500 rounded border-black/10 focus:ring-emerald-500 bg-transparent cursor-pointer"
+                                />
+                                <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Select All ({driveFiles.length})</span>
+                              </label>
+                              
+                              {selectedDriveFiles.length > 0 && (
+                                <button
+                                  onClick={handleDeleteMultipleDriveFiles}
+                                  className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-red-500/20 hover:bg-red-500/35 text-red-400 p-1 px-2.5 rounded-lg transition-all"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  Delete ({selectedDriveFiles.length})
+                                </button>
+                              )}
+                            </div>
+
                             {driveFiles.map((file) => (
                               <div 
                                 key={file.id}
                                 className={`p-2 rounded-lg flex items-center justify-between group transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
                               >
                                 <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                  <input 
+                                    type="checkbox"
+                                    checked={selectedDriveFiles.includes(file.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedDriveFiles(prev => [...prev, file.id]);
+                                      } else {
+                                        setSelectedDriveFiles(prev => prev.filter(id => id !== file.id));
+                                      }
+                                    }}
+                                    className="w-3.5 h-3.5 text-emerald-500 rounded border-black/10 focus:ring-emerald-500 bg-transparent shrink-0 cursor-pointer"
+                                  />
                                   <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                                   <p className="text-[11px] font-medium truncate">{file.name}</p>
                                 </div>
@@ -4693,6 +4933,14 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileUpload} 
+                        accept=".pdf,.json,.txt" 
+                        multiple 
+                        className="hidden" 
+                      />
                       <button 
                         onClick={() => fileInputRef.current?.click()}
                         className="space-y-2 md:space-y-4 group text-center focus:outline-none"
