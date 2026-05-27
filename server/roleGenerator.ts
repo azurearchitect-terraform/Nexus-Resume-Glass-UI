@@ -36,7 +36,7 @@ export async function generatePerRole(
     } else if (isCasepoint) {
       bulletRule = "Output exactly 4 high-impact bullet points for this role. Each bullet point should be strictly one-line (1-line).";
     } else {
-      bulletRule = "Output a MAXIMUM of 3 to 4 bullet points for this role (exactly 1 bullet point if it is an older role pre-2018). IMPORTANT: Every single bullet point for this role MUST be strictly a one-line (1-line) description; do not write verbose or multi-line bullets.";
+      bulletRule = "Preserve all original bullet points and achievements. Optimize their wording to be professional, realistic, and recruiter-safe but do not delete or truncate them aggressively. Max 3 to 5 bullets per role, maintaining their original scope and technical detail. Every single bullet point for this role MUST be strictly a one-line (1-line) description.";
     }
 
     // Resolve optimization mode

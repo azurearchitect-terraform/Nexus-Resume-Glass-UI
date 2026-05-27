@@ -599,7 +599,8 @@ VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
 * NEVER imply software engineering background.
 * NEVER create fake coding-heavy experience.
 * NEVER add any fake technologies or fake details to the job description or optimized resume.
-* DO NOT add or focus on ITIL (ITTL) certification; exclude it from certifications unless explicitly present in the original resume.
+* PRESERVE ALL ORIGINAL CERTIFICATIONS: You MUST preserve and include all certifications from the candidate's original resume (including AZ-900, Azure Fundamentals, and any others). Do not omit or filter out any certifications. Do not add or focus on ITIL (ITTL) certification unless explicitly present.
+* PRESERVE ALL ORIGINAL ROLES: You MUST preserve and include all historical roles and companies from the candidate's original resume. Under no circumstances should you delete, omit, or merge any roles.
 * SKILLS MATCHING RULES: Extract and mention ONLY the skills that are present in or directly matching the candidate's actual resume. Do NOT list or invent skills that the candidate does not have on their original resume.
 * TECHNOLOGY FOCUS: Do NOT focus too much on DevOps, Terraform, or Microservices / container services (like Kubernetes, Docker, AKS). Keep the emphasis on Enterprise Azure Infrastructure, Governance, Security, Resiliency, Operations, and Modernization scaling.
 * METRIC INTEGRITY & ANTI-PERCENTAGE INFLATION: Do NOT inject fabricated percentage metrics (such as 'alignment with SLAs by 30%', 'decreasing stability incidents by 25%', 'improved system reliability by 20%', etc.) unless they are derived from real, measurable baselines. If no metrics exist, focus on qualitative, verifiable outcomes (e.g. 'ensuring regulatory compliance', 'reducing system complexity', 'improving uptime reliability') rather than stacking fake-looking percentages. Avoid literal 100% metrics (such as '100% compliance', '100% operational alignment') as they look fake and trigger recruiter skepticism.
@@ -635,7 +636,7 @@ STRICT FAANG RESUME RULES:
     - Concentrix and M&M: 2-line descriptions with a maximum of 5 to 6 bullet points. Each bullet point should be high impact and can span up to 2 lines of text.
     - Archer: Exactly 4 to 5 high-impact bullet points. Each bullet point must be strictly a single line of text (1-line description).
     - Casepoint: Exactly 4 high-impact bullet points. Each bullet point must be strictly a single line of text (1-line description).
-    - For all other (older) roles: Keep strictly one-line (1-line) descriptions for every single bullet point. Do not exceed a single line of text for any bullet point under these older roles. Max 3 to 4 bullets per role, and exactly 1 bullet point for roles pre-2018.
+    - For all other (older) roles: Keep strictly one-line (1-line) descriptions for every single bullet point. Do not exceed a single line of text for any bullet point under these older roles. Do NOT truncate or reduce the bullet count aggressively; preserve all original achievements and bullets, optimizing their phrasing to be professional and recruiter-safe.
     - Keep technical density high and use concise executive-style language.
     - Remove repetitive wording.
 11. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.

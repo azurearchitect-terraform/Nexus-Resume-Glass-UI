@@ -1587,10 +1587,12 @@ async function startServer() {
           - Skills: Categorize into exactly 4 logical categories relevant to ${targetRole} (e.g., Azure Infrastructure Management, Enterprise Cloud Governance, Reliability & HA/DR, Infrastructure Operations & Optimization). Ensure no fabrication.
           - Why This Job: 100-150 words compelling response.
           - DO NOT invent certifications, skills, or projects not present in the input.
+          - PRESERVE ALL ORIGINAL CERTIFICATIONS: You MUST preserve and include all certifications listed in the input (including AZ-900, Azure Fundamentals, and any others). Do not drop, exclude, or omit any certifications.
           - Project Descriptions: Keep them concise and focused on Azure Migration, FinOps, HA/DR, and Governance. Use strong allowed verbs.
           - Older Project Compression: Before 2018, provide EXACTLY one (1) bullet point maximum for projects.
           - VERB CONTROL: Use allowed strong verbs (Architected, Spearheaded, Optimized, Standardized, Orchestrated, Led, Directed, Improved, Implemented, Streamlined, Governed, Enhanced, Coordinated, Modernized, Transformed). Avoid weak verbs (Managed, Supported, Helped, Worked on).
           - TRUTHFULNESS: Never exaggerate DevOps, Terraform, or Kubernetes experience. Limit Terraform/IaC references to at most 2 bullets TOTAL across the entire resume.
+          
           
           INPUT DATA:
           ${JSON.stringify({
