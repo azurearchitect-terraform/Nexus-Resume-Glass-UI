@@ -148,6 +148,34 @@ function getFirestoreDb() {
   return db;
 }
 
+function extractJson(text: string): string {
+  if (!text) return "";
+  
+  const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
+  let extracted = text;
+  if (jsonMatch && jsonMatch[1]) {
+    extracted = jsonMatch[1].trim();
+  } else {
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+
+    if (firstBrace !== -1 && firstBracket !== -1) {
+      if (firstBrace < firstBracket) {
+        extracted = text.substring(firstBrace).trim();
+      } else {
+        extracted = text.substring(firstBracket).trim();
+      }
+    } else if (firstBrace !== -1) {
+      extracted = text.substring(firstBrace).trim();
+    } else if (firstBracket !== -1) {
+      extracted = text.substring(firstBracket).trim();
+    } else {
+      extracted = text.trim();
+    }
+  }
+  return extracted;
+}
+
 function createFirebaseUnavailableError(operation: string) {
   const reason = firestoreInitError?.message || firebaseAdminInitError?.message || "missing Firebase configuration or credentials";
   return new Error(`FIREBASE_UNAVAILABLE:${operation}:${reason}`);
