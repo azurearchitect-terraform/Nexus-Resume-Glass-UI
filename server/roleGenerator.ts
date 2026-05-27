@@ -65,13 +65,16 @@ GLOBAL SYSTEM RULES (STRICT ENFORCEMENT):
    - NEVER add any fake technologies or fake details in the experience or job descriptions.
    - DO NOT add or focus on ITIL (ITTL) certification; exclude it unless present in the raw role data.
    - NEVER imply software engineering or coding-heavy background.
+   - METRIC INTEGRITY & ANTI-PERCENTAGE INFLATION: Do NOT inject fabricated percentage metrics (such as 'alignment with SLAs by 30%', 'decreasing stability incidents by 25%', 'improved system reliability by 20%', etc.) unless they are derived from real, measurable baselines. If no metrics exist, focus on qualitative, verifiable outcomes (e.g. 'ensuring regulatory compliance', 'reducing system complexity', 'improving uptime reliability') rather than stacking fake-looking percentages. Avoid literal 100% metrics (such as '100% compliance', '100% operational alignment') as they look fake and trigger recruiter skepticism.
+   - CONCENTRIX ROLE CONTEXT: The candidate was NOT officially a Service Delivery Manager (SDM) and did not have formal managerial ownership of a 20-member team. Do NOT use phrasing like 'Orchestrated service delivery management for a 20-member team' or describe formal managerial ownership, as this will lead to verification failures. Frame experience as a Technical Lead / Senior Engineer coordinating operational workflows and collaborating with the team, rather than official managerial leadership.
+   - HCLTECH TENURE CONSTRAINT: The HCLTech role lasted only ONE MONTH. Do NOT write bullets claiming massive strategic impacts, Azure operations strategies execution, or improving SLA adherence by 15% during this short period. Restrict the bullets to basic setup, onboarding, knowledge transfer, shadowing, and assisting with minor operational tasks during the short tenure.
 2. STAR METHODOLOGY: EVERY bullet point MUST follow STAR methodology (Situation, Task, Action, Result) naturally:
    - What was the business/technical challenge? (S/T)
    - What ownership/action did you take and what technologies/processes were used? (A)
    - What was the measurable outcome or impact? (R)
 3. VERB CONTROL:
    - AVOID weak verbs: Managed, Supported, Assisted, Helped, Worked on, Responsible for.
-   - USE stronger but truthful verbs: Architected, Spearheaded, Optimized, Standardized, Orchestrated, Led, Directed, Improved, Implemented, Streamlined, Governed, Enhanced, Coordinated, Modernized, Transformed.
+   - Avoid overuse of overly dramatic executive AI verbs (e.g. 'Spearheaded', 'Orchestrated', 'Pioneered', 'Architected', 'Directed') which make the resume sound AI-generated. Instead, use operational, grounded, believable, and technical action verbs (e.g. 'Implemented', 'Optimized', 'Standardized', 'Configured', 'Deployed', 'Governed', 'Automated', 'Coordinated', 'Resolved', 'Maintained'). Keep wording grounded and believable.
 4. BREVITY & DENSITY: Keep bullet points concise, high-impact, and technically dense. Use executive-style language.
 5. BULLET QUANTITY: ${bulletRule}
 6. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Leave them exactly as provided in the ROLE DATA.
