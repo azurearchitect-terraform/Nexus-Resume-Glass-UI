@@ -69,7 +69,7 @@ export const improveTextWithAI = async (
       ${context?.jobDescription ? `Job Description: ${context.jobDescription}` : ''}
     `;
 
-    const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview"];
+    const modelChain = ["gemini-3.1-flash-lite", "gemini-3-flash-preview"];
     let response: any = null;
     let lastError: any = null;
     for (const model of modelChain) {
@@ -135,7 +135,7 @@ export const rewriteSectionWithAI = async (
       ${JSON.stringify(content, null, 2)}
     `;
 
-    const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview"];
+    const modelChain = ["gemini-3.1-flash-lite", "gemini-3-flash-preview"];
     let response: any = null;
     let lastError: any = null;
     for (const model of modelChain) {

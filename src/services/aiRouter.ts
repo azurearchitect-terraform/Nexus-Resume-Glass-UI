@@ -30,9 +30,9 @@ export function routeTask(task: TaskType, config: RouterConfig): EngineConfig {
     const engineConfig = config.mode === 'gemini' ? config.geminiConfig : config.openaiConfig;
     if (config.mode === 'gemini') {
       if (task === 'rewrite_resume') {
-        return { ...engineConfig, model: 'gemini-3.1-pro-preview' };
+        return { ...engineConfig, model: engineConfig.model || 'gemini-3.1-pro-preview' };
       } else {
-        return { ...engineConfig, model: 'gemini-3.5-flash' };
+        return { ...engineConfig, model: 'gemini-3.5-flash-lite' };
       }
     }
     return engineConfig;
@@ -75,9 +75,9 @@ export function routeTask(task: TaskType, config: RouterConfig): EngineConfig {
   
   if (selectedEngine === 'gemini') {
     if (task === 'rewrite_resume') {
-      return { ...engineConfig, model: 'gemini-3.1-pro-preview' };
+      return { ...engineConfig, model: engineConfig.model || 'gemini-3.1-pro-preview' };
     } else {
-      return { ...engineConfig, model: 'gemini-3.5-flash' };
+      return { ...engineConfig, model: 'gemini-3.5-flash-lite' };
     }
   }
   

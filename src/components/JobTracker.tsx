@@ -101,7 +101,7 @@ export const JobTracker: React.FC<JobTrackerProps> = ({ isDarkMode, engineConfig
         throw new Error("API key is missing. Please check your settings.");
       }
       const ai = new GoogleGenAI({ apiKey });
-      const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview"];
+      const modelChain = ["gemini-3.1-flash-lite", "gemini-3-flash-preview"];
       let response: any = null;
       let lastError: any = null;
       for (const model of modelChain) {

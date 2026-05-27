@@ -1083,6 +1083,70 @@ async function startServer() {
     }
   });
 
+  app.post("/api/optimize", async (req, res) => {
+    try {
+      const authHeader = req.header('Authorization');
+      if (!authHeader) return res.status(401).json({ error: "Unauthorized" });
+      const idToken = authHeader.split('Bearer ')[1];
+      
+      const { prompt, model, engine, encryptedKey } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ error: "Prompt is required" });
+      }
+
+      // Get keys
+      let apiKey = "";
+      if (encryptedKey) {
+        try {
+          const decrypted = decrypt(encryptedKey);
+          const parsed = JSON.parse(decrypted);
+          apiKey = parsed.openai || "";
+        } catch (e) {
+          try {
+            apiKey = decrypt(encryptedKey);
+          } catch (err) {}
+        }
+      }
+
+      if (!apiKey) {
+        const keys = await getApiKeys(idToken);
+        if (keys && keys.openai) {
+          apiKey = keys.openai;
+        }
+      }
+
+      if (!apiKey) {
+        apiKey = process.env.OPENAI_API_KEY || "";
+      }
+
+      if (!apiKey) {
+        return res.status(400).json({ error: "OpenAI API Key is missing. Please save your profile first." });
+      }
+
+      const openai = new OpenAI({ apiKey });
+      const responseFormat = prompt.toLowerCase().includes('json') ? { type: "json_object" as const } : undefined;
+      
+      const completion = await openai.chat.completions.create({
+        model: model || "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: responseFormat
+      });
+
+      res.json({
+        result: completion.choices[0].message.content || "",
+        usage: {
+          promptTokenCount: completion.usage?.prompt_tokens || 0,
+          candidatesTokenCount: completion.usage?.completion_tokens || 0,
+          totalTokenCount: completion.usage?.total_tokens || 0
+        }
+      });
+    } catch (error: any) {
+      console.error("[Server API Optimize Error]:", error);
+      res.status(500).json({ error: error.message || "Failed to optimize via OpenAI backend" });
+    }
+  });
+
   app.post("/api/v2/optimize", async (req, res) => {
     const authHeader = req.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -1316,9 +1380,8 @@ async function startServer() {
         8. USE METRICS NATURALLY: Cost savings, MTTR reduction, Downtime reduction, Subscription scale, VM scale, Team size, Reliability improvement, Governance coverage, Compliance metrics, Operational efficiency, SLA improvements, Infrastructure availability.
         9. ATS OPTIMIZATION TARGET KEYWORDS: Azure Infrastructure Architect, Cloud Infrastructure Leader, Enterprise Cloud Architect, Cloud Operations Manager, Director of Infrastructure, Infrastructure Governance, Hybrid Cloud, Cloud Reliability, HA/DR, Cloud Security, Azure Operations, Infrastructure Transformation, IT Service Delivery, Cloud Governance, Enterprise Infrastructure.
         10. FORMATTING & BULLET QUANTITY RULES:
-            - Maximum 4 bullets per role.
-            - Prioritize recent experience.
-            - Provide 1 bullet point maximum for older roles (pre-2018).
+            - For the first 2 roles (most recent 2 roles): 2-line descriptions with a maximum of 5 to 6 bullet points are allowed. Each bullet point should be high impact and can span up to 2 lines of text.
+            - For all other (older) roles: Keep strictly one-line (1-line) descriptions for every single bullet point. Do not exceed a single line of text for any bullet point under these older roles. Max 4 bullets per role, and exactly 1 bullet point for roles pre-2018.
             - Keep technical density high and use concise executive-style language.
             - Remove repetitive wording.
         11. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.

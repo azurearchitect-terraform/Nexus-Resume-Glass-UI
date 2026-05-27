@@ -74,6 +74,8 @@ interface ResumeDashboardProps {
   handleGoogleLogin: () => void;
   handleLogout: () => void;
   handleOptimizeResume: () => Promise<void>;
+  handleStop?: () => void;
+  handleDeleteVersion?: (versionId: string, versionName: string) => Promise<void>;
   isOptimizing: boolean;
   optimizationStatus: string;
   optimizationError: string | null;
@@ -164,6 +166,8 @@ export default function ResumeDashboard({
   handleGoogleLogin,
   handleLogout,
   handleOptimizeResume,
+  handleStop,
+  handleDeleteVersion,
   isOptimizing,
   optimizationStatus,
   optimizationError,
@@ -370,7 +374,7 @@ export default function ResumeDashboard({
     prevIsOptimizing.current = isOptimizing;
   }, [isOptimizing, results, activeAudience]);
 
-  const handlePrintPDF = (data: any) => {
+  const handlePrintPDF = async (data: any) => {
     if (!data) return;
     const personal = data.personal_info || {};
     const summary = data.summary || "";
@@ -378,30 +382,57 @@ export default function ResumeDashboard({
     const education = data.education || [];
     const projects = data.projects || [];
     const skills = data.skills || {};
+    const certifications = data.certifications || [];
 
-    const skillsHtml = Object.entries(skills).map(([cat, list]) => {
-      const skillList = Array.isArray(list) ? list.join(", ") : (typeof list === 'string' ? list : "");
-      if (!skillList) return "";
-      return `
-        <div style="margin-bottom: 8px;">
-          <strong style="font-size: 11px; color: #111;">${cat}:</strong>
-          <span style="font-size: 11px; color: #444;">${skillList}</span>
+    const certsHtml = certifications.length > 0 ? `
+      <div>
+        <div class="section-title">Certifications</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
+          ${certifications.map((cert: any) => {
+            if (typeof cert === 'string') {
+              return `<div style="font-size: 10.5px; color: #333;">• ${cert}</div>`;
+            }
+            const name = cert.name || '';
+            const issuer = cert.issuer ? ` (${cert.issuer})` : '';
+            const date = cert.date ? ` - ${cert.date}` : '';
+            return `<div style="font-size: 10.5px; color: #333;">• <strong>${name}</strong>${issuer}${date}</div>`;
+          }).join("")}
         </div>
-      `;
-    }).filter(Boolean).join("");
+      </div>
+    ` : '';
+
+    const skillsHtml = `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 8px;">
+        ${Object.entries(skills).map(([cat, list]) => {
+          const skillList = Array.isArray(list) ? list.join(", ") : (typeof list === 'string' ? list : "");
+          if (!skillList) return "";
+          return `
+            <div style="margin-bottom: 4px; page-break-inside: avoid;">
+              <strong style="font-size: 11px; color: #0f766e; display: block; margin-bottom: 2px; border-bottom: 1px solid #e5e7eb; padding-bottom: 2px;">${cat}</strong>
+              <span style="font-size: 10.5px; color: #444; line-height: 1.4;">${skillList}</span>
+            </div>
+          `;
+        }).filter(Boolean).join("")}
+      </div>
+    `;
 
     const expHtml = experience.map((exp: any) => {
-      const highlightsArray = Array.isArray(exp.highlights) 
-        ? exp.highlights 
-        : (typeof exp.highlights === 'string' ? [exp.highlights] : []);
+      const highlightsArray = Array.isArray(exp.bullets) 
+        ? exp.bullets 
+        : (Array.isArray(exp.highlights) 
+          ? exp.highlights 
+          : (typeof exp.bullets === 'string' ? [exp.bullets] : (typeof exp.highlights === 'string' ? [exp.highlights] : [])));
       const bullets = highlightsArray.map((b: string) => `
-        <li style="margin-bottom: 4px; font-size: 11px; color: #333;">${b}</li>
+        <li style="margin-bottom: 5px; font-size: 10.5px; color: #444; line-height: 1.4;">${b}</li>
       `).join("");
       return `
         <div style="margin-bottom: 12px; page-break-inside: avoid;">
-          <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11.5px; color: #111;">
-            <span>${exp.role || exp.title || 'Role'} @ ${exp.company || exp.organization || 'Company'}</span>
-            <span>${exp.duration || exp.dates || ''}</span>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #444; margin-bottom: 2px;">
+            <span style="font-weight: 700; font-size: 12px; color: #111;">${exp.company || exp.organization || 'Company'}</span>
+            <span style="font-weight: 500;">${exp.duration || exp.dates || ''}</span>
+          </div>
+          <div style="font-weight: 700; font-size: 11px; color: #333; margin-bottom: 4px;">
+            ${exp.role || exp.title || 'Role'}
           </div>
           <ul style="margin-top: 4px; margin-bottom: 0; padding-left: 18px;">
             ${bullets}
@@ -411,18 +442,21 @@ export default function ResumeDashboard({
     }).join("");
 
     const projHtml = projects.map((proj: any) => {
-      const highlightsArray = Array.isArray(proj.highlights) 
-        ? proj.highlights 
-        : (typeof proj.highlights === 'string' ? [proj.highlights] : []);
+      const highlightsArray = Array.isArray(proj.bullets) 
+        ? proj.bullets 
+        : (Array.isArray(proj.highlights) 
+          ? proj.highlights 
+          : (typeof proj.bullets === 'string' ? [proj.bullets] : (typeof proj.highlights === 'string' ? [proj.highlights] : [])));
       const bullets = highlightsArray.map((b: string) => `
-        <li style="margin-bottom: 4px; font-size: 11px; color: #333;">${b}</li>
+        <li style="margin-bottom: 5px; font-size: 10.5px; color: #444; line-height: 1.4;">${b}</li>
       `).join("");
       return `
         <div style="margin-bottom: 12px; page-break-inside: avoid;">
-          <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11.5px; color: #111;">
-            <span>${proj.name || proj.title || 'Project'} ${proj.technologies ? `(${proj.technologies})` : ''}</span>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #444; margin-bottom: 2px;">
+            <span style="font-weight: 700; font-size: 12px; color: #111;">${proj.title || proj.name || 'Project'}</span>
+            ${proj.technologies ? `<span style="font-weight: 500; font-size: 10px; color: #555; background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${proj.technologies}</span>` : ''}
           </div>
-          ${proj.description ? `<p style="margin: 4px 0; font-size: 11px; color: #555;">${proj.description}</p>` : ''}
+          ${proj.description ? `<p style="margin: 4px 0 6px 0; font-size: 10.5px; color: #555; line-height: 1.4;">${proj.description}</p>` : ''}
           <ul style="margin-top: 4px; margin-bottom: 0; padding-left: 18px;">
             ${bullets}
           </ul>
@@ -430,23 +464,26 @@ export default function ResumeDashboard({
       `;
     }).join("");
 
-    const eduHtml = education.map((edu: any) => `
-      <div style="margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 11px; color: #111;">
-        <div>
-          <strong>${edu.degree || edu.degree_name || ''}</strong> ${edu.major ? `in ${edu.major}` : ''}
-          <div style="color: #555; font-size: 10.5px;">${edu.school || edu.institution || ''}</div>
+    const eduHtml = education.map((edu: any) => {
+      if (typeof edu === 'string') {
+        return `
+          <div style="margin-bottom: 6px; font-size: 11px; color: #333; page-break-inside: avoid;">
+            • ${edu}
+          </div>
+        `;
+      }
+      return `
+        <div style="margin-bottom: 10px; display: flex; justify-content: space-between; font-size: 11px; color: #444; page-break-inside: avoid;">
+          <div>
+            <strong style="color: #111; font-size: 11.5px;">${edu.degree || edu.degree_name || ''}</strong> ${edu.major ? `in ${edu.major}` : ''}
+            <div style="color: #666; font-size: 10.5px; margin-top: 2px;">${edu.school || edu.institution || ''}</div>
+          </div>
+          <span style="font-weight: 500;">${edu.date || edu.duration || edu.gradYear || ''}</span>
         </div>
-        <span>${edu.date || edu.duration || edu.gradYear || ''}</span>
-      </div>
-    `).join("");
+      `;
+    }).join("");
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      showToast("Pop-up blocked. Please allow popups to export PDF.", "error");
-      return;
-    }
-
-    printWindow.document.write(`
+    const htmlString = `
       <html>
         <head>
           <title>${personal.name || 'Resume'}_Optimized</title>
@@ -456,22 +493,22 @@ export default function ResumeDashboard({
               font-family: 'Inter', sans-serif;
               margin: 40px;
               padding: 0;
-              color: #333;
-              line-height: 1.5;
+              color: #444;
+              line-height: 1.45;
               background-color: #fff;
             }
             h1, h2, h3 { margin: 0; color: #111; }
             a { color: #111; text-decoration: none; }
             .section-title {
-              font-size: 12px;
+              font-size: 12.5px;
               font-weight: 800;
               text-transform: uppercase;
-              letter-spacing: 1px;
-              border-bottom: 1.5px solid #111;
-              padding-bottom: 3px;
-              margin-top: 20px;
-              margin-bottom: 10px;
-              color: #111;
+              letter-spacing: 1.2px;
+              border-bottom: 2px solid #10b981;
+              padding-bottom: 4px;
+              margin-top: 22px;
+              margin-bottom: 12px;
+              color: #0f766e;
             }
             .header-contacts {
               display: flex;
@@ -482,10 +519,20 @@ export default function ResumeDashboard({
               color: #555;
               margin-top: 6px;
             }
-            ul { margin: 0; }
+            ul { margin: 0; padding-left: 18px; }
+            li {
+              margin-bottom: 5px;
+              font-size: 10.5px;
+              color: #444;
+              line-height: 1.4;
+            }
+            li::marker {
+              color: #10b981;
+              font-size: 8px;
+            }
             @media print {
               body { margin: 20px; }
-              @page { size: letter; margin: 0.5in; }
+              @page { size: letter; margin: 0.4in; }
             }
           </style>
         </head>
@@ -507,6 +554,15 @@ export default function ResumeDashboard({
             </div>
           ` : ''}
 
+          ${certsHtml}
+
+          ${skillsHtml ? `
+            <div>
+              <div class="section-title">Skills & Expertises</div>
+              ${skillsHtml}
+            </div>
+          ` : ''}
+
           ${experience.length > 0 ? `
             <div>
               <div class="section-title">Work Experience</div>
@@ -521,31 +577,80 @@ export default function ResumeDashboard({
             </div>
           ` : ''}
 
-          ${skillsHtml ? `
-            <div>
-              <div class="section-title">Skills & Expertises</div>
-              ${skillsHtml}
-            </div>
-          ` : ''}
-
           ${education.length > 0 ? `
             <div>
               <div class="section-title">Education</div>
               ${eduHtml}
             </div>
           ` : ''}
-          
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 300);
-            }
-          </script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `;
+
+    setIsPdfGenerating(true);
+    try {
+      const sessionResponse = await fetch('/api/pdf-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html: htmlString, css: '', fonts: [], title: `${personal.name || 'Resume'}_Optimized` })
+      });
+
+      if (!sessionResponse.ok) {
+        throw new Error('Failed to create PDF session');
+      }
+
+      const { sessionId } = await sessionResponse.json();
+      const downloadUrl = `/api/download-pdf/${sessionId}`;
+      
+      const pdfResponse = await fetch(downloadUrl);
+      if (!pdfResponse.ok) {
+        throw new Error('Failed to download PDF file');
+      }
+      
+      const blob = await pdfResponse.blob();
+      
+      // Auto save to Google Drive if connected
+      if (driveAccessToken || process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64data = (reader.result as string).split(',')[1];
+          try {
+            const driveSaveResponse = await fetch('/api/save-to-drive', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                pdfData: base64data,
+                fileName: `${personal.name || 'Resume'}_Optimized.pdf`,
+                versioningEnabled: true,
+                accessToken: driveAccessToken,
+                parentFolderId: selectedDriveFolder?.id
+              })
+            });
+            if (driveSaveResponse.ok) {
+              showToast('Resume saved to Google Drive!', 'success');
+            }
+          } catch (driveErr) {
+            console.error('Failed to autosave PDF to Drive:', driveErr);
+          }
+        };
+      }
+      
+      // Trigger local download
+      const downloadLinkUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadLinkUrl;
+      a.download = `${personal.name || 'Resume'}_Optimized.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadLinkUrl);
+    } catch (e: any) {
+      console.error("PDF generation failed:", e);
+      showToast("PDF generation failed.", "error");
+    } finally {
+      setIsPdfGenerating(false);
+    }
   };
 
   const handleDownloadJSON = (data: any) => {
@@ -674,16 +779,57 @@ export default function ResumeDashboard({
 
   // Determine current engine description for the badge display
   const getActiveEngineDetails = () => {
+    const isGemini = selectedEngine === 'gemini' || selectedEngine.startsWith('hybrid');
+    
     if (activeNav === 'optimizer') {
+      if (!isGemini) {
+        const modelName = engineConfig.openai?.model || 'gpt-4o';
+        return {
+          active: modelName.toUpperCase(),
+          fallbacks: [],
+          color: "from-purple-500/20 to-pink-500/10 border-purple-500/30"
+        };
+      }
+      
+      const model = engineConfig.gemini?.model || 'gemini-3.1-pro-preview';
+      if (model === 'gemini-3.1-pro-preview') {
+        return {
+          active: "Gemini 3.1 Pro",
+          fallbacks: ["Gemini 3.5 Flash", "Gemini 3.1 Flash Lite"],
+          color: "from-emerald-500/20 to-blue-500/10 border-emerald-500/30"
+        };
+      } else if (model === 'gemini-3.1-flash-lite') {
+        return {
+          active: "Gemini 3.1 Flash Lite",
+          fallbacks: ["Gemini 3.5 Flash"],
+          color: "from-blue-500/20 to-teal-500/10 border-blue-500/30"
+        };
+      } else if (model === 'gemini-3.5-flash') {
+        return {
+          active: "Gemini 3.5 Flash",
+          fallbacks: ["Gemini 3.1 Flash Lite"],
+          color: "from-teal-500/20 to-blue-500/10 border-teal-500/30"
+        };
+      } else {
+        return {
+          active: "Gemini 3.5 Flash Lite",
+          fallbacks: ["Gemini 3.5 Flash"],
+          color: "from-blue-500/20 to-purple-500/10 border-blue-500/30"
+        };
+      }
+    }
+    
+    // For other views/tools
+    if (!isGemini) {
       return {
-        active: "Gemini 3.1 Pro Preview",
-        fallbacks: ["Gemini 3.5 Flash", "Gemini 3.0 Flash Preview"],
-        color: "from-emerald-500/20 to-blue-500/10 border-emerald-500/30"
+        active: "GPT-4o Mini",
+        fallbacks: [],
+        color: "from-purple-500/20 to-pink-500/10 border-purple-500/30"
       };
     }
     return {
-      active: "Gemini 3.5 Flash",
-      fallbacks: ["Gemini 3.0 Flash Preview"],
+      active: "Gemini 3.5 Flash Lite",
+      fallbacks: ["Gemini 3.5 Flash"],
       color: "from-blue-500/20 to-purple-500/10 border-blue-500/30"
     };
   };
@@ -820,20 +966,30 @@ export default function ResumeDashboard({
         {/* Sidebar Footer Link Profile/Settings & Drive status */}
         <div className="p-3 border-t border-white/5 bg-black/20 space-y-1">
           {/* Drive info */}
-          <button 
-            onClick={checkDriveConnection}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold text-neutral-400 hover:text-white hover:bg-white/5 transition-all"
-          >
-            <div className="flex items-center gap-2">
-              <Cloud className="w-3.5 h-3.5" />
-              <span>Google Drive Backup</span>
-            </div>
-            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
-              isDriveConnected ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neutral-500/20 text-neutral-400'
-            }`}>
-              {isDriveConnected ? 'SYNCED' : 'DISCONNECTED'}
-            </span>
-          </button>
+          <div className="w-full px-3 py-2 rounded-xl text-[11px] font-bold text-neutral-400 bg-white/0 border border-transparent space-y-1">
+            <button 
+              onClick={checkDriveConnection}
+              className="w-full flex items-center justify-between hover:text-white transition-all focus:outline-none"
+            >
+              <div className="flex items-center gap-2">
+                <Cloud className="w-3.5 h-3.5" />
+                <span>Google Drive Backup</span>
+              </div>
+              <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                isDriveConnected ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neutral-500/20 text-neutral-400'
+              }`}>
+                {isDriveConnected ? 'SYNCED' : 'DISCONNECTED'}
+              </span>
+            </button>
+            {isDriveConnected && (
+              <div className="pl-5 text-[9px] text-white/50 flex items-center gap-1">
+                <span className="opacity-50">Folder:</span>
+                <span className="text-emerald-400 font-bold truncate max-w-[120px]" title={selectedDriveFolder?.name || 'My Drive'}>
+                  {selectedDriveFolder?.name || 'My Drive'}
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Settings Tab trigger */}
           <button 
@@ -965,6 +1121,7 @@ export default function ResumeDashboard({
                             <th className="pb-3">Target Profile</th>
                             <th className="pb-3">Target Company</th>
                             <th className="pb-3">Primary Audience</th>
+                            <th className="pb-3">ATS Score</th>
                             <th className="pb-3 text-right">Actions</th>
                           </tr>
                         </thead>
@@ -981,6 +1138,23 @@ export default function ResumeDashboard({
                                   {v.data?.activeAudience || 'custom'}
                                 </span>
                               </td>
+                              <td className="py-3.5">
+                                {(() => {
+                                  const resumeData = v.data?.results?.[v.data?.activeAudience] || v.data?.results?.[Object.keys(v.data?.results || {})[0]] || v.data;
+                                  const oldScore = resumeData?.baseline_score;
+                                  const newScore = resumeData?.match_score;
+                                  if (oldScore !== undefined && newScore !== undefined) {
+                                    return (
+                                      <span className="inline-flex items-center gap-1 text-[10px] font-bold">
+                                        <span className="text-rose-400">{oldScore}%</span>
+                                        <span className="opacity-45">➔</span>
+                                        <span className="text-emerald-400">{newScore}%</span>
+                                      </span>
+                                    );
+                                  }
+                                  return <span className="opacity-30">-</span>;
+                                })()}
+                              </td>
                               <td className="py-3.5 text-right space-x-2">
                                 <button 
                                   onClick={() => {
@@ -992,6 +1166,16 @@ export default function ResumeDashboard({
                                   className="px-3 py-1.5 rounded bg-emerald-500 text-black text-[10px] font-black uppercase tracking-wider hover:bg-emerald-400 transition-all inline-flex items-center gap-1"
                                 >
                                   <Eye className="w-3.5 h-3.5" /> Preview & Export
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    if (window.confirm("Are you sure you want to delete this optimization version? This will sync and remove any corresponding backup files from Google Drive as well.")) {
+                                      handleDeleteVersion && handleDeleteVersion(v.id, v.name);
+                                    }
+                                  }}
+                                  className="px-2.5 py-1.5 rounded bg-rose-500/10 border border-rose-500/25 text-rose-400 text-[10px] font-black uppercase tracking-wider hover:bg-rose-500 hover:text-white transition-all inline-flex items-center gap-1"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" /> Delete
                                 </button>
                               </td>
                             </tr>
@@ -1063,13 +1247,16 @@ export default function ResumeDashboard({
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-white/50">Auto-Import Job Description (URL)</label>
                         <div className="flex gap-2">
                           <input 
-                            type="text" 
+                            type="url" 
+                            name="job-description-url-input-field"
+                            id="job-description-url-input-field"
                             placeholder="Paste Job Listing URL here..."
                             className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500"
                             value={jobUrl}
                             onChange={(e) => setJobUrl(e.target.value)}
-                            autoComplete="off"
+                            autoComplete="new-password"
                             data-1p-ignore
+                            data-lpignore="true"
                           />
                           <button 
                             onClick={() => {
@@ -1137,13 +1324,22 @@ export default function ResumeDashboard({
                         >
                           <Search className="w-3.5 h-3.5" /> Quick Check Suitability
                         </button>
-                        <button 
-                          onClick={handleOptimizeResume}
-                          disabled={isOptimizing || !jobDescription || !resumeText}
-                          className="px-6 py-2.5 rounded-xl bg-emerald-500 text-black text-xs font-black uppercase tracking-widest hover:bg-emerald-400 disabled:opacity-50 transition-all flex items-center gap-2"
-                        >
-                          <Play className="w-3.5 h-3.5 fill-black" /> Run Optimization
-                        </button>
+                        {isOptimizing ? (
+                          <button 
+                            onClick={handleStop}
+                            className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                          >
+                            <X className="w-3.5 h-3.5" /> Stop Optimization
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={handleOptimizeResume}
+                            disabled={!jobDescription || !resumeText}
+                            className="px-6 py-2.5 rounded-xl bg-emerald-500 text-black text-xs font-black uppercase tracking-widest hover:bg-emerald-400 disabled:opacity-50 transition-all flex items-center gap-2"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-black" /> Run Optimization
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -1395,9 +1591,8 @@ export default function ResumeDashboard({
                                 {selectedEngine === 'gemini' && (
                                   <>
                                     <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                                    <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
                                     <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
-                                    <option value="gemini-2.0-flash-thinking-exp-01-21">Gemini Thinking</option>
+                                    <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
                                   </>
                                 )}
                                 {selectedEngine === 'openai' && (
@@ -1781,8 +1976,8 @@ export default function ResumeDashboard({
                     <div className="space-y-4">
                       {[
                         { model: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (Optimization)', limit: quotaLimits['gemini-3.1-pro-preview'] || 1000000 },
-                        { model: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (Default/Tools)', limit: quotaLimits['gemini-3.5-flash'] || 5000000 },
-                        { model: 'gemini-3-flash-preview', name: 'Gemini 3.0 Flash Preview (Fallback)', limit: quotaLimits['gemini-3-flash-preview'] || 10000000 }
+                        { model: 'gemini-3.1-flash', name: 'Gemini 3.1 Flash (Default/Tools)', limit: quotaLimits['gemini-3.1-flash'] || 5000000 },
+                        { model: 'gemini-3-flash-preview', name: 'Gemini 3.0 Flash (Fallback)', limit: quotaLimits['gemini-3-flash-preview'] || 10000000 }
                       ].map((eng, idx) => {
                         const used = usageStats?.totalTokens ? Math.round(usageStats.totalTokens * (idx === 0 ? 0.3 : idx === 1 ? 0.6 : 0.1)) : 0;
                         const pct = Math.min(100, Math.round((used / eng.limit) * 100));
@@ -1839,7 +2034,7 @@ export default function ResumeDashboard({
                       <tbody>
                         {[
                           { model: 'gemini-3.1-pro-preview', limit: quotaLimits['gemini-3.1-pro-preview'] || 1000000, rate: '$0.00125', priority: 'Primary Optimization', status: 'Healthy' },
-                          { model: 'gemini-3.5-flash', limit: quotaLimits['gemini-3.5-flash'] || 5000000, rate: '$0.000075', priority: 'Default Engine', status: 'Healthy' },
+                          { model: 'gemini-3.1-flash', limit: quotaLimits['gemini-3.1-flash'] || 5000000, rate: '$0.000075', priority: 'Default Engine', status: 'Healthy' },
                           { model: 'gemini-3-flash-preview', limit: quotaLimits['gemini-3-flash-preview'] || 10000000, rate: '$0.000075', priority: 'Secondary Fallback', status: 'Healthy' }
                         ].map((q, idx) => (
                           <tr key={idx} className="border-b border-white/5">
@@ -2018,9 +2213,20 @@ export default function ResumeDashboard({
                   </div>
                   <div>
                     <h2 className="text-sm font-black uppercase tracking-widest text-emerald-400">Optimized Resume Preview</h2>
-                    <p className="text-[10px] text-white/50 mt-0.5">
-                      Tailored for {activePreviewResume.personal_info?.name || 'Professional Profile'}
-                    </p>
+                    <div className="flex items-center flex-wrap gap-2 mt-1">
+                      <p className="text-[10px] text-white/50">
+                        Tailored for {activePreviewResume.personal_info?.name || 'Professional Profile'}
+                      </p>
+                      {activePreviewResume.baseline_score !== undefined && activePreviewResume.match_score !== undefined && (
+                        <>
+                          <div className="w-[1px] h-3 bg-white/10 hidden sm:block" />
+                          <span className="text-[9px] uppercase tracking-wider font-bold text-white/40">ATS Score:</span>
+                          <span className="text-[10px] font-black text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">Old: {activePreviewResume.baseline_score}%</span>
+                          <span className="text-[9px] text-neutral-450">➔</span>
+                          <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">New: {activePreviewResume.match_score}%</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <button
@@ -2103,7 +2309,7 @@ export default function ResumeDashboard({
               {/* Main Content Area */}
               <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-neutral-950/40">
                 {previewTab === 'formatted' ? (
-                  <div className="max-w-3xl mx-auto p-8 bg-white text-neutral-800 rounded-2xl shadow-xl space-y-6 font-sans">
+                  <div id="resume-container" className="max-w-3xl mx-auto p-8 bg-white text-neutral-800 rounded-2xl shadow-xl space-y-6 font-sans">
                     {/* Header */}
                     <div className="text-center pb-4 border-b border-neutral-200">
                       <h1 className="text-2xl font-extrabold text-neutral-900 tracking-tight">

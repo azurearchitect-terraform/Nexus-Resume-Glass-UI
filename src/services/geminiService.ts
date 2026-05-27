@@ -104,6 +104,12 @@ function extractJson(text: string): string {
   }
 }
 
+function cleanApiKey(key: string): string {
+  if (!key) return '';
+  // Trim whitespaces, newlines, and strip non-printable/control ASCII characters
+  return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+}
+
 export async function getDecryptedKey(encryptedKey: string): Promise<string> {
   const idToken = await auth.currentUser?.getIdToken();
   let keyToDecrypt = encryptedKey;
@@ -125,8 +131,8 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
     }
   }
 
-  if (!keyToDecrypt) return process.env.GEMINI_API_KEY || '';
-  if (!keyToDecrypt.includes(':')) return keyToDecrypt;
+  if (!keyToDecrypt) return cleanApiKey(process.env.GEMINI_API_KEY || '');
+  if (!keyToDecrypt.includes(':')) return cleanApiKey(keyToDecrypt);
 
   try {
     const response = await fetch('/api/decrypt-keys', {
@@ -139,15 +145,16 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
     });
     if (response.ok) {
       const data = await response.json();
-      return data.keys?.gemini || data.keys?.openai || '';
+      const rawKey = data.keys?.gemini || data.keys?.openai || '';
+      return cleanApiKey(rawKey);
     }
   } catch (e) {
     console.warn("Failed to decrypt key:", e);
   }
-  return process.env.GEMINI_API_KEY || '';
+  return cleanApiKey(process.env.GEMINI_API_KEY || '');
 }
 
-const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash';
+const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
 async function callAI(prompt: string, model: string, engine: EngineType, encryptedKey?: string) {
   const idToken = await auth.currentUser?.getIdToken();
@@ -169,48 +176,64 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
 
       const ai = new GoogleGenAI({ apiKey });
       
+      const getFallbackChain = (startModel: string): string[] => {
+        switch (startModel) {
+          case 'gemini-3.1-pro-preview':
+            return ['gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-3.1-flash-lite'];
+          case 'gemini-3.1-flash-lite':
+            return ['gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+          case 'gemini-3.5-flash':
+            return ['gemini-3.5-flash', 'gemini-3.1-flash-lite'];
+          case 'gemini-3.5-flash-lite':
+            return ['gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+          default:
+            return [startModel, 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+        }
+      };
+
       // Attempt primary model, fallback on error
       const executeWithFallback = async (modelToTry: string): Promise<any> => {
         const isThinkingModel = modelToTry.includes('thinking') || modelToTry.includes(':thinking');
-        const cleanModel = modelToTry.replace(':thinking', '').replace('gemini-1.5-pro', 'gemini-3.1-pro-preview').replace('gemini-1.5-flash', 'gemini-3-flash-preview');
+        let cleanedStart = modelToTry.replace(':thinking', '');
         
-        let nextModel: string | null = null;
-        if (cleanModel === 'gemini-3.1-pro-preview') {
-          nextModel = 'gemini-3.5-flash';
-        } else if (cleanModel === 'gemini-3.5-flash') {
-          nextModel = 'gemini-3-flash-preview';
+        // Exact model mapping without substring replacement issues
+        if (cleanedStart === 'gemini-1.5-pro') {
+          cleanedStart = 'gemini-3.1-pro-preview';
+        } else if (cleanedStart === 'gemini-1.5-flash' || cleanedStart === 'gemini-3-flash-preview' || cleanedStart === 'gemini-3.1-flash') {
+          cleanedStart = 'gemini-3.1-flash-lite';
         }
-              
-        const config = {
-          responseMimeType: prompt.toLowerCase().includes('json') ? "application/json" : "text/plain",
-          thinkingConfig: isThinkingModel ? { thinkingLevel: ThinkingLevel.HIGH } : undefined
-        };
 
-        try {
-          const response = await ai.models.generateContent({ 
-            model: cleanModel,
-            contents: prompt,
-            config
-          });
+        const chain = getFallbackChain(cleanedStart);
+        let lastError: any = null;
 
-          return {
-            result: response.text || "",
-            usage: {
-              promptTokenCount: response.usageMetadata?.promptTokenCount || 0,
-              candidatesTokenCount: response.usageMetadata?.candidatesTokenCount || 0,
-              totalTokenCount: response.usageMetadata?.totalTokenCount || 0
-            }
-          };
-        } catch (innerError: any) {
-          const errorMsg = innerError?.message?.toLowerCase() || "";
-          const isQuotaError = errorMsg.includes("quota") || errorMsg.includes("429") || errorMsg.includes("limit") || errorMsg.includes("exhausted");
-          
-          if (isQuotaError && nextModel) {
-            console.warn(`[Gemini Service] Quota reached for ${cleanModel}. Falling back to ${nextModel}...`);
-            return await executeWithFallback(nextModel);
+        for (const modelName of chain) {
+          try {
+            console.log(`[Gemini Service] Attempting execution with model: ${modelName}`);
+            const response = await ai.models.generateContent({ 
+              model: modelName,
+              contents: prompt,
+              config: {
+                responseMimeType: prompt.toLowerCase().includes('json') ? "application/json" : "text/plain",
+                thinkingConfig: isThinkingModel ? { thinkingLevel: ThinkingLevel.HIGH } : undefined
+              }
+            });
+
+            return {
+              result: response.text || "",
+              usage: {
+                promptTokenCount: response.usageMetadata?.promptTokenCount || 0,
+                candidatesTokenCount: response.usageMetadata?.candidatesTokenCount || 0,
+                totalTokenCount: response.usageMetadata?.totalTokenCount || 0
+              }
+            };
+          } catch (innerError: any) {
+            lastError = innerError;
+            const errorMsg = innerError?.message?.toLowerCase() || "";
+            console.warn(`[Gemini Service] Model ${modelName} failed. Error: ${errorMsg}`);
           }
-          throw innerError;
         }
+        
+        throw lastError || new Error(`All models in fallback chain failed.`);
       };
 
       return await executeWithFallback(model);
@@ -251,13 +274,18 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
       });
 
       if (!response.ok) {
-        throw new Error("Backend AI Call Failed");
+        let errorMsg = "Backend AI Call Failed";
+        try {
+          const errData = await response.json();
+          if (errData.error) errorMsg = errData.error;
+        } catch (e) {}
+        throw new Error(errorMsg);
       }
 
       return await response.json();
-    } catch (error) {
-      console.warn(`[AI Service] OpenAI failed, falling back to Gemini ${FALLBACK_GEMINI_MODEL}...`, error);
-      return await callAI(prompt, FALLBACK_GEMINI_MODEL, 'gemini', encryptedKey);
+    } catch (error: any) {
+      console.error(`[AI Service] OpenAI execution failed:`, error);
+      throw error;
     }
   }
 }
@@ -293,9 +321,9 @@ export async function evaluateSuitability(
   
   let modelToUse = routedConfig.model;
   if (fastMode && routedConfig.engine === 'gemini') {
-    modelToUse = 'gemini-3.1-flash-lite';
+    modelToUse = 'gemini-3.5-flash-lite';
   } else if (!modelToUse) {
-    modelToUse = routedConfig.engine === 'openai' ? 'gpt-4o-mini' : 'gemini-3-flash-preview';
+    modelToUse = routedConfig.engine === 'openai' ? 'gpt-4o-mini' : 'gemini-3.5-flash-lite';
   }
 
   const prompt = `
@@ -376,10 +404,10 @@ export async function optimizeResume(
     if (config.mode === 'production') {
       // In Hybrid mode, fastMode forces Gemini to save costs
       engineToUse = 'gemini';
-      modelToUse = 'gemini-3.1-flash-lite';
+      modelToUse = 'gemini-3.5-flash-lite';
     } else {
       // In single-engine mode, just use the smaller model
-      modelToUse = routedConfig.engine === 'openai' ? 'gpt-4o-mini' : 'gemini-3-flash-preview';
+      modelToUse = routedConfig.engine === 'openai' ? 'gpt-4o-mini' : 'gemini-3.5-flash-lite';
     }
   }
 
@@ -529,6 +557,8 @@ VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
 * NEVER add technologies not actually used.
 * NEVER imply software engineering background.
 * NEVER create fake coding-heavy experience.
+* SKILLS MATCHING RULES: Extract and mention ONLY the skills that are present in or directly matching the candidate's actual resume. Do NOT list or invent skills that the candidate does not have on their original resume.
+* TECHNOLOGY FOCUS: Do NOT focus too much on DevOps, Terraform, or Microservices / container services (like Kubernetes, Docker, AKS). Keep the emphasis on Enterprise Azure Infrastructure, Governance, Security, Resiliency, Operations, and Modernization scaling.
 
 CANDIDATE REAL BACKGROUND:
 * 16+ years in enterprise infrastructure and cloud operations.
@@ -556,9 +586,10 @@ STRICT FAANG RESUME RULES:
 8. USE METRICS NATURALLY: Cost savings, MTTR reduction, Downtime reduction, Subscription scale, VM scale, Team size, Reliability improvement, Governance coverage, Compliance metrics, Operational efficiency, SLA improvements, Infrastructure availability.
 9. ATS OPTIMIZATION TARGET KEYWORDS: Azure Infrastructure Architect, Cloud Infrastructure Leader, Enterprise Cloud Architect, Cloud Operations Manager, Director of Infrastructure, Infrastructure Governance, Hybrid Cloud, Cloud Reliability, HA/DR, Cloud Security, Azure Operations, Infrastructure Transformation, IT Service Delivery, Cloud Governance, Enterprise Infrastructure.
 10. FORMATTING & BULLET QUANTITY RULES:
-    - Maximum 4 bullets per role.
-    - Prioritize recent experience.
-    - Provide 1 bullet point maximum for older roles (pre-2018).
+    - Concentrix and M&M: 2-line descriptions with a maximum of 5 to 6 bullet points. Each bullet point should be high impact and can span up to 2 lines of text.
+    - Archer: Exactly 4 to 5 high-impact bullet points. Each bullet point must be strictly a single line of text (1-line description).
+    - Casepoint: Exactly 4 high-impact bullet points. Each bullet point must be strictly a single line of text (1-line description).
+    - For all other (older) roles: Keep strictly one-line (1-line) descriptions for every single bullet point. Do not exceed a single line of text for any bullet point under these older roles. Max 3 to 4 bullets per role, and exactly 1 bullet point for roles pre-2018.
     - Keep technical density high and use concise executive-style language.
     - Remove repetitive wording.
 11. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
@@ -699,8 +730,8 @@ OUTPUT SCHEMA (MUST MATCH EXACTLY):
         
         // Fallback to Flash if Pro fails with rate limit or JSON error
         if (engineToUse === 'gemini' && (currentModel.includes('pro') || currentModel.includes('3.1-pro'))) {
-          console.warn(`Error hit on Gemini Pro. Falling back to Gemini 3 Flash for retry ${retryCount}...`);
-          currentModel = 'gemini-3-flash-preview';
+          console.warn(`Error hit on Gemini Pro. Falling back to Gemini 3.5 Flash for retry ${retryCount}...`);
+          currentModel = 'gemini-3.5-flash';
         }
 
         const delay = Math.pow(2, retryCount) * 2000 + Math.random() * 1000;
@@ -838,9 +869,9 @@ export async function analyzeBestAudiences(
   
   let modelToUse = routedConfig.model;
   if (fastMode && routedConfig.engine === 'gemini') {
-    modelToUse = 'gemini-3.1-flash-lite';
+    modelToUse = 'gemini-3.5-flash-lite';
   } else if (!modelToUse) {
-    modelToUse = 'gemini-3-flash-preview';
+    modelToUse = 'gemini-3.5-flash-lite';
   }
   const prompt = `
     Analyze the following Job Description and Target Role.
@@ -931,13 +962,26 @@ export async function selectBestMasterResume(
   const ai = new GoogleGenAI({ apiKey });
 
   const mastersSummary = resumes.map((m) => {
-    const content = typeof m.data === 'string' ? m.data : JSON.stringify(m.data);
-    return `ID: ${m.id}\nName: ${m.name}\nContext: ${content.substring(0, 1500)}...`;
+    try {
+      const data = typeof m.data === 'string' ? JSON.parse(m.data) : m.data;
+      const experienceSummary = data.experience 
+        ? data.experience.map((exp: any) => `${exp.title || exp.role} at ${exp.company || exp.organization}`).join(", ")
+        : "No experience listed";
+      const skillsSummary = data.skills 
+        ? Object.values(data.skills).flat().join(", ").substring(0, 500)
+        : "No skills listed";
+      
+      return `ID: ${m.id}\nName: ${m.name}\nExperience: ${experienceSummary}\nKey Skills: ${skillsSummary}...`;
+    } catch (e) {
+      const content = typeof m.data === 'string' ? m.data : JSON.stringify(m.data);
+      return `ID: ${m.id}\nName: ${m.name}\nContext: ${content.substring(0, 1000)}...`;
+    }
   }).join("\n\n---\n\n");
 
   const prompt = `
-    Analyze the following Job Description and the list of available "Master Resumes".
+    Analyze the following Job Description and the list of available "Master Resumes" (summarized below).
     Pick the SINGLE Master Resume ID that is the most relevant and best starting point to optimize for this job.
+    Look at the candidate's Experience and Skills from each profile.
     
     JOB DESCRIPTION:
     ${jobDescription}
@@ -1190,7 +1234,7 @@ export async function autoSelectPlayerCoachRole(
   `;
 
   try {
-    const data = await callAI(prompt, 'gemini-3-flash-preview', 'gemini', routedConfig.apiKey);
+    const data = await callAI(prompt, routedConfig.model || 'gemini-3.5-flash-lite', 'gemini', routedConfig.apiKey);
     const resultText = extractJson(data.result || "");
     const parsed = JSON.parse(resultText);
     return parsed.isPlayerCoach;

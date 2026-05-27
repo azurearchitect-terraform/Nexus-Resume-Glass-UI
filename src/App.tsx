@@ -92,7 +92,7 @@ import {
   sendPasswordResetEmail,
   browserPopupRedirectResolver
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, addDoc, getDocs, query, orderBy, increment, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, addDoc, getDocs, query, orderBy, increment, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { handleFirestoreError } from './lib/firebaseUtils';
 import { OperationType } from './types';
 import { DriveFolderPicker } from './components/DriveFolderPicker';
@@ -377,9 +377,28 @@ export default function App() {
             }
             if (data.encryptedApiKey) {
               setEncryptedApiKey(data.encryptedApiKey);
-              setOpenaiApiKey(''); // Placeholder
-              setGeminiApiKey(''); // Placeholder
               setIsApiKeySaved(true);
+              
+              try {
+                const idToken = await currentUser.getIdToken();
+                const response = await fetch('/api/decrypt-keys', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                  },
+                  body: JSON.stringify({ encryptedKey: data.encryptedApiKey })
+                });
+                if (response.ok) {
+                  const resData = await response.json();
+                  if (resData.keys) {
+                    if (resData.keys.gemini) setGeminiApiKey(resData.keys.gemini);
+                    if (resData.keys.openai) setOpenaiApiKey(resData.keys.openai);
+                  }
+                }
+              } catch (e) {
+                console.error("Failed to auto-decrypt API keys on login:", e);
+              }
             }
             if (data.driveAccessToken) {
               setDriveAccessToken(data.driveAccessToken);
@@ -2189,6 +2208,40 @@ export default function App() {
     }
   };
 
+  const handleDeleteVersion = async (versionId: string, versionName: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'resumeVersions', versionId));
+      showToast('Optimization version deleted', 'success');
+
+      if (driveAccessToken || process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+        const targetPdfName = `${versionName}.pdf`;
+        const matchingFiles = driveFiles.filter(f => f.name === targetPdfName || f.name === versionName);
+        
+        for (const file of matchingFiles) {
+          try {
+            await fetch('/api/delete-drive-file', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                fileId: file.id,
+                accessToken: driveAccessToken 
+              })
+            });
+            console.log(`Deleted matching Drive file: ${file.name}`);
+          } catch (e) {
+            console.error(`Failed to delete matching Drive file ${file.name}:`, e);
+          }
+        }
+        fetchDriveFiles();
+      }
+
+      window.dispatchEvent(new CustomEvent('resumeHistoryUpdated'));
+    } catch (err) {
+      showToast('Failed to delete optimization version', 'error');
+    }
+  };
+
   const toggleReport = (id: string) => {
     setExpandedReports(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -2983,6 +3036,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           handleGoogleLogin={handleGoogleLogin}
           handleLogout={handleLogout}
           handleOptimizeResume={handleOptimize}
+          handleStop={handleStop}
+          handleDeleteVersion={handleDeleteVersion}
           isOptimizing={isOptimizing}
           optimizationStatus={optimizationStatus}
           optimizationError={error}
@@ -3743,9 +3798,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                       {selectedEngine === 'gemini' && (
                                         <>
                                           <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                                          <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
                                           <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
-                                          <option value="gemini-2.0-flash-thinking-exp-01-21">Gemini Thinking</option>
+                                          <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
                                         </>
                                       )}
                                       {selectedEngine === 'openai' && (
