@@ -15,6 +15,7 @@ VERB GOVERNANCE (STRICT ENFORCEMENT):
 - BANNED ACTION VERBS (DO NOT USE): Spearheaded, Orchestrated, Pioneered, Directed, Revolutionized, Conceptualized. These make the resume sound AI-generated.
 - APPROVED GROUNDED ACTION VERBS: Managed, Implemented, Coordinated, Governed, Standardized, Optimized, Delivered, Configured, Automated, Led, Resolved, Streamlined, Improved, Maintained, Deployed.
 - Keep verbiage operational, believable, and technically accurate.
+- SOFTEN LEADERSHIP WORDING: Avoid aggressive executive ownership. For example, instead of "Led and mentored a 5-member cloud engineering team", prefer "Provided operational guidance and mentoring to a 5-member cloud engineering team".
 `;
   }
 
@@ -26,6 +27,12 @@ RESUME DENSITY CONTROL:
 - Maximum 1 metric per bullet point.
 - Avoid stacked enterprise buzzwords (e.g. do NOT write: "Orchestrated strategic enterprise cloud transformation modernization initiatives").
 - Avoid long compound sentences. Simplify and humanize.
+- REDUCE KEYWORD STACKING IN SKILLS: Do not stack keywords. Prioritize high-relevance skills present in the candidate's original resume.
+- REDUCE OVERUSE OF BANNED JARGON:
+  - "governance": Replace with "operational standards", "platform controls", "compliance alignment", "operational policies", "infrastructure standards", or "reliability practices".
+  - "operational" / "enterprise": Reduce repetitive usage. Vary wording naturally to sound written by a human.
+- SUMMARY REALISM: Avoid overly executive wording in the summary if the designation history does not fully support it. Keep it grounded in senior infrastructure execution.
+- DOWNGRADE OVER-OPTIMIZATION: If a bullet point sounds too strategic, too perfect, or too ATS-engineered, downgrade it slightly into natural enterprise operational language.
 `;
   }
 
