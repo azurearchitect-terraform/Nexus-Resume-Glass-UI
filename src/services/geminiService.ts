@@ -557,6 +557,8 @@ VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
 * NEVER add technologies not actually used.
 * NEVER imply software engineering background.
 * NEVER create fake coding-heavy experience.
+* NEVER add any fake technologies or fake details to the job description or optimized resume.
+* DO NOT add or focus on ITIL (ITTL) certification; exclude it from certifications unless explicitly present in the original resume.
 * SKILLS MATCHING RULES: Extract and mention ONLY the skills that are present in or directly matching the candidate's actual resume. Do NOT list or invent skills that the candidate does not have on their original resume.
 * TECHNOLOGY FOCUS: Do NOT focus too much on DevOps, Terraform, or Microservices / container services (like Kubernetes, Docker, AKS). Keep the emphasis on Enterprise Azure Infrastructure, Governance, Security, Resiliency, Operations, and Modernization scaling.
 

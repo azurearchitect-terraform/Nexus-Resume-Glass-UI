@@ -621,7 +621,7 @@ export default function ResumeDashboard({
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 pdfData: base64data,
-                fileName: `${personal.name || 'Resume'}_Optimized.pdf`,
+                fileName: `${targetRole || 'Resume'}-${companyName || 'Company'}.pdf`,
                 versioningEnabled: true,
                 accessToken: driveAccessToken,
                 parentFolderId: selectedDriveFolder?.id
@@ -640,7 +640,7 @@ export default function ResumeDashboard({
       const downloadLinkUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadLinkUrl;
-      a.download = `${personal.name || 'Resume'}_Optimized.pdf`;
+      a.download = `${targetRole || 'Resume'}-Harnish Jariwala.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
