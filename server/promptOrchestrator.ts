@@ -13,9 +13,14 @@ export class PromptOrchestrator {
     return `
 VERB GOVERNANCE (STRICT ENFORCEMENT):
 - BANNED ACTION VERBS (DO NOT USE): Spearheaded, Orchestrated, Pioneered, Directed, Revolutionized, Conceptualized. These make the resume sound AI-generated.
-- APPROVED GROUNDED ACTION VERBS: Managed, Implemented, Coordinated, Governed, Standardized, Optimized, Delivered, Configured, Automated, Led, Resolved, Streamlined, Improved, Maintained, Deployed.
+- APPROVED GROUNDED ACTION VERBS: Managed, Implemented, Coordinated, Governed, Standardized, Optimized, Delivered, Configured, Automated, Led, Resolved, Streamlined, Improved, Maintained, Deployed, Supported.
 - Keep verbiage operational, believable, and technically accurate.
-- SOFTEN LEADERSHIP WORDING: Avoid aggressive executive ownership. For example, instead of "Led and mentored a 5-member cloud engineering team", prefer "Provided operational guidance and mentoring to a 5-member cloud engineering team".
+- SOFTEN LEADERSHIP WORDING: Avoid aggressive executive ownership. For example:
+  - Instead of "Led and mentored a 5-member cloud engineering team", prefer "Provided operational guidance and mentoring to a 5-member cloud engineering team".
+- WORDING TRANSLATION RULES (DOWNGRADE OVER-OPTIMIZATION):
+  - Change "Governed major incident response processes" to "Coordinated major incident response activities".
+  - Change "Defined operational governance standards" to "Established platform standards and monitoring practices".
+  - If a bullet sounds too strategic, too perfect, or too ATS-engineered, downgrade it slightly into natural, believable operational language.
 `;
   }
 
@@ -27,12 +32,11 @@ RESUME DENSITY CONTROL:
 - Maximum 1 metric per bullet point.
 - Avoid stacked enterprise buzzwords (e.g. do NOT write: "Orchestrated strategic enterprise cloud transformation modernization initiatives").
 - Avoid long compound sentences. Simplify and humanize.
-- REDUCE KEYWORD STACKING IN SKILLS: Do not stack keywords. Prioritize high-relevance skills present in the candidate's original resume.
+- REDUCE KEYWORD STACKING IN SKILLS: Do not stack keywords. Prioritize high-relevance skills present in the candidate's original resume, balancing ATS optimization with human scannability.
 - REDUCE OVERUSE OF BANNED JARGON:
   - "governance": Replace with "operational standards", "platform controls", "compliance alignment", "operational policies", "infrastructure standards", or "reliability practices".
   - "operational" / "enterprise": Reduce repetitive usage. Vary wording naturally to sound written by a human.
-- SUMMARY REALISM: Avoid overly executive wording in the summary if the designation history does not fully support it. Keep it grounded in senior infrastructure execution.
-- DOWNGRADE OVER-OPTIMIZATION: If a bullet point sounds too strategic, too perfect, or too ATS-engineered, downgrade it slightly into natural enterprise operational language.
+- SUMMARY REALISM: Avoid overly executive wording in the summary. Keep it grounded in senior infrastructure execution, SLA/service stability, and Azure + Hybrid Cloud operations.
 `;
   }
 
@@ -42,7 +46,7 @@ RESUME DENSITY CONTROL:
 METRIC VALIDATION ENGINE (CONSERVATIVE MODE - STRICT FACTUAL ADHERENCE):
 - DO NOT invent, estimate, or extrapolate any numbers, budgets, scale metrics, or percentages.
 - Use ONLY metrics explicitly present in the candidate's original resume data.
-- If a bullet lacks explicit metrics, focus entirely on qualitative technical achievements, compliance governance, or operational stability outcomes.
+- If a bullet lacks explicit metrics, focus entirely on qualitative technical achievements, compliance alignment, or operational stability outcomes.
 - NEVER write "100% compliance", "100% operational alignment", or stack arbitrary percentages.
 `;
     }
@@ -67,25 +71,35 @@ METRIC VALIDATION ENGINE (BALANCED MODE - DEFAULT):
   }
 
   static getPersonaDirectives(persona: PersonaStyle): string {
+    const generalPersonaRules = `
+TARGET POSITIONING CONTROLS:
+- POSITION CANDIDATE AS: Infrastructure Operations Lead, Azure Infrastructure Specialist, Cloud Operations Professional, Infrastructure Delivery Professional, MSP Infrastructure Engineer, or Technical Operations Specialist.
+- DO NOT POSITION AS: Executive Director, Transformation Executive, Cloud-Native Architect, Kubernetes Specialist, or DevOps Leader.
+- PRESERVE AND STRENGTHEN MSP SIGNALS: SLA/OLA alignment, incident management, escalation handling, operational readiness, service stability, cross-functional coordination, disaster recovery, runbooks/SOPs, L1/L2/L3 coordination.
+`;
+
     switch (persona) {
       case 'technical_ic':
         return `
+${generalPersonaRules}
 PERSONA: TECHNICAL INDIVIDUAL CONTRIBUTOR (IC):
-- Focus: Azure landing zones, cloud governance, security, HA/DR resiliency, standardization, configuration, and operational engineering.
+- Focus: Azure landing zones, cloud platform controls, security, HA/DR resiliency, standardization, configuration, and operational engineering.
 - BANNED: Executive transformation language, direct people management claims, hiring/firing authority, strategic organization ownership.
 - Wording style: Grounded, technical, and operational. Focus on execution and design.
 `;
       case 'delivery_lead':
         return `
+${generalPersonaRules}
 PERSONA: DELIVERY LEAD:
-- Focus: Escalation coordination, service delivery monitoring, SLA coordination support, incident management, stakeholder collaboration, and operational leadership.
-- Focus on acting as a secondary lead or coordinator, managing workflow processes rather than formal department ownership.
+- Focus: Escalation coordination, service delivery monitoring, SLA coordination support, incident management, stakeholder collaboration, and operational coordination.
+- Focus on acting as a secondary lead or coordinator, managing workflow processes rather than formal department ownership or formal people management.
 `;
       case 'executive_leadership':
         return `
+${generalPersonaRules}
 PERSONA: EXECUTIVE LEADERSHIP:
-- Focus: Cloud modernization roadmaps, governance strategies, strategic cost optimization, enterprise alignment, and stakeholder communication.
-- Focus on business value and high-level architectural governance. NOTE: Wording must still be realistic and grounded.
+- Focus: Cloud modernization roadmaps, platform controls, strategic cost optimization, enterprise alignment, and stakeholder communication.
+- Focus on business value and high-level architectural standards. NOTE: Wording must still be realistic and grounded; avoid over-executive branding or exaggerated strategic language.
 `;
     }
   }
@@ -137,11 +151,12 @@ HUMANIZATION & JARGON REDUCTION RULES:
     return `
 RECRUITER SKEPTICISM AUDIT & SELF-CORRECTION:
 - Evaluate output against a strict Recruiter skepticism check:
-  1. Do the achievements sound realistic for the candidate's title and tenure?
-  2. Are there any perfect metrics ("100% compliance", "100% uptime")?
-  3. Is there buzzword overload?
+  1. Do the achievements sound realistic for the candidate's title and tenure? (Check short-tenure roles for over-exaggerated claims).
+  2. Are there any perfect metrics ("100% compliance", "100% uptime", "100% SLA alignment")?
+  3. Is there buzzword overload or keyword stuffing?
   4. Are there any banned AI verbs (Spearheaded, Orchestrated, Pioneered, Directed)?
-- Provide a realism score (0 to 100). If the score is below 90, trigger self-correction instructions to automatically downgrade and simplify the wording.
+  5. Are there any suspicious strategic leadership claims for operational coordination roles?
+- Provide a realism score (0 to 100). If the score is below 90, trigger self-correction instructions to automatically downgrade and simplify the wording into believable operational language.
 `;
   }
 
