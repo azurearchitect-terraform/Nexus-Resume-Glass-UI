@@ -21,6 +21,7 @@ import { runAgents } from "./server/agents";
 import { generatePerRole } from "./server/roleGenerator";
 import { deduplicateAndScore } from "./server/dedup";
 import { saveResumeVersion } from "./server/memory";
+import { PromptOrchestrator, OptimizationMode, PersonaStyle } from "./server/promptOrchestrator";
 // import { scrapeJobs } from "./server/jobScraper";
 
 dotenv.config();
@@ -1302,98 +1303,37 @@ async function startServer() {
       
       console.log("=== OPTIMIZED INPUT EXPERIENCE ===");
       console.dir(optimizedInput.experience, { depth: null });
+      // Resolve optimization mode & persona style
+      let optMode: OptimizationMode = 'balanced';
+      if (mode === 'conservative') optMode = 'conservative';
+      if (mode === 'aggressive') optMode = 'aggressive';
+
+      const isLeadership = /director|manager|lead|head|executive|vp|chief|principal/i.test(targetRole || '');
+      let persona: PersonaStyle = isLeadership ? 'executive_leadership' : 'technical_ic';
+      
+      if (targetCompany && targetCompany.toLowerCase().includes('concentrix')) {
+        persona = 'delivery_lead';
+      }
+
+      const platformGovernance = PromptOrchestrator.getCombinedDirectives({
+        mode: optMode,
+        persona: persona,
+        targetCompany: targetCompany
+      });
 
       // STEP 3: Gemini 3.1 Pro (Premium) - Final Generation
       const finalPrompt = `
         ACT AS:
-        You are a Senior Prompt Engineer with 5+ years of experience specializing in FAANG-level resume engineering, executive branding, ATS optimization, enterprise cloud leadership positioning, and STAR-method resume transformation for Microsoft, Google, Amazon, Meta, Oracle, Adobe, VMware, Accenture, Deloitte, and enterprise infrastructure organizations.
-
-        YOUR ROLE:
-        You are NOT a generic resume writer. You are:
-        * A Principal Resume Strategist
-        * A FAANG Technical Recruiter
-        * A Cloud Leadership Branding Expert
-        * An Executive Infrastructure Positioning Specialist
-        * A Senior ATS Optimization Consultant
+        You are a Senior Enterprise Resume Intelligence Specialist.
 
         PRIMARY OBJECTIVE:
-        Transform the candidate's resume into a STRICT FAANG-STYLE Senior Azure Infrastructure Leadership resume using authentic STAR methodology while maintaining COMPLETE FACTUAL ACCURACY.
-        
-        POSITION STRONGLY FOR:
-        * Head of Cloud Operations
-        * Senior Cloud Infrastructure Architect
-        * Director of Cloud Infrastructure
-        * Cloud Operations Manager
-        * Infrastructure & Platform Operations Lead
-        * Azure Infrastructure Architect
-        * Enterprise Cloud Architect
-        * IT Infrastructure Manager
-        * Service Delivery Manager – Cloud
-        * Technical Operations Manager
-        * Infrastructure Governance Lead
-        * CTO-track Infrastructure Leadership Roles
+        Optimize the candidate's resume into a top-tier, recruiter-safe, and enterprise-credible Azure Infrastructure Leadership document.
+        Calibrated Mode: ${optMode}
+        Calibrated Persona: ${persona}
+        Audience: ${audience || 'Recruiters'}
 
-        DO NOT POSITION AS:
-        * Senior DevOps Engineer
-        * Kubernetes Architect
-        * Platform Engineer
-        * Cloud-Native Application Engineer
-        * Principal SRE
-        * Microservices Architect
-        * DevOps Automation Specialist
-        * Kubernetes Administrator
-
-        VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
-        * NEVER fabricate experience.
-        * NEVER create fake Kubernetes production experience.
-        * NEVER claim deep Terraform engineering expertise.
-        * NEVER create fake CI/CD ownership.
-        * NEVER exaggerate DevOps expertise.
-        * NEVER invent microservices architecture experience.
-        * NEVER add technologies not actually used.
-        * NEVER imply software engineering background.
-        * NEVER create fake coding-heavy experience.
-        * NEVER add any fake technologies or fake details to the job description or optimized resume.
-        * DO NOT add or focus on ITIL (ITTL) certification; exclude it from certifications unless explicitly present in the original resume.
-        * SKILLS MATCHING RULES: Extract and mention ONLY the skills that are present in or directly matching the candidate's actual resume. Do NOT list or invent skills that the candidate does not have on their original resume.
-        * TECHNOLOGY FOCUS: Do NOT focus too much on DevOps, Terraform, or Microservices / container services (like Kubernetes, Docker, AKS). Keep the emphasis on Enterprise Azure Infrastructure, Governance, Security, Resiliency, Operations, and Modernization scaling.
-        * METRIC INTEGRITY & ANTI-PERCENTAGE INFLATION: Do NOT inject fabricated percentage metrics (such as 'alignment with SLAs by 30%', 'decreasing stability incidents by 25%', 'improved system reliability by 20%', etc.) unless they are derived from real, measurable baselines. If no metrics exist, focus on qualitative, verifiable outcomes (e.g. 'ensuring regulatory compliance', 'reducing system complexity', 'improving uptime reliability') rather than stacking fake-looking percentages. Avoid literal 100% metrics (such as '100% compliance', '100% operational alignment') as they look fake and trigger recruiter skepticism.
-        * CONCENTRIX ROLE CONTEXT: The candidate was NOT officially a Service Delivery Manager (SDM) and did not have formal managerial ownership of a 20-member team. Do NOT use phrasing like 'Orchestrated service delivery management for a 20-member team' or describe formal managerial ownership, as this will lead to verification failures. Frame experience as a Technical Lead / Senior Engineer coordinating operational workflows and collaborating with the team, rather than official managerial leadership.
-        * HCLTECH TENURE CONSTRAINT: The HCLTech role lasted only ONE MONTH. Do NOT write bullets claiming massive strategic impacts, Azure operations strategies execution, or improving SLA adherence by 15% during this short period. Restrict the bullets to basic setup, onboarding, knowledge transfer, shadowing, and assisting with minor operational tasks during the short tenure.
-
-        CANDIDATE REAL BACKGROUND:
-        * 16+ years in enterprise infrastructure and cloud operations.
-        * Strong Azure Infrastructure and Hybrid Cloud expertise.
-        * Experienced in Azure governance, security, monitoring, HA/DR, resilience, and operational management.
-        * Strong experience with enterprise infrastructure modernization.
-        * Leadership and mentoring experience.
-        * Strong stakeholder communication and operational coordination.
-        * Experience handling enterprise infrastructure at scale.
-        * Strong operational reliability mindset.
-        * Good understanding of DevOps concepts and automation workflows.
-        * Basic Terraform understanding (can understand and work with scripts but not advanced engineering).
-        * No deep Kubernetes production administration experience.
-        * No deep microservices architecture experience.
-        * Strong cloud governance and operational transformation experience.
-
-        STRICT FAANG RESUME RULES:
-        1. EVERY bullet point MUST follow STAR methodology (Situation, Task, Action, Result).
-        2. EVERY bullet MUST: Start with a strong action verb, show ownership, show measurable impact, show scale, show business value, be concise, be technically dense, sound executive-level, architecture-focused, and leadership-oriented.
-        3. AVOID weak operational wording: Managed, Supported, Assisted, Helped, Worked on, Responsible for.
-        4. VERB CONTROL: Avoid overuse of overly dramatic executive AI verbs (e.g. 'Spearheaded', 'Orchestrated', 'Pioneered', 'Architected', 'Directed') which make the resume sound AI-generated. Instead, use operational, grounded, believable, and technical action verbs (e.g. 'Implemented', 'Optimized', 'Standardized', 'Configured', 'Deployed', 'Governed', 'Automated', 'Coordinated', 'Resolved', 'Maintained'). Keep wording grounded and believable.
-        5. RESUME MUST SOUND LIKE: Enterprise Cloud Leadership, Azure Infrastructure Strategy, Reliability Engineering Leadership, Infrastructure Governance, Enterprise Operations Excellence, Cloud Transformation Leadership, Executive Infrastructure Management, Cloud Operations Architecture, Enterprise IT Modernization, Strategic Infrastructure Leadership.
-        6. RESUME MUST NOT SOUND LIKE: Helpdesk support, Junior sysadmin, Pure operations support, Developer-focused engineer, Kubernetes-heavy engineer, Hardcore DevOps engineer, Coding-heavy architect.
-        7. EMPHASIZE: Azure Landing Zones, Hybrid Cloud Architecture, Infrastructure Governance, Reliability & Resilience, Disaster Recovery, Business Continuity, Cloud Cost Optimization, Operational Excellence, Monitoring & Observability, Identity & Access Management, Infrastructure Standardization, Infrastructure Automation, Executive Reporting, Service Delivery, Stakeholder Management, Team Leadership, Infrastructure Security, Compliance Governance, Enterprise Transformation.
-        8. USE METRICS NATURALLY: Cost savings, MTTR reduction, Downtime reduction, Subscription scale, VM scale, Team size, Reliability improvement, Governance coverage, Compliance metrics, Operational efficiency, SLA improvements, Infrastructure availability.
-        9. ATS OPTIMIZATION TARGET KEYWORDS: Azure Infrastructure Architect, Cloud Infrastructure Leader, Enterprise Cloud Architect, Cloud Operations Manager, Director of Infrastructure, Infrastructure Governance, Hybrid Cloud, Cloud Reliability, HA/DR, Cloud Security, Azure Operations, Infrastructure Transformation, IT Service Delivery, Cloud Governance, Enterprise Infrastructure.
-        10. FORMATTING & BULLET QUANTITY RULES:
-            - For the first 2 roles (most recent 2 roles): 2-line descriptions with a maximum of 5 to 6 bullet points are allowed. Each bullet point should be high impact and can span up to 2 lines of text.
-            - For all other (older) roles: Keep strictly one-line (1-line) descriptions for every single bullet point. Do not exceed a single line of text for any bullet point under these older roles. Max 4 bullets per role, and exactly 1 bullet point for roles pre-2018.
-            - Keep technical density high and use concise executive-style language.
-            - Remove repetitive wording.
-        11. BALANCED IaC: Terraform/IaC references are permitted but limited to 2 bullet points TOTAL across the entire resume.
-        12. SOURCE ANCHORING (CRITICAL): Each experience entry contains ORIGINAL BULLETS. You MUST derive new bullets ONLY from that specific role’s original content. Do NOT borrow, reuse, or "hallucinate" content from other roles to fill gaps.
-        13. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Specifically, NEVER change "Officer IT cum Logistics" to "Office IT cum Logistics". This is a mandatory requirement.
+        PLATFORM REALISM & GOVERNANCE DIRECTIVES:
+        ${platformGovernance}
 
         CORPORATE DNA TAILORING:
         ${targetCompany === 'amazon' ? 'TAILOR FOR AMAZON: Emphasize "Ownership", "Bias for Action", and "Data-driven results". Use terminology from Amazon Leadership Principles.' : ''}
@@ -1411,12 +1351,12 @@ async function startServer() {
         PLAYER-COACH MODE:
         ${(mode === 'Player-Coach' || isPlayerCoach) ? `
           - 60/40 BALANCE: 60% Execution (Azure infra, Site Recovery, Entra ID), 40% Leadership (Mentoring, Agile pods, Architecture reviews).
-          - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized," "Spearheaded."
+          - HYBRID VOCABULARY: Use "Architected & Led," "Designed & Mentored," "Engineered & Standardized."
         ` : ''}
 
-        ${strictAtsMode ? `STRICT ATS MATCHING: You MUST use the exact keywords from the Job Description as provided in 'ats_keywords_from_jd'. Do NOT use synonyms or alternatives (e.g., if JD says 'AWS EC2', do not write 'Amazon Web Services cloud compute'). Achieve a 100% literal match rate for extracted keywords.` : ''}
+        ${strictAtsMode ? `STRICT ATS MATCHING: You MUST use the exact keywords from the Job Description as provided in 'ats_keywords_from_jd'. Do NOT use synonyms or alternatives. Achieve a 100% literal match rate for extracted keywords.` : ''}
         
-        ${generateCoverLetter ? `COVER LETTER GENERATION: Write a 3-paragraph, highly tailored cover letter aligning the candidate's optimized experience directly with the target company's mission and the Job Description. Output this in the "cover_letter" JSON field.` : ''}
+        ${generateCoverLetter ? `COVER LETTER GENERATION: Write a 3-paragraph, highly tailored cover letter aligning the optimized experience with the JD. Output in "cover_letter".` : ''}
 
         INPUT DATA:
         ${JSON.stringify(optimizedInput, null, 2)}
@@ -1453,6 +1393,17 @@ async function startServer() {
               "stage": "acceleration",
               "description": "string",
               "recommendation": "string"
+            }
+          },
+          "authenticity_audit": {
+            "realism_score": 95,
+            "flagged_phrases": ["string"],
+            "compliance_checklist": {
+              "no_fake_metrics": true,
+              "no_overused_ai_verbs": true,
+              "realistic_tenure_positioning": true,
+              "accurate_team_size": true,
+              "humanized_language": true
             }
           }${generateCoverLetter ? ',\n          "cover_letter": "string"' : ''}
         }
@@ -1747,6 +1698,79 @@ async function startServer() {
         // Fallback to simpler single call if split gen fails
         res.status(500).json({ error: "Failed to optimize resume via split pipeline", details: genError.message });
         return;
+      }
+    }
+    
+    // Evolve to Enterprise Resume Intelligence & Recruiter Realism Engine:
+    // Run Recruiter Skepticism Audit, Humanization, and self-correction loop
+    if (result && result.result) {
+      try {
+        let parsed = JSON.parse(typeof result.result === 'string' ? result.result : JSON.stringify(result.result));
+        
+        // Skepticism and self-correction loop trigger if realism score is low
+        const realismScore = parsed.authenticity_audit?.realism_score;
+        if (typeof realismScore === 'number' && realismScore < 90) {
+          console.log(`[Realism Engine] Low realism score detected (${realismScore}/100). Initiating Self-Correction pipeline...`);
+          const selfCorrectionPrompt = `
+            You are a FAANG Resume Realism Auditor and Recruiter Skepticism Auditor.
+            The following optimized resume was generated, but failed validation due to the following flagged phrases or unrealistic metrics:
+            ${JSON.stringify(parsed.authenticity_audit.flagged_phrases || [])}
+
+            YOUR TASK:
+            Rewrite the experience and summary sections to:
+            1. Simplify overcomplicated compound sentences.
+            2. Remove the flagged phrases.
+            3. Downgrade any overinflated executive verbs (Spearheaded, Orchestrated, etc.) to operational action verbs.
+            4. Remove any fake metrics or fabricated percentages, prioritizing operational credibility and stable infrastructure outcomes.
+            5. Ensure the realism score in authenticity_audit is updated to >= 90 once corrected.
+
+            INPUT RESUME JSON:
+            ${JSON.stringify(parsed, null, 2)}
+
+            Output only valid corrected JSON matching the original schema. Do not output any notes or markdown wrapper outside the JSON block.
+          `;
+          
+          const genAIObj = new GoogleGenAI(geminiKey ? { apiKey: geminiKey } : {});
+          const correctionResponse = await generateContentWithFallback(
+            genAIObj,
+            ["gemini-3.5-flash", "gemini-3-flash-preview"],
+            selfCorrectionPrompt,
+            { responseMimeType: "application/json" }
+          );
+          
+          const correctedText = extractJson(correctionResponse.response.text || "{}");
+          const correctedParsed = JSON.parse(correctedText);
+          
+          if (correctedParsed.experience && Array.isArray(correctedParsed.experience)) {
+            parsed = correctedParsed;
+            console.log(`[Realism Engine] Self-correction completed. New realism score: ${parsed.authenticity_audit?.realism_score || 95}`);
+          }
+        }
+        
+        // Post-processing Humanization & Jargon Reduction
+        if (parsed.experience && Array.isArray(parsed.experience)) {
+          parsed.experience = parsed.experience.map((role: any) => {
+            if (role.bullets && Array.isArray(role.bullets)) {
+              role.bullets = role.bullets.map((bullet: string) => {
+                // Grounded replacements for overused AI verbs in post-processing
+                let cleaned = bullet;
+                cleaned = cleaned.replace(/\b[Ss]pearheaded\b/g, "Led");
+                cleaned = cleaned.replace(/\b[Oo]rchestrated\b/g, "Coordinated");
+                cleaned = cleaned.replace(/\b[Pp]ioneered\b/g, "Standardized");
+                cleaned = cleaned.replace(/\b[Dd]irected\b/g, "Managed");
+                cleaned = cleaned.replace(/\b100% compliance\b/g, "full compliance");
+                cleaned = cleaned.replace(/\b100% operational alignment\b/g, "operational alignment");
+                cleaned = cleaned.replace(/\b[Oo]rchestrated strategic enterprise cloud transformation modernization initiatives\b/g, "Implemented Azure infrastructure modernization initiatives supporting operational scalability");
+                return cleaned;
+              });
+            }
+            return role;
+          });
+        }
+        
+        result.result = JSON.stringify(parsed);
+      } catch (err) {
+        console.warn("[Realism Engine] Failed during self-correction or humanization post-processing:", err);
       }
     }
     

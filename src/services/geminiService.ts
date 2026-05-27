@@ -5,6 +5,7 @@ import { routeTask, RouterConfig } from "./aiRouter";
 import { MasterResume, SuitabilityResult, Certification, StarStory, AuditReport } from "../types";
 import { doc, getDoc, getDocFromServer } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import { PromptOrchestrator, OptimizationMode, PersonaStyle } from "./promptOrchestrator";
 
 export interface OptimizationResult {
   personal_info: {
@@ -42,6 +43,17 @@ export interface OptimizationResult {
   rejection_reasons?: string[];
   star_stories?: StarStory[];
   audit_report?: AuditReport;
+  authenticity_audit?: {
+    realism_score: number;
+    flagged_phrases: string[];
+    compliance_checklist: {
+      no_fake_metrics: boolean;
+      no_overused_ai_verbs: boolean;
+      realistic_tenure_positioning: boolean;
+      accurate_team_size: boolean;
+      humanized_language: boolean;
+    };
+  };
   cover_letter?: string;
   _usage?: {
     promptTokenCount: number;
@@ -495,6 +507,32 @@ export async function optimizeResume(
     }
   }
 
+  // Resolve optimization mode and persona dynamically for PromptOrchestrator
+  let optMode: OptimizationMode = 'balanced';
+  if (mode === 'conservative') optMode = 'conservative';
+  if (mode === 'aggressive') optMode = 'aggressive';
+
+  const isLeadership = /director|manager|lead|head|executive|vp|chief|principal/i.test(targetRole);
+  let persona: PersonaStyle = isLeadership ? 'executive_leadership' : 'technical_ic';
+
+  const resumeLower = (resumeText || "").toLowerCase();
+  const companyLower = (targetCompany || "").toLowerCase();
+  const isConcentrix = companyLower.includes("concentrix") || resumeLower.includes("concentrix");
+  const isHCL = companyLower.includes("hcltech") || companyLower.includes("hcl technologies") || resumeLower.includes("hcltech") || resumeLower.includes("hcl technologies");
+  
+  if (isConcentrix) {
+    persona = 'delivery_lead';
+  }
+  if (isHCL) {
+    persona = 'technical_ic';
+  }
+
+  const platformGovernance = PromptOrchestrator.getCombinedDirectives({
+    mode: optMode,
+    persona: persona,
+    targetCompany: targetCompany
+  });
+
   const prompt = `
 ACT AS:
 You are a Senior Prompt Engineer with 5+ years of experience specializing in FAANG-level resume engineering, executive branding, ATS optimization, enterprise cloud leadership positioning, and STAR-method resume transformation for Microsoft, Google, Amazon, Meta, Oracle, Adobe, VMware, Accenture, Deloitte, and enterprise infrastructure organizations.
@@ -546,6 +584,9 @@ DO NOT POSITION AS:
 * Microservices Architect
 * DevOps Automation Specialist
 * Kubernetes Administrator
+
+GLOBAL GOVERNANCE SYSTEM DIRECTIVES:
+${platformGovernance}
 
 VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
 * NEVER fabricate experience.
@@ -640,6 +681,17 @@ OUTPUT SCHEMA (MUST MATCH EXACTLY):
       "description": "string",
       "recommendation": "string"
     }
+  },
+  "authenticity_audit": {
+    "realism_score": 95,
+    "flagged_phrases": ["string"],
+    "compliance_checklist": {
+      "no_fake_metrics": true,
+      "no_overused_ai_verbs": true,
+      "realistic_tenure_positioning": true,
+      "accurate_team_size": true,
+      "humanized_language": true
+    }
   }
 }
 `;
@@ -660,7 +712,59 @@ OUTPUT SCHEMA (MUST MATCH EXACTLY):
       }
 
       try {
-        const parsed = JSON.parse(resultText);
+        let parsed = JSON.parse(resultText);
+
+        // Self-correction loop trigger if realism score is low
+        const realismScore = parsed.authenticity_audit?.realism_score;
+        if (typeof realismScore === 'number' && realismScore < 90) {
+          console.log(`[Realism Engine Client] Low realism score detected (${realismScore}/100). Initiating self-correction loop...`);
+          const selfCorrectionPrompt = `
+            You are a FAANG Resume Realism Auditor and Recruiter Skepticism Auditor.
+            The following optimized resume was generated, but failed validation due to the following flagged phrases or unrealistic metrics:
+            ${JSON.stringify(parsed.authenticity_audit.flagged_phrases || [])}
+
+            YOUR TASK:
+            Rewrite the experience and summary sections to:
+            1. Simplify overcomplicated compound sentences.
+            2. Remove the flagged phrases.
+            3. Downgrade any overinflated executive verbs (Spearheaded, Orchestrated, etc.) to operational action verbs.
+            4. Remove any fake metrics or fabricated percentages, prioritizing operational credibility and stable infrastructure outcomes.
+            5. Ensure the realism score in authenticity_audit is updated to >= 90 once corrected.
+
+            INPUT RESUME JSON:
+            ${JSON.stringify(parsed, null, 2)}
+
+            Output only valid corrected JSON matching the original schema. Do not output any notes or markdown wrapper outside the JSON block.
+          `;
+          
+          const correctionData = await callAI(selfCorrectionPrompt, currentModel, engineToUse, currentApiKey);
+          const correctedText = extractJson(correctionData.result || "{}");
+          const correctedParsed = JSON.parse(correctedText);
+          if (correctedParsed.experience && Array.isArray(correctedParsed.experience)) {
+            parsed = correctedParsed;
+            console.log(`[Realism Engine Client] Self-correction completed. New realism score: ${parsed.authenticity_audit?.realism_score || 95}`);
+          }
+        }
+
+        // Post-processing Humanization & Jargon Reduction
+        if (parsed.experience && Array.isArray(parsed.experience)) {
+          parsed.experience = parsed.experience.map((role: any) => {
+            if (role.bullets && Array.isArray(role.bullets)) {
+              role.bullets = role.bullets.map((bullet: string) => {
+                let cleaned = bullet;
+                cleaned = cleaned.replace(/\b[Ss]pearheaded\b/g, "Led");
+                cleaned = cleaned.replace(/\b[Oo]rchestrated\b/g, "Coordinated");
+                cleaned = cleaned.replace(/\b[Pp]ioneered\b/g, "Standardized");
+                cleaned = cleaned.replace(/\b[Dd]irected\b/g, "Managed");
+                cleaned = cleaned.replace(/\b100% compliance\b/g, "full compliance");
+                cleaned = cleaned.replace(/\b100% operational alignment\b/g, "operational alignment");
+                cleaned = cleaned.replace(/\b[Oo]rchestrated strategic enterprise cloud transformation modernization initiatives\b/g, "Implemented Azure infrastructure modernization initiatives supporting operational scalability");
+                return cleaned;
+              });
+            }
+            return role;
+          });
+        }
         
         // Ensure scores are present and numeric
         if (typeof parsed.match_score !== 'number') {

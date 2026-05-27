@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { PromptOrchestrator, OptimizationMode, PersonaStyle } from "./promptOrchestrator";
 
 export async function generatePerRole(
   experience: any[], 
@@ -25,6 +26,7 @@ export async function generatePerRole(
     const isMM = companyLower.includes("m&m") || companyLower.includes("software development centre") || companyLower.includes("m&m software");
     const isArcher = companyLower.includes("archer");
     const isCasepoint = companyLower.includes("casepoint");
+    const isHCL = companyLower.includes("hcltech") || companyLower.includes("hcl technologies");
 
     let bulletRule = "";
     if (isConcentrix || isMM) {
@@ -37,16 +39,37 @@ export async function generatePerRole(
       bulletRule = "Output a MAXIMUM of 3 to 4 bullet points for this role (exactly 1 bullet point if it is an older role pre-2018). IMPORTANT: Every single bullet point for this role MUST be strictly a one-line (1-line) description; do not write verbose or multi-line bullets.";
     }
 
+    // Resolve optimization mode
+    let optMode: OptimizationMode = 'balanced';
+    if (mode === 'conservative') optMode = 'conservative';
+    if (mode === 'aggressive') optMode = 'aggressive';
+
+    // Title-to-Tone validation for persona style
+    const isLeadership = /director|manager|lead|head|executive|vp|chief|principal/i.test(targetRole || role.role || '');
+    let persona: PersonaStyle = isLeadership ? 'executive_leadership' : 'technical_ic';
+    
+    // Automatic downgrade rules
+    if (isConcentrix) {
+      persona = 'delivery_lead';
+    }
+    if (isHCL) {
+      persona = 'technical_ic';
+    }
+
+    const platformGovernance = PromptOrchestrator.getCombinedDirectives({
+      mode: optMode,
+      persona: persona,
+      targetCompany: role.company,
+      duration: role.duration
+    });
+
     const prompt = `
 ACT AS:
-You are a Senior Prompt Engineer with 5+ years of experience specializing in FAANG-level resume engineering, executive branding, ATS optimization, enterprise cloud leadership positioning, and STAR-method resume transformation.
-
-YOUR ROLE:
-You are a Principal Resume Strategist, FAANG Technical Recruiter, and Cloud Leadership Branding Expert.
+You are an Enterprise Resume Intelligence Agent.
 
 PRIMARY OBJECTIVE:
 Optimize the candidate's experience entry for the target role: ${targetRole || 'Senior Azure Infrastructure Leader'}.
-Audience: ${audience || 'Recruiters'}. Mode: ${mode || 'Standard'}.
+Audience: ${audience || 'Recruiters'}. Mode: ${optMode}. Persona calibrated as: ${persona}.
 ${customPrompt ? `Custom Instructions: ${customPrompt}` : ''}
 ${brainDump ? `ADDITIONAL CONTEXT (BRAIN DUMP): ${brainDump}\nSift through this raw data to extract hidden achievements.` : ''}
 
@@ -56,39 +79,20 @@ ${JSON.stringify(role)}
 CORPORATE DNA TAILORING (DEMONSTRATE, DO NOT DECLARE):
 ${targetCompany ? `Tailor appropriately for ${targetCompany}. Focus on specific impacts and technologies relevant to their industry.` : ''}
 
-GLOBAL SYSTEM RULES (STRICT ENFORCEMENT):
-1. ZERO-SHOT ANTI-HALLUCINATION & TRUTHFULNESS: Use ONLY the provided role data. Do NOT invent numbers, percentages, budgets, or metrics.
-   - NEVER fabricate experience.
-   - NEVER create fake Kubernetes production experience or fake CI/CD ownership.
-   - NEVER exaggerate DevOps or claim deep Terraform engineering expertise (keep IaC references truthful and limited).
-   - Do NOT focus too much on DevOps, Terraform, or Microservices / container services (like Kubernetes, Docker, AKS). Keep focus primarily on Enterprise Azure Infrastructure, Governance, Security, Resiliency, Operations, and Modernization scaling.
-   - NEVER add any fake technologies or fake details in the experience or job descriptions.
-   - DO NOT add or focus on ITIL (ITTL) certification; exclude it unless present in the raw role data.
-   - NEVER imply software engineering or coding-heavy background.
-   - METRIC INTEGRITY & ANTI-PERCENTAGE INFLATION: Do NOT inject fabricated percentage metrics (such as 'alignment with SLAs by 30%', 'decreasing stability incidents by 25%', 'improved system reliability by 20%', etc.) unless they are derived from real, measurable baselines. If no metrics exist, focus on qualitative, verifiable outcomes (e.g. 'ensuring regulatory compliance', 'reducing system complexity', 'improving uptime reliability') rather than stacking fake-looking percentages. Avoid literal 100% metrics (such as '100% compliance', '100% operational alignment') as they look fake and trigger recruiter skepticism.
-   - CONCENTRIX ROLE CONTEXT: The candidate was NOT officially a Service Delivery Manager (SDM) and did not have formal managerial ownership of a 20-member team. Do NOT use phrasing like 'Orchestrated service delivery management for a 20-member team' or describe formal managerial ownership, as this will lead to verification failures. Frame experience as a Technical Lead / Senior Engineer coordinating operational workflows and collaborating with the team, rather than official managerial leadership.
-   - HCLTECH TENURE CONSTRAINT: The HCLTech role lasted only ONE MONTH. Do NOT write bullets claiming massive strategic impacts, Azure operations strategies execution, or improving SLA adherence by 15% during this short period. Restrict the bullets to basic setup, onboarding, knowledge transfer, shadowing, and assisting with minor operational tasks during the short tenure.
-2. STAR METHODOLOGY: EVERY bullet point MUST follow STAR methodology (Situation, Task, Action, Result) naturally:
-   - What was the business/technical challenge? (S/T)
-   - What ownership/action did you take and what technologies/processes were used? (A)
-   - What was the measurable outcome or impact? (R)
-3. VERB CONTROL:
-   - AVOID weak verbs: Managed, Supported, Assisted, Helped, Worked on, Responsible for.
-   - Avoid overuse of overly dramatic executive AI verbs (e.g. 'Spearheaded', 'Orchestrated', 'Pioneered', 'Architected', 'Directed') which make the resume sound AI-generated. Instead, use operational, grounded, believable, and technical action verbs (e.g. 'Implemented', 'Optimized', 'Standardized', 'Configured', 'Deployed', 'Governed', 'Automated', 'Coordinated', 'Resolved', 'Maintained'). Keep wording grounded and believable.
-4. BREVITY & DENSITY: Keep bullet points concise, high-impact, and technically dense. Use executive-style language.
-5. BULLET QUANTITY: ${bulletRule}
-6. PRESERVE TITLES: Do NOT modify job titles under any circumstances. Leave them exactly as provided in the ROLE DATA.
-7. GOOGLE XYZ FORMULA: Incorporate the XYZ formula with STAR: "Accomplished [X] as measured by [Y], by doing [Z]."
-   - [X] = The impact or accomplishment.
-   - [Y] = The metrics, data, or scale (e.g. cost savings, MTTR reduction, availability, team size, subscription scale).
-   - [Z] = The mechanism, action, or skill used.
-   - IF A BULLET HAS NO METRICS: Highlight the clear qualitative outcome/result of the action (e.g., reducing operational complexity, ensuring compliance governance).
-8. PLAYER-COACH MODE: ONLY IF mode is 'Player-Coach':
-   - 60/40 BALANCE: 60% Execution (Azure infra, governance, HA/DR), 40% Leadership (Mentoring, Agile coordination).
-   - Use hybrid vocabulary: "Architected & Led", "Designed & Mentored", "Standardized & Orchestrated".
+GLOBAL GOVERNANCE SYSTEM DIRECTIVES:
+${platformGovernance}
+
+FORMATTING RULES:
+- BULLET QUANTITY & DURATION SPECIFIC RULES: ${bulletRule}
+- PRESERVE TITLES: Do NOT modify job titles under any circumstances. Leave them exactly as provided in the ROLE DATA.
+- GOOGLE XYZ FORMULA: Incorporate the XYZ formula: "Accomplished [X] as measured by [Y], by doing [Z]."
+  - [X] = The impact or accomplishment.
+  - [Y] = The metrics, data, or scale (e.g. cost savings, MTTR reduction, availability, team size, subscription scale).
+  - [Z] = The mechanism, action, or skill used.
+  - IF A BULLET HAS NO METRICS (e.g. MetricConfidence is weakly_inferred or generated): Focus on operational credibility, technical ownership, and governance stability. Do NOT fabricate percentages.
 
 OUTPUT SCHEMA:
-Return ONLY a valid JSON array of strings containing the high-impact bullet points for this role. Do not include keys, objects, or markdown formatting outside the array. Example: ["Bullet 1", "Bullet 2"]
+Return ONLY a valid JSON array of strings containing the optimized bullet points for this role. Do not include keys, objects, or markdown formatting outside the array. Example: ["Bullet 1", "Bullet 2"]
 `;
 
     try {
