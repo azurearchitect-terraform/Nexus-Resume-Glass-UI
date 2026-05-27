@@ -118,8 +118,8 @@ function extractJson(text: string): string {
 
 function cleanApiKey(key: string): string {
   if (!key) return '';
-  // Trim whitespaces, newlines, and strip non-printable/control ASCII characters
-  return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+  // Trim whitespaces, newlines, strip non-printable/control ASCII characters, and remove outer quotes
+  return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '').replace(/^["']|["']$/g, '');
 }
 
 export async function getDecryptedKey(encryptedKey: string): Promise<string> {

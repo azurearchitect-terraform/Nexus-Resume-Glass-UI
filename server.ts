@@ -1204,7 +1204,7 @@ async function startServer() {
     try {
       // 1. Fetch keys securely from Firestore
       const keys = await getApiKeys(idToken);
-      let geminiKey = process.env.GEMINI_API_KEY;
+      let geminiKey = process.env.GEMINI_API_KEY || "";
       let openaiKey = process.env.OPENAI_API_KEY || "";
       
       if (keys) {
@@ -1213,6 +1213,14 @@ async function startServer() {
       } else {
         console.warn("User has no API key configured. Using system key.");
       }
+
+      const cleanKey = (key: string): string => {
+        if (!key) return '';
+        return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '').replace(/^["']|["']$/g, '');
+      };
+      
+      geminiKey = cleanKey(geminiKey);
+      openaiKey = cleanKey(openaiKey);
       
       if (!geminiKey) console.warn("Gemini API key not found. Expecting platform-provided authentication to be available.");
       
@@ -1843,12 +1851,18 @@ async function startServer() {
       // 1. GET KEYS
       // ===============================
       const keys = await getApiKeys(idToken);
-      let geminiKey = process.env.GEMINI_API_KEY;
+      let geminiKey = process.env.GEMINI_API_KEY || "";
       if (keys && keys.gemini) {
         geminiKey = keys.gemini;
       } else {
         console.warn("User has no API key configured. Using system key.");
       }
+
+      const cleanKey = (key: string): string => {
+        if (!key) return '';
+        return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '').replace(/^["']|["']$/g, '');
+      };
+      geminiKey = cleanKey(geminiKey);
   
       // ===============================
       // 2. EXTRACTION

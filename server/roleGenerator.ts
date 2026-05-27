@@ -15,7 +15,7 @@ export async function generatePerRole(
   
   const cleanApiKey = (key: string): string => {
     if (!key) return '';
-    return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+    return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '').replace(/^["']|["']$/g, '');
   };
 
   const genAIWithCleanKey = new GoogleGenAI({ apiKey: cleanApiKey(geminiKey) });
