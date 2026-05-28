@@ -6,6 +6,8 @@ import { MasterResume, SuitabilityResult, Certification, StarStory, AuditReport 
 import { doc, getDoc, getDocFromServer } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { PromptOrchestrator, OptimizationMode, PersonaStyle } from "./promptOrchestrator";
+import { AUDIENCES } from "../constants";
+
 
 export interface OptimizationResult {
   personal_info: {
@@ -122,7 +124,7 @@ function cleanApiKey(key: string): string {
   return key.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '').replace(/^["']|["']$/g, '');
 }
 
-export async function getDecryptedKey(encryptedKey: string): Promise<string> {
+export async function getDecryptedKey(encryptedKey: string, targetEngine: 'gemini' | 'openai' = 'gemini'): Promise<string> {
   const idToken = await auth.currentUser?.getIdToken();
 
   if (encryptedKey && !encryptedKey.includes(':')) {
@@ -140,7 +142,9 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
     });
     if (response.ok) {
       const data = await response.json();
-      const rawKey = data.keys?.gemini || data.keys?.openai || '';
+      const rawKey = targetEngine === 'gemini' 
+        ? (data.keys?.gemini || '') 
+        : (data.keys?.openai || data.keys?.gemini || '');
       return cleanApiKey(rawKey);
     }
   } catch (e) {
@@ -163,7 +167,7 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
   if (engine === 'gemini') {
     // Gemini MUST be called from the frontend as per guidelines
     try {
-      const apiKey = await getDecryptedKey(encryptedKey || "");
+      const apiKey = await getDecryptedKey(encryptedKey || "", 'gemini');
       
       if (!apiKey) {
         throw new Error("Gemini API key is missing. Please provide your own key in settings or contact the administrator.");
@@ -579,7 +583,7 @@ VERY IMPORTANT TRUTHFULNESS RULES (CRITICAL):
 * NEVER imply software engineering background.
 * NEVER create fake coding-heavy experience.
 * NEVER add any fake technologies or fake details to the job description or optimized resume.
-* PRESERVE ALL ORIGINAL CERTIFICATIONS: You MUST preserve and include all certifications from the candidate's original resume (including AZ-900, Azure Fundamentals, and any others). Do not omit or filter out any certifications. Do not add or focus on ITIL (ITTL) certification unless explicitly present.
+* PRESERVE ALL ORIGINAL CERTIFICATIONS: You MUST preserve and include all 3 certifications from the candidate's original resume exactly as written: "Microsoft Certified: Azure Solutions Architect Expert (AZ-305)", "Microsoft Certified: Azure Administrator Associate (AZ-104)", and "Microsoft Certified: Azure Fundamentals (AZ-900)". Do not drop, exclude, alter, or omit any of them. Do not add or focus on ITIL (ITTL) certification unless explicitly present.
 * PRESERVE ALL ORIGINAL ROLES: You MUST preserve and include all historical roles and companies from the candidate's original resume. Under no circumstances should you delete, omit, or merge any roles.
 * SKILLS MATCHING RULES: Extract and mention ONLY the skills that are present in or directly matching the candidate's actual resume. Do NOT list or invent skills that the candidate does not have on their original resume.
 * TECHNOLOGY FOCUS: Do NOT focus too much on DevOps, Terraform, or Microservices / container services (like Kubernetes, Docker, AKS). Keep the emphasis on Enterprise Azure Infrastructure, Governance, Security, Resiliency, Operations, and Modernization scaling.
@@ -1020,10 +1024,22 @@ export async function analyzeBestAudiences(
   };
 
   try {
-    const data = await callAI(prompt, modelToUse, 'gemini', routedConfig.apiKey);
+    const data = await callAI(prompt, modelToUse, routedConfig.engine, routedConfig.apiKey);
     const resultText = extractJson(data.result || "");
     const parsed = JSON.parse(resultText || '[]');
-    return Array.isArray(parsed) ? parsed : (parsed.audiences || [targetRole]);
+    const rawAudiences = Array.isArray(parsed) ? parsed : (parsed.audiences || []);
+    
+    const mapped = rawAudiences.map((item: string) => {
+      if (typeof item !== 'string') return String(item);
+      const trimmed = item.trim();
+      const matched = AUDIENCES.find(a => 
+        a.id.toLowerCase() === trimmed.toLowerCase() || 
+        a.label.toLowerCase() === trimmed.toLowerCase()
+      );
+      return matched ? matched.id : trimmed;
+    });
+    
+    return mapped.length > 0 ? mapped : [targetRole || 'general'];
   } catch (error: any) {
     const errorMsg = error?.message || String(error);
     const isQuotaError = errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("limit") || errorMsg.includes("exhausted");

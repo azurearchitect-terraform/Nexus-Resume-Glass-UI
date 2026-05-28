@@ -279,6 +279,8 @@ export default function App() {
   const [generateCoverLetter, setGenerateCoverLetter] = useState(false);
   const [recruiterSimulationMode, setRecruiterSimulationMode] = useState(false);
   const [selectedAudiences, setSelectedAudiences] = useState<string[]>(['microsoft']);
+  const [autoSelectedAudiences, setAutoSelectedAudiences] = useState<string[]>([]);
+  const [customAudienceInput, setCustomAudienceInput] = useState('');
   const [isAudienceDropdownOpen, setIsAudienceDropdownOpen] = useState(false);
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
   const companyDropdownRef = useRef<HTMLDivElement>(null);
@@ -827,8 +829,6 @@ export default function App() {
         const data = await response.json();
         finalEncryptedKey = data.encryptedKey;
         setEncryptedApiKey(finalEncryptedKey);
-        if (openaiApiKey) setOpenaiApiKey('');
-        if (geminiApiKey) setGeminiApiKey('');
         setIsApiKeySaved(true);
       }
 
@@ -1032,6 +1032,26 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, [jobUrl]);
+
+  // Auto-select Target Audiences when Job Description changes
+  useEffect(() => {
+    if (!jobDescription || jobDescription.trim().length < 20) return;
+
+    // Only auto-select if no audiences are currently selected OR if all selected are auto-selected
+    const isOnlyAutoSelected = selectedAudiences.length === 0 || 
+      selectedAudiences.every(aud => autoSelectedAudiences.includes(aud));
+
+    if (!isOnlyAutoSelected) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      handleAutoSelectAudiences();
+    }, 1500); // Wait 1.5 seconds after typing stops
+
+    return () => clearTimeout(timer);
+  }, [jobDescription]);
+
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -1946,6 +1966,7 @@ export default function App() {
     try {
       const bestAudiences = await analyzeBestAudiences(jobDescription, targetRole, getRouterConfig());
       setSelectedAudiences(bestAudiences);
+      setAutoSelectedAudiences(bestAudiences);
       showToast('Audience auto-selected!', 'success');
     } catch (e) {
       console.error(e);
@@ -3285,6 +3306,8 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           handleCheckSuitability={handleCheckSuitability}
           isAutoSelectingAudiences={isAutoSelectingAudiences}
           handleAutoSelectAudiences={handleAutoSelectAudiences}
+          autoSelectedAudiences={autoSelectedAudiences}
+          setAutoSelectedAudiences={setAutoSelectedAudiences}
         />
         <DriveFolderPicker
           isOpen={isSelectingFolder}
@@ -3646,80 +3669,210 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
                                 </div>
                               </div>
                             )}
-                            <div className="relative" ref={audienceDropdownRef}>
-                              <div className="flex items-center justify-between mb-2">
-                                <label className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-white/70' : 'text-slate-800'}`}>Target Audiences (Multi-select)</label>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAutoSelectAudiences();
-                                  }}
-                                  disabled={isAutoSelectingAudiences}
-                                  className="py-1 px-2 text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
-                                >
-                                  {isAutoSelectingAudiences ? 'Selecting...' : 'Auto-Select'}
-                                </button>
-                              </div>
-                              <button
-                                onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
-                                className={`w-full px-3 py-2 text-xs border rounded-lg flex items-center justify-between transition-all ${
-                                  isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/10'
-                                }`}
-                              >
-                                <span className="truncate flex items-center gap-2">
-                                  {selectedAudiences.length > 0
-                                    ? (
-                                      <>
-                                        <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">Auto</span>
-                                        {selectedAudiences.map(id => AUDIENCES.find(a => a.id === id)?.label || id).join(', ')}
-                                      </>
-                                    )
-                                    : 'Select audiences...'}
-                                </span>
-                                <ChevronDown className="w-4 h-4 opacity-50" />
-                              </button>
-                              {isAudienceDropdownOpen && (
-                                <div className={`absolute z-50 w-full mt-1 border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
-                                  isDarkMode ? 'bg-black text-white border-white/10' : 'bg-white text-black border-black/5'
-                                }`}>
-                                  <div className="p-2 border-b border-white/10 flex gap-2">
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedAudiences(['microsoft']);
-                                      }}
-                                      className="flex-1 py-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 transition-colors"
-                >
-                                      Reset
-                                    </button>
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedAudiences([]);
-                                      }}
-                                      className="flex-1 py-1 text-[10px] font-bold uppercase tracking-widest bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition-colors"
-                                    >
-                                      Clear
-                                    </button>
-                                  </div>
-                                  {AUDIENCES.map((audience) => (
-                                    <button
-                                      key={audience.id}
-                                      onClick={() => toggleAudience(audience.id)}
-                                      className={`w-full px-3 py-2 text-xs flex items-center gap-2 ${
-                                        selectedAudiences.includes(audience.id)
-                                          ? (isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-500/10 text-emerald-700')
-                                          : (isDarkMode ? 'text-white hover:bg-white/5' : 'text-black hover:bg-black/5')
-                                      }`}
-                                    >
-                                      <span>{audience.icon}</span>
-                                      {audience.label}
-                                      {selectedAudiences.includes(audience.id) && <CheckCircle2 className="w-4 h-4 ml-auto" />}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+                             <div className="relative" ref={audienceDropdownRef}>
+                               <div className="flex items-center justify-between mb-2">
+                                 <label className={`text-[9px] font-black uppercase tracking-widest ${isDarkMode ? 'text-white/40' : 'text-slate-500'}`}>
+                                   TARGET AUDIENCES (MULTI-SELECT)
+                                 </label>
+                                 <button 
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     handleAutoSelectAudiences();
+                                   }}
+                                   disabled={isAutoSelectingAudiences || !jobDescription}
+                                   className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded border border-[#0d5c3a] text-[#10b981] bg-[#042416]/20 hover:bg-[#042416]/40 disabled:opacity-50 disabled:border-white/10 disabled:text-white/40 disabled:bg-transparent transition-all flex items-center gap-1"
+                                 >
+                                   {isAutoSelectingAudiences ? (
+                                     <>
+                                       <div className="w-2.5 h-2.5 border border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                       SELECTING...
+                                     </>
+                                   ) : (
+                                     'AUTO-SELECT'
+                                   )}
+                                 </button>
+                               </div>
+                               
+                               <button
+                                 onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
+                                 className={`w-full px-3 py-2 text-xs border rounded-xl flex items-center justify-between transition-all min-h-[38px] ${
+                                   isDarkMode ? 'bg-[#0a0a0a] text-white border-white/10 hover:bg-[#121212]' : 'bg-[#fcfcfc] text-slate-800 border-black/10 hover:bg-slate-50'
+                                 }`}
+                               >
+                                 <div className="flex flex-wrap gap-1.5 items-center overflow-hidden">
+                                   {selectedAudiences.length === 0 ? (
+                                     <span className="text-white/40 text-[11px]">Select Audiences...</span>
+                                   ) : (
+                                     selectedAudiences.map((audId) => {
+                                       const aud = AUDIENCES.find(a => a.id === audId);
+                                       const isAuto = autoSelectedAudiences.includes(audId);
+                                       const labelText = aud ? aud.label : audId;
+                                       return (
+                                         <div 
+                                           key={audId}
+                                           className={`inline-flex items-center gap-1 border rounded px-1.5 py-0.5 text-[10px] ${
+                                             isDarkMode ? 'bg-white/5 border-white/10 text-white/90' : 'bg-slate-100 border-slate-200 text-slate-700'
+                                           }`}
+                                         >
+                                           {isAuto && (
+                                             <span className="bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase mr-0.5 leading-none">
+                                               AUTO
+                                              </span>
+                                           )}
+                                           {!aud && (
+                                             <span className="bg-purple-600/30 border border-purple-500/40 text-purple-400 text-[8px] font-black px-1 rounded uppercase scale-90 mr-0.5 leading-none">
+                                               CUSTOM
+                                             </span>
+                                           )}
+                                           <span>{labelText}</span>
+                                         </div>
+                                       );
+                                     })
+                                   )}
+                                 </div>
+                                 <ChevronDown className={`w-3.5 h-3.5 text-white/40 shrink-0 transition-transform ${isAudienceDropdownOpen ? 'rotate-180' : ''}`} />
+                               </button>
+
+                               {isAudienceDropdownOpen && (
+                                 <div className={`absolute z-50 w-full mt-2 p-2 border rounded-xl shadow-2xl max-h-72 overflow-y-auto custom-scrollbar ${
+                                   isDarkMode ? 'bg-neutral-950 text-white border-white/10' : 'bg-white text-slate-800 border-slate-200'
+                                 }`}>
+                                   {/* Reset & Clear Buttons */}
+                                   <div className="flex gap-2 w-full pb-1.5 border-b border-white/5 mb-2">
+                                     <button 
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         setSelectedAudiences(['microsoft']);
+                                         setAutoSelectedAudiences([]);
+                                       }}
+                                       className="bg-[#042416] border border-[#0d5c3a] text-[#10b981] hover:bg-[#0d5c3a]/30 transition-all font-black text-[9px] tracking-wider py-1.5 rounded uppercase flex-1 text-center"
+                                     >
+                                       RESET
+                                     </button>
+                                     <button 
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         setSelectedAudiences([]);
+                                         setAutoSelectedAudiences([]);
+                                       }}
+                                       className="bg-[#2d0b0f] border border-[#7f1d1d] text-[#ef4444] hover:bg-[#7f1d1d]/30 transition-all font-black text-[9px] tracking-wider py-1.5 rounded uppercase flex-1 text-center"
+                                     >
+                                       CLEAR
+                                     </button>
+                                   </div>
+
+                                   {/* Audiences List */}
+                                   <div className="space-y-0.5 mb-2">
+                                     {AUDIENCES.map((aud) => {
+                                       const isSelected = selectedAudiences.includes(aud.id);
+                                       const isAuto = autoSelectedAudiences.includes(aud.id);
+                                       return (
+                                         <button
+                                           key={aud.id}
+                                           onClick={() => {
+                                             if (isSelected) {
+                                               setSelectedAudiences(selectedAudiences.filter((a: string) => a !== aud.id));
+                                               setAutoSelectedAudiences(autoSelectedAudiences.filter((a: string) => a !== aud.id));
+                                             } else {
+                                               setSelectedAudiences([...selectedAudiences, aud.id]);
+                                             }
+                                           }}
+                                           className={`w-full px-2.5 py-1.5 rounded-lg flex items-center gap-3 transition-all text-left text-xs ${
+                                             isSelected 
+                                               ? 'bg-[#042416] border border-[#0d5c3a]/30 text-[#10b981] font-bold' 
+                                               : (isDarkMode ? 'hover:bg-white/5 text-white/70 border border-transparent' : 'hover:bg-slate-50 text-slate-600 border border-transparent')
+                                           }`}
+                                         >
+                                           <span className="text-sm shrink-0">{aud.icon}</span>
+                                           <span className="flex-1 flex items-center gap-1.5">
+                                             {aud.label}
+                                             {isAuto && (
+                                               <span className="bg-blue-600/30 border border-blue-500/40 text-blue-400 text-[8px] font-bold px-1 rounded uppercase scale-90">
+                                                 Auto
+                                               </span>
+                                             )}
+                                           </span>
+                                           {isSelected && (
+                                             <div className="w-4 h-4 rounded-full border border-[#0d5c3a] flex items-center justify-center text-[#10b981] bg-[#042416]">
+                                               <Check className="w-2.5 h-2.5" />
+                                             </div>
+                                           )}
+                                         </button>
+                                       );
+                                     })}
+
+                                     {/* Render Selected Custom Audiences */}
+                                     {selectedAudiences.filter(id => !AUDIENCES.some(a => a.id === id)).map((customAud) => {
+                                       const isAuto = autoSelectedAudiences.includes(customAud);
+                                       return (
+                                         <button
+                                           key={customAud}
+                                           onClick={() => {
+                                             setSelectedAudiences(selectedAudiences.filter(a => a !== customAud));
+                                             setAutoSelectedAudiences(autoSelectedAudiences.filter(a => a !== customAud));
+                                           }}
+                                           className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-3 transition-all text-left text-xs bg-purple-500/10 text-purple-400 font-bold border border-purple-500/20 hover:bg-purple-500/20"
+                                         >
+                                           <span className="text-sm shrink-0">✦</span>
+                                           <span className="flex-1 flex items-center gap-1.5">
+                                             {customAud}
+                                             <span className="text-[8px] opacity-60 uppercase font-black px-1.5 py-0.5 rounded bg-purple-500/20">Custom</span>
+                                             {isAuto && (
+                                               <span className="bg-blue-600/30 border border-blue-500/40 text-blue-400 text-[8px] font-bold px-1 rounded uppercase scale-90">
+                                                 Auto
+                                               </span>
+                                             )}
+                                           </span>
+                                           <div className="w-4 h-4 rounded-full border border-purple-500/30 flex items-center justify-center text-purple-400 bg-purple-500/10">
+                                             <Check className="w-2.5 h-2.5" />
+                                           </div>
+                                         </button>
+                                       );
+                                     })}
+                                   </div>
+
+                                   {/* Custom Audience Input Field */}
+                                   <div className="pt-2 border-t border-white/5 flex gap-2">
+                                     <input
+                                       type="text"
+                                       placeholder="Add custom audience..."
+                                       className={`flex-1 border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-purple-500 ${
+                                         isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'
+                                       }`}
+                                       value={customAudienceInput}
+                                       onChange={(e) => setCustomAudienceInput(e.target.value)}
+                                       onKeyDown={(e) => {
+                                         if (e.key === 'Enter') {
+                                           e.preventDefault();
+                                           if (customAudienceInput.trim()) {
+                                             const newAud = customAudienceInput.trim();
+                                             if (!selectedAudiences.includes(newAud)) {
+                                               setSelectedAudiences([...selectedAudiences, newAud]);
+                                             }
+                                             setCustomAudienceInput('');
+                                           }
+                                         }
+                                       }}
+                                     />
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                         if (customAudienceInput.trim()) {
+                                           const newAud = customAudienceInput.trim();
+                                           if (!selectedAudiences.includes(newAud)) {
+                                             setSelectedAudiences([...selectedAudiences, newAud]);
+                                           }
+                                           setCustomAudienceInput('');
+                                         }
+                                       }}
+                                       className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-bold hover:bg-purple-500"
+                                     >
+                                       Add
+                                     </button>
+                                   </div>
+                                 </div>
+                               )}
+                             </div>
                             
                             <div>
                               <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? 'text-white/70' : 'text-slate-800'}`}>Job Description / URL</label>

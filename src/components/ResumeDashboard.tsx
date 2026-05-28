@@ -130,6 +130,8 @@ interface ResumeDashboardProps {
   handleCheckSuitability: () => Promise<void>;
   isAutoSelectingAudiences: boolean;
   handleAutoSelectAudiences: () => Promise<void>;
+  autoSelectedAudiences: string[];
+  setAutoSelectedAudiences: (auds: string[]) => void;
 }
 
 export default function ResumeDashboard({
@@ -215,10 +217,13 @@ export default function ResumeDashboard({
   isCheckingSuitability,
   handleCheckSuitability,
   isAutoSelectingAudiences,
-  handleAutoSelectAudiences
+  handleAutoSelectAudiences,
+  autoSelectedAudiences,
+  setAutoSelectedAudiences
 }: ResumeDashboardProps) {
   const [activeNav, setActiveNav] = useState('dashboard');
   const [isAudienceDropdownOpen, setIsAudienceDropdownOpen] = useState(false);
+  const [customAudienceInput, setCustomAudienceInput] = useState('');
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
   const [showModeInfo, setShowModeInfo] = useState(false);
   const audienceDropdownRef = useRef<HTMLDivElement>(null);
@@ -1601,7 +1606,7 @@ export default function ResumeDashboard({
                   {/* Right Column */}
                   <div 
                     style={{ width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `calc(${100 - optimizerLeftWidth}% - 20px)` : '100%' }}
-                    className="space-y-6 transition-all duration-75 shrink-0 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-2 custom-scrollbar lg:sticky lg:top-24"
+                    className="space-y-6 transition-all duration-75 shrink-0 lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto lg:pr-2 custom-scrollbar lg:sticky lg:top-2"
                   >
                     {/* AI Engine Selection Card */}
                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-4">
@@ -1785,21 +1790,66 @@ export default function ResumeDashboard({
 
                         {/* Job Analysis: Select Target Audiences */}
                         <div className="pt-4 border-t border-white/5 space-y-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Users className="w-4 h-4 text-emerald-400" />
-                            <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-400 font-black">Job Analysis (Target Audiences)</span>
-                          </div>
+                          <h3 className="text-[13px] font-black uppercase tracking-wider text-white">2. JOB ANALYSIS</h3>
                           
                           <div className="relative" ref={audienceDropdownRef}>
-                            <label className="block text-[9px] font-bold uppercase tracking-widest text-white/40 mb-2 font-black">Audience Scope</label>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="text-[9px] font-black uppercase tracking-widest text-white/40">
+                                TARGET AUDIENCES (MULTI-SELECT)
+                              </label>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAutoSelectAudiences();
+                                }}
+                                disabled={isAutoSelectingAudiences || !jobDescription}
+                                className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded border border-[#0d5c3a] text-[#10b981] bg-[#042416]/20 hover:bg-[#042416]/40 disabled:opacity-50 disabled:border-white/10 disabled:text-white/40 disabled:bg-transparent transition-all flex items-center gap-1"
+                              >
+                                {isAutoSelectingAudiences ? (
+                                  <>
+                                    <div className="w-2.5 h-2.5 border border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                    SELECTING...
+                                  </>
+                                ) : (
+                                  'AUTO-SELECT'
+                                )}
+                              </button>
+                            </div>
+                            
                             <button
                               onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
-                              className="w-full px-3 py-2 text-xs bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition-all"
+                              className="w-full px-3 py-2 text-xs bg-[#0a0a0a] border border-white/10 text-white hover:bg-[#121212] rounded-xl flex items-center justify-between transition-all min-h-[38px]"
                             >
-                              <span className="font-bold text-white text-[11px]">
-                                {selectedAudiences.length === 0 ? 'Select Audiences...' : `${selectedAudiences.length} Scope(s) Active`}
-                              </span>
-                              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isAudienceDropdownOpen ? 'rotate-180' : ''}`} />
+                              <div className="flex flex-wrap gap-1.5 items-center overflow-hidden">
+                                {selectedAudiences.length === 0 ? (
+                                  <span className="text-white/40 text-[11px]">Select Audiences...</span>
+                                ) : (
+                                  selectedAudiences.map((audId) => {
+                                    const aud = AUDIENCES.find(a => a.id === audId);
+                                    const isAuto = autoSelectedAudiences.includes(audId);
+                                    const labelText = aud ? aud.label : audId;
+                                    return (
+                                      <div 
+                                        key={audId}
+                                        className="inline-flex items-center gap-1 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-[10px] text-white/90"
+                                      >
+                                        {isAuto && (
+                                          <span className="bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase mr-0.5 leading-none">
+                                            AUTO
+                                          </span>
+                                        )}
+                                        {!aud && (
+                                          <span className="bg-purple-600/30 border border-purple-500/40 text-purple-400 text-[8px] font-black px-1 rounded uppercase scale-90 mr-0.5 leading-none">
+                                            CUSTOM
+                                          </span>
+                                        )}
+                                        <span>{labelText}</span>
+                                      </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+                              <ChevronDown className={`w-3.5 h-3.5 text-white/40 shrink-0 transition-transform ${isAudienceDropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             <AnimatePresence>
@@ -1808,82 +1858,140 @@ export default function ResumeDashboard({
                                   initial={{ opacity: 0, y: -10 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   exit={{ opacity: 0, y: -10 }}
-                                  className="absolute left-0 right-0 mt-2 p-2 rounded-xl border border-white/10 bg-neutral-950 shadow-2xl z-50 space-y-1 max-h-60 overflow-y-auto"
+                                  className="absolute left-0 right-0 mt-2 p-2 rounded-xl border border-white/10 bg-neutral-950 shadow-2xl z-50 space-y-2 max-h-72 overflow-y-auto custom-scrollbar"
                                 >
-                                  {AUDIENCES.map((aud) => (
+                                  {/* Reset & Clear Buttons */}
+                                  <div className="flex gap-2 w-full pb-1.5 border-b border-white/5">
                                     <button
-                                      key={aud.id}
                                       onClick={() => {
-                                        if (selectedAudiences.includes(aud.id)) {
-                                          setSelectedAudiences(selectedAudiences.filter((a: string) => a !== aud.id));
-                                        } else {
-                                          setSelectedAudiences([...selectedAudiences, aud.id]);
+                                        setSelectedAudiences(['microsoft']);
+                                        setAutoSelectedAudiences([]);
+                                      }}
+                                      className="bg-[#042416] border border-[#0d5c3a] text-[#10b981] hover:bg-[#0d5c3a]/30 transition-all font-black text-[9px] tracking-wider py-1.5 rounded uppercase flex-1 text-center"
+                                    >
+                                      RESET
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedAudiences([]);
+                                        setAutoSelectedAudiences([]);
+                                      }}
+                                      className="bg-[#2d0b0f] border border-[#7f1d1d] text-[#ef4444] hover:bg-[#7f1d1d]/30 transition-all font-black text-[9px] tracking-wider py-1.5 rounded uppercase flex-1 text-center"
+                                    >
+                                      CLEAR
+                                    </button>
+                                  </div>
+
+                                  {/* Audiences List */}
+                                  <div className="space-y-0.5">
+                                    {AUDIENCES.map((aud) => {
+                                      const isSelected = selectedAudiences.includes(aud.id);
+                                      const isAuto = autoSelectedAudiences.includes(aud.id);
+                                      return (
+                                        <button
+                                          key={aud.id}
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedAudiences(selectedAudiences.filter((a: string) => a !== aud.id));
+                                              setAutoSelectedAudiences(autoSelectedAudiences.filter((a: string) => a !== aud.id));
+                                            } else {
+                                              setSelectedAudiences([...selectedAudiences, aud.id]);
+                                            }
+                                          }}
+                                          className={`w-full px-2.5 py-1.5 rounded-lg flex items-center gap-3 transition-all text-left text-xs ${
+                                            isSelected 
+                                              ? 'bg-[#042416] border border-[#0d5c3a]/30 text-[#10b981] font-bold' 
+                                              : 'hover:bg-white/5 text-white/70 border border-transparent'
+                                          }`}
+                                        >
+                                          <span className="text-sm shrink-0">{aud.icon}</span>
+                                          <span className="flex-1 flex items-center gap-1.5">
+                                            {aud.label}
+                                            {isAuto && (
+                                              <span className="bg-blue-600/30 border border-blue-500/40 text-blue-400 text-[8px] font-bold px-1 rounded uppercase scale-90">
+                                                Auto
+                                              </span>
+                                            )}
+                                          </span>
+                                          {isSelected && (
+                                            <div className="w-4 h-4 rounded-full border border-[#0d5c3a] flex items-center justify-center text-[#10b981] bg-[#042416]">
+                                              <Check className="w-2.5 h-2.5" />
+                                            </div>
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+
+                                    {/* Render Selected Custom Audiences */}
+                                    {selectedAudiences.filter(id => !AUDIENCES.some(a => a.id === id)).map((customAud) => {
+                                      const isAuto = autoSelectedAudiences.includes(customAud);
+                                      return (
+                                        <button
+                                          key={customAud}
+                                          onClick={() => {
+                                            setSelectedAudiences(selectedAudiences.filter(a => a !== customAud));
+                                            setAutoSelectedAudiences(autoSelectedAudiences.filter(a => a !== customAud));
+                                          }}
+                                          className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-3 transition-all text-left text-xs bg-purple-500/10 text-purple-400 font-bold border border-purple-500/20 hover:bg-purple-500/20"
+                                        >
+                                          <span className="text-sm shrink-0">✦</span>
+                                          <span className="flex-1 flex items-center gap-1.5">
+                                            {customAud}
+                                            <span className="text-[8px] opacity-60 uppercase font-black px-1.5 py-0.5 rounded bg-purple-500/20">Custom</span>
+                                            {isAuto && (
+                                              <span className="bg-blue-600/30 border border-blue-500/40 text-blue-400 text-[8px] font-bold px-1 rounded uppercase scale-90">
+                                                Auto
+                                              </span>
+                                            )}
+                                          </span>
+                                          <div className="w-4 h-4 rounded-full border border-purple-500/30 flex items-center justify-center text-purple-400 bg-purple-500/10">
+                                            <Check className="w-2.5 h-2.5" />
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Custom Audience Input Field */}
+                                  <div className="pt-2 border-t border-white/5 flex gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder="Add custom audience..."
+                                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                                      value={customAudienceInput}
+                                      onChange={(e) => setCustomAudienceInput(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          if (customAudienceInput.trim()) {
+                                            const newAud = customAudienceInput.trim();
+                                            if (!selectedAudiences.includes(newAud)) {
+                                              setSelectedAudiences([...selectedAudiences, newAud]);
+                                            }
+                                            setCustomAudienceInput('');
+                                          }
                                         }
                                       }}
-                                      className={`w-full p-2 rounded-lg flex items-center gap-3 transition-all text-left ${
-                                        selectedAudiences.includes(aud.id) 
-                                          ? 'bg-emerald-500/10 text-emerald-400 font-bold' 
-                                          : 'hover:bg-white/5 text-white/70'
-                                      }`}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (customAudienceInput.trim()) {
+                                          const newAud = customAudienceInput.trim();
+                                          if (!selectedAudiences.includes(newAud)) {
+                                            setSelectedAudiences([...selectedAudiences, newAud]);
+                                          }
+                                          setCustomAudienceInput('');
+                                        }
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-bold hover:bg-purple-500"
                                     >
-                                      <input 
-                                        type="checkbox"
-                                        checked={selectedAudiences.includes(aud.id)}
-                                        readOnly
-                                        className="accent-emerald-500 w-3.5 h-3.5 rounded border-white/10 pointer-events-none"
-                                      />
-                                      <span className="text-[11px] flex-1">{aud.label}</span>
-                                      {selectedAudiences.includes(aud.id) && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                                      Add
                                     </button>
-                                  ))}
+                                  </div>
                                 </motion.div>
                               )}
                             </AnimatePresence>
-
-                            {selectedAudiences.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 mt-3">
-                                {selectedAudiences.map((audId) => {
-                                  const aud = AUDIENCES.find(a => a.id === audId);
-                                  return (
-                                    <div 
-                                      key={audId} 
-                                      className="px-2.5 py-1 rounded-full text-[10px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 flex items-center gap-1.5 font-bold"
-                                    >
-                                      <span>{aud ? aud.label : audId}</span>
-                                      <button 
-                                        onClick={() => setSelectedAudiences(selectedAudiences.filter(a => a !== audId))}
-                                        className="text-emerald-400/60 hover:text-emerald-400 font-black transition-colors"
-                                      >
-                                        ×
-                                      </button>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex gap-2 mt-3">
-                            <button
-                              onClick={() => setSelectedAudiences([])}
-                              className="flex-1 py-1.5 text-[10px] font-bold rounded-lg border border-white/10 text-white/60 hover:bg-white/5 transition-all uppercase tracking-wider"
-                            >
-                              Clear
-                            </button>
-                            <button
-                              onClick={handleAutoSelectAudiences}
-                              disabled={isAutoSelectingAudiences || !jobDescription}
-                              className="flex-1 py-1.5 text-[10px] font-bold rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5"
-                            >
-                              {isAutoSelectingAudiences ? (
-                                <>
-                                  <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                                  Analyzing...
-                                </>
-                              ) : (
-                                'Auto-Select'
-                              )}
-                            </button>
                           </div>
                         </div>
                       </div>
