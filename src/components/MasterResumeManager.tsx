@@ -54,9 +54,9 @@ export const MasterResumeManager: React.FC<MasterResumeManagerProps> = ({
     if (!files || files.length === 0) return;
     
     const remainingCapacity = 5 - resumes.length;
-    const filesToImport = Array.from(files).slice(0, remainingCapacity);
+    const filesToImport = (Array.from(files).slice(0, remainingCapacity) as File[]);
     
-    filesToImport.forEach((file, index) => {
+    filesToImport.forEach((file: File, index) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
