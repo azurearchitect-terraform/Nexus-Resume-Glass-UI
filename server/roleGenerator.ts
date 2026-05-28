@@ -99,6 +99,7 @@ Return ONLY a valid JSON array of strings containing the optimized bullet points
       const modelChain = ["gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3.1-flash-lite"];
       let res: any = null;
       let lastError: any = null;
+      let modelUsed = "";
       for (const model of modelChain) {
         try {
           console.log(`[RoleGen] Attempting generation for role ${index + 1} with model: ${model}`);
@@ -107,6 +108,7 @@ Return ONLY a valid JSON array of strings containing the optimized bullet points
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: { responseMimeType: "application/json" }
           });
+          modelUsed = model;
           break;
         } catch (err: any) {
           lastError = err;
@@ -135,7 +137,13 @@ Return ONLY a valid JSON array of strings containing the optimized bullet points
         role: role.role,
         company: role.company,
         duration: role.duration,
-        bullets: bullets
+        bullets: bullets,
+        usage: {
+          promptTokenCount: res?.usageMetadata?.promptTokenCount || 0,
+          candidatesTokenCount: res?.usageMetadata?.candidatesTokenCount || 0,
+          totalTokenCount: res?.usageMetadata?.totalTokenCount || 0,
+          modelUsed: modelUsed
+        }
       };
     } catch (err) {
       console.error(`[RoleGen] Failed for ${role.id || index}:`, err);
@@ -144,7 +152,13 @@ Return ONLY a valid JSON array of strings containing the optimized bullet points
         role: role.role,
         company: role.company,
         duration: role.duration,
-        bullets: role.original_bullets || []
+        bullets: role.original_bullets || [],
+        usage: {
+          promptTokenCount: 0,
+          candidatesTokenCount: 0,
+          totalTokenCount: 0,
+          modelUsed: 'failed'
+        }
       };
     }
   });

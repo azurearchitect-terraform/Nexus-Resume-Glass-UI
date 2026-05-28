@@ -1203,6 +1203,7 @@ async function startServer() {
 
     try {
       // 1. Fetch keys securely from Firestore
+      const uid = await getUserIdFromToken(idToken);
       const keys = await getApiKeys(idToken);
       let geminiKey = process.env.GEMINI_API_KEY || "";
       let openaiKey = process.env.OPENAI_API_KEY || "";
@@ -1249,7 +1250,7 @@ async function startServer() {
       if (cachedResult) {
         // Log cache hit
         logUsage({
-          userId: "anonymous",
+          userId: uid,
           model: "cache",
           inputTokens: 0,
           outputTokens: 0,
@@ -1470,7 +1471,7 @@ async function startServer() {
           const genOutput = chatCompletion.usage?.completion_tokens || 0;
 
           logUsage({
-            userId: "anonymous",
+            userId: uid,
             model: usedModel,
             inputTokens: genInput,
             outputTokens: genOutput,
@@ -1483,7 +1484,7 @@ async function startServer() {
 
           // Log Gemini Extraction
           logUsage({
-            userId: "anonymous",
+            userId: uid,
             model: extractionModelUsed,
             inputTokens: geminiUsage.promptTokenCount,
             outputTokens: geminiUsage.candidatesTokenCount,
@@ -1728,6 +1729,46 @@ async function startServer() {
           _split_gen: true,
           _agents: true
         };
+
+        // Log Gemini Extraction (Step 1)
+        logUsage({
+          userId: uid,
+          model: extractionModelUsed,
+          inputTokens: geminiUsage.promptTokenCount,
+          outputTokens: geminiUsage.candidatesTokenCount,
+          totalTokens: geminiUsage.totalTokenCount,
+          cacheHit: false,
+          endpoint: "/api/v2/optimize",
+          timestamp: Date.now(),
+          cost: calculateCost(extractionModelUsed, geminiUsage.promptTokenCount, geminiUsage.candidatesTokenCount)
+        });
+
+        // Calculate and Log Gemini Optimization & Roles Generation (Step 3)
+        let rolesInputTokens = 0;
+        let rolesOutputTokens = 0;
+        if (Array.isArray(roleResults)) {
+          roleResults.forEach((r: any) => {
+            if (r.usage) {
+              rolesInputTokens += (r.usage.promptTokenCount || 0);
+              rolesOutputTokens += (r.usage.candidatesTokenCount || 0);
+            }
+          });
+        }
+
+        const optInputTokens = (metaResponse.usageMetadata?.promptTokenCount || 0) + rolesInputTokens;
+        const optOutputTokens = (metaResponse.usageMetadata?.candidatesTokenCount || 0) + rolesOutputTokens;
+
+        logUsage({
+          userId: uid,
+          model: usedModel,
+          inputTokens: optInputTokens,
+          outputTokens: optOutputTokens,
+          totalTokens: optInputTokens + optOutputTokens,
+          cacheHit: false,
+          endpoint: "/api/v2/optimize",
+          timestamp: Date.now(),
+          cost: calculateCost(usedModel, optInputTokens, optOutputTokens)
+        });
 
         console.log("[Pipeline] Split Generation Complete.");
 
