@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Key, Sparkles, Copy, Check, Info, FileText, BrainCircuit, Target, ListChecks, ArrowRight, RefreshCw, Pause, Play, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Key, Sparkles, Copy, Check, Info, FileText, BrainCircuit, Target, ListChecks, ArrowRight, RefreshCw, Pause, Play, CheckCircle2, AlertCircle, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { extractSkillsFromJD } from '../services/geminiService';
 import { RouterConfig } from '../services/aiRouter';
@@ -24,6 +24,7 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
   const [copiedIndex, setCopiedIndex] = useState<{ type: string; index: number } | null>(null);
   const [status, setStatus] = useState<'active' | 'paused' | 'completed' | 'idle'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const masterSkills = Array.isArray((masterResume as any).core_competencies) 
     ? (masterResume as any).core_competencies.map((c: any) => c.skill)
@@ -230,59 +231,74 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
                           NEW ANALYSIS
                         </button>
                      </div>
-                     <div className="flex flex-wrap gap-3">
-                        {extractedData.priority.map((skill, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => copyToClipboard(skill, 'priority', idx)}
-                            className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-bold border transition-all ${
-                              isDarkMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-500/20 text-amber-700 hover:bg-amber-100'
-                            }`}
-                          >
-                            {skill}
-                            {copiedIndex?.type === 'priority' && copiedIndex.index === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4 opacity-30" />}
-                          </button>
-                        ))}
+                      <div className="flex flex-wrap gap-3">
+                         {extractedData.priority
+                           .filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+                           .map((skill, idx) => (
+                             <button
+                               key={idx}
+                               onClick={() => copyToClipboard(skill, 'priority', idx)}
+                               className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-bold border transition-all ${
+                                 isDarkMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-500/20 text-amber-700 hover:bg-amber-100'
+                               }`}
+                             >
+                               {skill}
+                               {copiedIndex?.type === 'priority' && copiedIndex.index === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4 opacity-30" />}
+                             </button>
+                           ))}
+                         {extractedData.priority.filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                           <div className="text-xs opacity-50 italic py-2 font-medium">No matching high-yield keywords.</div>
+                         )}
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     {/* Missing Skills */}
+                     <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
+                       <h3 className="font-bold text-red-500 mb-4 flex items-center gap-2">
+                         <Info className="w-4 h-4" />
+                         Gaps to Bridge
+                       </h3>
+                       <div className="space-y-3">
+                         {extractedData.missing
+                           .filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+                           .map((skill, idx) => (
+                             <div key={idx} className="flex items-center justify-between group p-2 rounded-xl hover:bg-red-500/5">
+                               <span className="text-sm font-medium opacity-80">{skill}</span>
+                               <button onClick={() => copyToClipboard(skill, 'missing', idx)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 rounded-lg">
+                                 {copiedIndex?.type === 'missing' && copiedIndex.index === idx ? <Check className="w-3.5 h-3.5 text-red-500" /> : <Copy className="w-3.5 h-3.5" />}
+                               </button>
+                             </div>
+                           ))}
+                         {extractedData.missing.filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                           <div className="text-xs opacity-40 italic py-4 font-medium text-center">No matching gaps.</div>
+                         )}
+                       </div>
                      </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Missing Skills */}
-                    <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
-                      <h3 className="font-bold text-red-500 mb-4 flex items-center gap-2">
-                        <Info className="w-4 h-4" />
-                        Gaps to Bridge
-                      </h3>
-                      <div className="space-y-3">
-                        {extractedData.missing.map((skill, idx) => (
-                          <div key={idx} className="flex items-center justify-between group p-2 rounded-xl hover:bg-red-500/5">
-                            <span className="text-sm font-medium opacity-80">{skill}</span>
-                            <button onClick={() => copyToClipboard(skill, 'missing', idx)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 rounded-lg">
-                              {copiedIndex?.type === 'missing' && copiedIndex.index === idx ? <Check className="w-3.5 h-3.5 text-red-500" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Matching Skills */}
-                    <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
-                      <h3 className="font-bold text-emerald-500 mb-4 flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        JD Matches
-                      </h3>
-                      <div className="space-y-3">
-                        {extractedData.matching.map((skill, idx) => (
-                          <div key={idx} className="flex items-center justify-between group p-2 rounded-xl hover:bg-emerald-500/5">
-                            <span className="text-sm font-medium opacity-80">{skill}</span>
-                            <button onClick={() => copyToClipboard(skill, 'matching', idx)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-emerald-500/10 rounded-lg">
-                              {copiedIndex?.type === 'matching' && copiedIndex.index === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                     {/* Matching Skills */}
+                     <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+                       <h3 className="font-bold text-emerald-500 mb-4 flex items-center gap-2">
+                         <Check className="w-4 h-4" />
+                         JD Matches
+                       </h3>
+                       <div className="space-y-3">
+                         {extractedData.matching
+                           .filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+                           .map((skill, idx) => (
+                             <div key={idx} className="flex items-center justify-between group p-2 rounded-xl hover:bg-emerald-500/5">
+                               <span className="text-sm font-medium opacity-80">{skill}</span>
+                               <button onClick={() => copyToClipboard(skill, 'matching', idx)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-emerald-500/10 rounded-lg">
+                                 {copiedIndex?.type === 'matching' && copiedIndex.index === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                               </button>
+                             </div>
+                           ))}
+                         {extractedData.matching.filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                           <div className="text-xs opacity-40 italic py-4 font-medium text-center">No matching matches.</div>
+                         )}
+                       </div>
+                     </div>
+                   </div>
                 </div>
               )}
             </div>
@@ -297,28 +313,55 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
                   <h3 className="font-bold text-lg">Master Skills Bank</h3>
                 </div>
                 
-                <p className="text-xs opacity-50 mb-6 leading-relaxed">
+                <p className="text-xs opacity-50 mb-4 leading-relaxed font-medium">
                   These are all skills from your Master Resume. Use this list to quickly find and copy keywords for Workday/Portal "Skills" sections.
                 </p>
 
-                <div className="space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
-                  {masterSkills.map((skill, idx) => {
-                    const isMatching = extractedData?.matching.includes(skill);
-                    return (
-                      <div key={idx} className="flex items-center justify-between group p-3 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10">
-                        <div className="flex flex-col gap-0.5">
-                          <span className={`text-sm font-bold ${isMatching ? 'text-emerald-500' : ''}`}>{skill}</span>
-                          {isMatching && <span className="text-[10px] text-emerald-500/50 font-bold uppercase tracking-widest flex items-center gap-1">Matches Job <ArrowRight className="w-2 h-2" /></span>}
+                {/* Search Facility */}
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search master skills..."
+                    className={`w-full bg-white/5 dark:bg-neutral-800/40 border border-black/10 dark:border-white/10 rounded-xl py-2 pl-10 pr-12 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${
+                      isDarkMode ? 'text-white' : 'text-black'
+                    }`}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold opacity-60 hover:opacity-100 text-neutral-400 hover:text-emerald-500 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                  {masterSkills
+                    .filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((skill, idx) => {
+                      const isMatching = extractedData?.matching.includes(skill);
+                      return (
+                        <div key={idx} className="flex items-center justify-between group p-3 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10">
+                          <div className="flex flex-col gap-0.5">
+                            <span className={`text-sm font-bold ${isMatching ? 'text-emerald-500' : ''}`}>{skill}</span>
+                            {isMatching && <span className="text-[10px] text-emerald-500/50 font-bold uppercase tracking-widest flex items-center gap-1">Matches Job <ArrowRight className="w-2 h-2" /></span>}
+                          </div>
+                          <button 
+                            onClick={() => copyToClipboard(skill, 'master', idx)} 
+                            className={`p-2 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-100 hover:bg-gray-200'}`}
+                          >
+                            {copiedIndex?.type === 'master' && copiedIndex.index === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100" />}
+                          </button>
                         </div>
-                        <button 
-                          onClick={() => copyToClipboard(skill, 'master', idx)} 
-                          className={`p-2 rounded-xl transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-100 hover:bg-gray-200'}`}
-                        >
-                          {copiedIndex?.type === 'master' && copiedIndex.index === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100" />}
-                        </button>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  {masterSkills.filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                    <div className="text-center py-8 opacity-40 text-xs italic font-medium">No matching skills found.</div>
+                  )}
                 </div>
               </div>
             </div>
