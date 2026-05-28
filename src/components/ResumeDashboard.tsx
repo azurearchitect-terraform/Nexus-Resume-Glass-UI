@@ -238,6 +238,19 @@ export default function ResumeDashboard({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const handleNavigateTab = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && customEvent.detail.tabId) {
+        setActiveNav(customEvent.detail.tabId);
+      }
+    };
+    document.addEventListener('navigate-to-tab', handleNavigateTab);
+    return () => {
+      document.removeEventListener('navigate-to-tab', handleNavigateTab);
+    };
+  }, []);
   const [sidebarWidth, setSidebarWidth] = useState(250);
   const [rightPanelWidth, setRightPanelWidth] = useState(380);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Command, X, FileText, Briefcase, Code, GraduationCap, Zap, Settings, HelpCircle, ArrowRight, User, Layout, BarChart3, Key } from 'lucide-react';
+import { Search, Command, X, FileText, Briefcase, Code, GraduationCap, Zap, Settings, HelpCircle, ArrowRight, User, Layout, BarChart3, Key, Cpu, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useResumeStore } from '../store/useResumeStore';
 
@@ -93,28 +93,34 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
     // App Tools
     if (activeCategory === 'all' || activeCategory === 'tool') {
       const tools = [
-        { title: 'Job Tracker', icon: Briefcase, id: 'tracker' },
-        { title: 'AI Optimizer', icon: Zap, id: 'optimizer' },
-        { title: 'Portal Skill Optimization', icon: Key, id: 'skill_extractor' },
-        { title: 'Resume JSON Viewer', icon: Code, id: 'json' },
-        { title: 'Admin Dashboard', icon: BarChart3, id: 'admin' },
-        { title: 'Settings', icon: Settings, id: 'settings' }
+        { title: 'Workspace Dashboard', icon: BarChart3, id: 'dashboard', desc: 'Open main workspace statistics and overview' },
+        { title: 'ATS Optimizer', icon: Target, id: 'optimizer', desc: 'Optimize resume bullet points for specific job descriptions' },
+        { title: 'Job Tracker', icon: Briefcase, id: 'tracker', desc: 'Manage your job applications, stages, and status' },
+        { title: 'Audiences Matrix', icon: User, id: 'audiences', desc: 'View and customize resume versions for different audiences' },
+        { title: 'AI Strategy Insights', icon: Sparkles, id: 'insights', desc: 'Get AI recommendations and suitability scores' },
+        { title: 'Skills Extractor', icon: Key, id: 'skills', desc: 'Extract high-yield portal keywords and bridge gaps' },
+        { title: 'Quota Dashboard', icon: Cpu, id: 'quota', desc: 'Monitor your API quota consumption and telemetry stats' },
+        { title: 'Career Tools Suite', icon: Zap, id: 'tools', desc: 'Access advanced utility tools and master resume manager' },
+        { title: 'Settings & Profile', icon: Settings, id: 'profile', desc: 'Manage API credentials and account details' },
+        { title: 'Resume JSON Viewer', icon: Code, id: 'json', desc: 'Inspect raw JSON data of your active resume' },
+        { title: 'Admin Dashboard', icon: BarChart3, id: 'admin', desc: 'Open developer and administrative controls' }
       ];
 
       tools.forEach(tool => {
-        if (!query || tool.title.toLowerCase().includes(lowerQuery)) {
+        if (!query || tool.title.toLowerCase().includes(lowerQuery) || (tool.desc && tool.desc.toLowerCase().includes(lowerQuery))) {
           results.push({
             id: `tool-${tool.id}`,
             type: 'tool',
             title: tool.title,
-            subtitle: 'Open application tool',
+            subtitle: tool.desc || 'Open application tool',
             icon: tool.icon,
             action: () => {
-              // Action logic handled by parent or specific tool triggers
               if (tool.id === 'json') {
                  document.dispatchEvent(new CustomEvent('toggle-json-viewer'));
               } else if (tool.id === 'admin') {
                  document.dispatchEvent(new CustomEvent('toggle-admin-dashboard'));
+              } else {
+                 document.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: { tabId: tool.id } }));
               }
               onClose();
             }
