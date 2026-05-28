@@ -50,27 +50,34 @@ export const MasterResumeManager: React.FC<MasterResumeManagerProps> = ({
   };
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || resumes.length >= 5) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const parsedData = JSON.parse(content);
-        const newResume: MasterResume = {
-          id: Date.now().toString(),
-          name: file.name.replace('.json', ''),
-          description: 'Imported from file',
-          data: parsedData,
-          createdAt: Date.now(),
-          isActive: false
-        };
-        onAdd(newResume);
-      } catch (err) {
-        alert("Error parsing JSON file");
-      }
-    };
-    reader.readAsText(file);
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    const remainingCapacity = 5 - resumes.length;
+    const filesToImport = Array.from(files).slice(0, remainingCapacity);
+    
+    filesToImport.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const parsedData = JSON.parse(content);
+          const newResume: MasterResume = {
+            id: (Date.now() + index).toString(),
+            name: file.name.replace('.json', ''),
+            description: 'Imported from file',
+            data: parsedData,
+            createdAt: Date.now(),
+            isActive: false
+          };
+          onAdd(newResume);
+        } catch (err) {
+          alert(`Error parsing JSON file: ${file.name}`);
+        }
+      };
+      reader.readAsText(file);
+    });
+    
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -104,7 +111,7 @@ export const MasterResumeManager: React.FC<MasterResumeManagerProps> = ({
            <button onClick={handleImportCurrent} disabled={resumes.length >= 5} className="flex-1 flex items-center justify-center gap-2 text-xs font-bold bg-white/5 py-2 rounded-lg hover:bg-white/10 disabled:opacity-50">
              <FileText className="w-4 h-4" /> Import Current
            </button>
-           <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
+           <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" multiple className="hidden" />
            {isAdding ? (
              <div className="flex flex-1 gap-2">
                <input className={`flex-1 p-2 text-xs rounded-lg ${isDarkMode ? 'bg-white/10' : 'bg-black/10'}`} value={newName} onChange={e => setNewName(e.target.value)} placeholder="Name" />
