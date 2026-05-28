@@ -22,6 +22,7 @@ import { CareerTools } from './CareerTools';
 import { JobTracker } from './JobTracker';
 import { NexusProInsights } from './NexusProInsights';
 import { MasterResumeManager } from './MasterResumeManager';
+import { SkillExtractor } from './SkillExtractor';
 import { MODE_DESCRIPTIONS, AUDIENCES, TARGET_COMPANIES } from '../constants';
 
 // ─── Custom Recharts Tooltip ──────────────────────────────────────────────────
@@ -906,6 +907,7 @@ export default function ResumeDashboard({
               { id: 'tracker', label: 'Job Tracker', icon: Briefcase },
               { id: 'audiences', label: 'Audiences Matrix', icon: Users },
               { id: 'insights', label: 'AI Strategy Insights', icon: Sparkles },
+              { id: 'skills', label: 'Skills', icon: Key },
               { id: 'quota', label: 'Quota Dashboard', icon: Cpu },
               { id: 'tools', label: 'Career Tools Suite', icon: Zap }
             ].map(t => (
@@ -2156,6 +2158,25 @@ export default function ResumeDashboard({
                     handleOptimizeResume={handleOptimizeResume}
                   />
                 </div>
+              </motion.div>
+            )}
+
+            {/* Skills Extractor Tab */}
+            {activeNav === 'skills' && (
+              <motion.div 
+                key="skills"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="h-full"
+              >
+                <SkillExtractor 
+                  isDarkMode={isDarkMode} 
+                  resumeData={results[activeAudience] || (resumeText ? JSON.parse(resumeText) : {})} 
+                  onBack={() => setActiveNav('dashboard')} 
+                  engineConfig={engineConfig} 
+                  initialJd={jobDescription} 
+                />
               </motion.div>
             )}
 

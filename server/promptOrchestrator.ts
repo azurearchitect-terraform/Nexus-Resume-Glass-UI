@@ -122,7 +122,8 @@ CONCENTRIX ROLE GUARDRAILS (STRICT ENFORCEMENT):
 HCLTECH SHORT-TENURE GUARDRAILS (STRICT ENFORCEMENT):
 - The candidate worked ONLY ONE MONTH at HCLTech.
 - BANNED CLAIMS: Large-scale transformation ownership, major SLA improvements, strategic cloud migration leadership, or significant architectural decisions.
-- MANDATED POSITIONING: Position experience strictly around onboarding, shadowing enterprise workflows, operational exposure, monitoring tools familiarity, support coordination, and infrastructure familiarization.
+- BANNED PASSIVE/WEAK VERBS: Do NOT use passive or weak phrasing like "Gained exposure to", "Participated in", "Assisted with", "Shadowed", "Familiarized with".
+- MANDATED ACTIVE POSITIONING: Emphasize active ownership and specific contributions using active operational verbs (e.g. "Analyzed enterprise Azure monitoring alerts", "Configured and validated backup schedules", "Supported infrastructure incident resolution", "Documented operational workflows").
 `;
     }
 
@@ -131,7 +132,9 @@ HCLTECH SHORT-TENURE GUARDRAILS (STRICT ENFORCEMENT):
     if (isShort && !companyLower.includes('hcltech')) {
       rules += `
 SHORT TENURE GUARDRAILS:
-- This role was of very short duration. Do not claim major strategic transformations or SLA percentage improvements. Focus on knowledge transfer, onboarding, shadowing, and support activities.
+- This role was of very short duration. Do not claim major strategic transformations or SLA percentage improvements.
+- BANNED PASSIVE/WEAK VERBS: Do NOT use passive/weak verbs or phrases like "Gained exposure to", "Participated in", "Assisted with", "Shadowed".
+- MANDATED ACTIVE POSITIONING: Emphasize active ownership and specific technical contributions using active operational verbs (e.g. "Analyzed", "Configured", "Monitored", "Supported", "Documented", "Validated").
 `;
     }
 
