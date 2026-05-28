@@ -92,7 +92,7 @@ interface ResumeDashboardProps {
   
   // Master Resumes
   masterResumes: any[];
-  setMasterResumes: (resumes: any[]) => void;
+  setMasterResumes: React.Dispatch<React.SetStateAction<any[]>>;
   selectedResumeId: string;
   setSelectedResumeId: (id: string) => void;
   handleSetActiveResume: (id: string) => void;
@@ -249,6 +249,7 @@ export default function ResumeDashboard({
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewTab, setPreviewTab] = useState<'formatted' | 'json'>('formatted');
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
+  const [selectedVersionIds, setSelectedVersionIds] = useState<string[]>([]);
 
   // Filter optimizations for the last 2 days (48 hours)
   const lastTwoDaysVersions = resumeVersions.filter(v => {
@@ -733,11 +734,11 @@ export default function ResumeDashboard({
   };
 
   const handleAddMasterResume = (newResume: any) => {
-    setMasterResumes([...masterResumes, newResume]);
+    setMasterResumes(prev => [...prev, newResume]);
   };
 
   const handleUpdateMasterResume = (updatedResume: any) => {
-    setMasterResumes(masterResumes.map(r => r.id === updatedResume.id ? updatedResume : r));
+    setMasterResumes(prev => prev.map(r => r.id === updatedResume.id ? updatedResume : r));
   };
 
   const handleDeleteMasterResume = (id: string) => {
@@ -745,7 +746,7 @@ export default function ResumeDashboard({
       showToast("Cannot delete the last master resume.", "error");
       return;
     }
-    setMasterResumes(masterResumes.filter(r => r.id !== id));
+    setMasterResumes(prev => prev.filter(r => r.id !== id));
   };
 
   const handleImportToMaster = (data: any) => {
@@ -763,7 +764,7 @@ export default function ResumeDashboard({
       createdAt: Date.now(),
       isActive: false
     };
-    setMasterResumes([...masterResumes, newResume]);
+    setMasterResumes(prev => [...prev, newResume]);
     showToast("Successfully added to Master Resumes list!", "success");
   };
 
@@ -1108,6 +1109,27 @@ export default function ResumeDashboard({
                       <h3 className="text-xs font-black uppercase tracking-widest text-emerald-400">Optimizations (Last 2 Days)</h3>
                       <p className="text-[10px] opacity-40">Click details to view JSON or export PDF metadata</p>
                     </div>
+                    {selectedVersionIds.length > 0 && (
+                      <button 
+                        onClick={async () => {
+                          if (window.confirm(`Are you sure you want to delete the ${selectedVersionIds.length} selected optimizations? This will sync and remove any corresponding backup files from Google Drive as well.`)) {
+                            const idsToDelete = [...selectedVersionIds];
+                            setSelectedVersionIds([]); // clear selection first
+                            const promises = idsToDelete.map(async (id) => {
+                              const version = resumeVersions.find(v => v.id === id);
+                              if (version && handleDeleteVersion) {
+                                return handleDeleteVersion(id, version.name);
+                              }
+                            });
+                            await Promise.all(promises);
+                            showToast(`Successfully deleted ${idsToDelete.length} optimizations.`, "success");
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider hover:bg-rose-600 transition-all inline-flex items-center gap-1.5"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete Selected ({selectedVersionIds.length})
+                      </button>
+                    )}
                   </div>
 
                   <div className="overflow-x-auto max-h-60 overflow-y-auto custom-scrollbar">
@@ -1117,6 +1139,20 @@ export default function ResumeDashboard({
                       <table className="w-full text-left text-xs">
                         <thead>
                           <tr className="border-b border-white/5 text-neutral-400 font-black tracking-widest uppercase sticky top-0 bg-[#0c0d14] z-10">
+                            <th className="pb-3 w-8">
+                              <input 
+                                type="checkbox" 
+                                checked={lastTwoDaysVersions.length > 0 && selectedVersionIds.length === lastTwoDaysVersions.length}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedVersionIds(lastTwoDaysVersions.map(v => v.id));
+                                  } else {
+                                    setSelectedVersionIds([]);
+                                  }
+                                }}
+                                className="rounded bg-white/10 border-white/10 text-emerald-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                              />
+                            </th>
                             <th className="pb-3">Timestamp</th>
                             <th className="pb-3">Target Profile</th>
                             <th className="pb-3">Target Company</th>
@@ -1128,6 +1164,18 @@ export default function ResumeDashboard({
                         <tbody>
                           {lastTwoDaysVersions.map((v, i) => (
                             <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-all">
+                              <td className="py-3.5">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedVersionIds.includes(v.id)}
+                                  onChange={() => {
+                                    setSelectedVersionIds(prev => 
+                                      prev.includes(v.id) ? prev.filter(id => id !== v.id) : [...prev, v.id]
+                                    );
+                                  }}
+                                  className="rounded bg-white/10 border-white/10 text-emerald-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                                />
+                              </td>
                               <td className="py-3.5 font-medium">
                                 {v.timestamp?.toDate ? v.timestamp.toDate().toLocaleString() : new Date(v.timestamp).toLocaleString()}
                               </td>

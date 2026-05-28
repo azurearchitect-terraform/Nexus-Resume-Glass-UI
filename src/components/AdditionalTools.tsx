@@ -636,9 +636,9 @@ export const AdditionalTools: React.FC<AdditionalToolsProps> = ({
         <div className="max-w-3xl mx-auto w-full">
           <MasterResumeManager 
             resumes={masterResumes}
-            onAdd={(r) => setMasterResumes([...masterResumes, r])}
-            onUpdate={(r) => setMasterResumes(masterResumes.map(m => m.id === r.id ? r : m))}
-            onDelete={(id) => setMasterResumes(masterResumes.filter(m => m.id !== id))}
+            onAdd={(r) => setMasterResumes(prev => [...prev, r])}
+            onUpdate={(r) => setMasterResumes(prev => prev.map(m => m.id === r.id ? r : m))}
+            onDelete={(id) => setMasterResumes(prev => prev.filter(m => m.id !== id))}
             onSetActive={onSetActive}
             onDuplicate={onDuplicate}
             selectedId={selectedResumeId}
