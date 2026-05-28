@@ -166,7 +166,7 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
   return cleanApiKey(process.env.GEMINI_API_KEY || '');
 }
 
-const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash';
 
 async function callAI(prompt: string, model: string, engine: EngineType, encryptedKey?: string) {
   const idToken = await auth.currentUser?.getIdToken();
@@ -191,15 +191,12 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
       const getFallbackChain = (startModel: string): string[] => {
         switch (startModel) {
           case 'gemini-3.1-pro-preview':
-            return ['gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-          case 'gemini-3.1-flash-lite':
-            return ['gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+          case 'gemini-3-flash-preview':
+            return ['gemini-3-flash-preview', 'gemini-3.5-flash'];
           case 'gemini-3.5-flash':
-            return ['gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-          case 'gemini-3.5-flash-lite':
-            return ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+            return ['gemini-3.5-flash', 'gemini-3-flash-preview'];
           default:
-            return [startModel, 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+            return [startModel, 'gemini-3.5-flash', 'gemini-3-flash-preview'];
         }
       };
 
@@ -211,8 +208,8 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
         // Exact model mapping without substring replacement issues
         if (cleanedStart === 'gemini-1.5-pro') {
           cleanedStart = 'gemini-3.1-pro-preview';
-        } else if (cleanedStart === 'gemini-1.5-flash' || cleanedStart === 'gemini-3-flash-preview' || cleanedStart === 'gemini-3.1-flash') {
-          cleanedStart = 'gemini-3.1-flash-lite';
+        } else if (cleanedStart === 'gemini-1.5-flash' || cleanedStart === 'gemini-3.1-flash') {
+          cleanedStart = 'gemini-3-flash-preview';
         }
 
         const chain = getFallbackChain(cleanedStart);
