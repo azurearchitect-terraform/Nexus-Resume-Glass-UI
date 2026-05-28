@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Command, X, FileText, Briefcase, Code, GraduationCap, Zap, Settings, HelpCircle, ArrowRight, User, Layout, BarChart3, Key, Cpu, Sparkles } from 'lucide-react';
+import { Search, Command, X, FileText, Briefcase, Code, GraduationCap, Zap, Settings, HelpCircle, ArrowRight, User, Layout, BarChart3, Key, Cpu, Sparkles, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useResumeStore } from '../store/useResumeStore';
 

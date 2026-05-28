@@ -124,27 +124,10 @@ function cleanApiKey(key: string): string {
 
 export async function getDecryptedKey(encryptedKey: string): Promise<string> {
   const idToken = await auth.currentUser?.getIdToken();
-  let keyToDecrypt = encryptedKey;
 
-  // Fallback: If no key provided for current user, check 'users/admin' in Firestore
-  if (!keyToDecrypt && auth.currentUser) {
-    try {
-      console.log("[GeminiService] No user key. Checking 'users/admin' fallback...");
-      const adminDoc = await getDoc(doc(db, 'users', 'admin'));
-      if (adminDoc.exists()) {
-        const data = adminDoc.data();
-        if (data.encryptedApiKey) {
-          keyToDecrypt = data.encryptedApiKey;
-          console.log("[GeminiService] Found shared key in 'users/admin'.");
-        }
-      }
-    } catch (e) {
-      console.warn("[GeminiService] Failed to fetch admin fallback key:", e);
-    }
+  if (encryptedKey && !encryptedKey.includes(':')) {
+    return cleanApiKey(encryptedKey);
   }
-
-  if (!keyToDecrypt) return cleanApiKey(process.env.GEMINI_API_KEY || '');
-  if (!keyToDecrypt.includes(':')) return cleanApiKey(keyToDecrypt);
 
   try {
     const response = await fetch('/api/decrypt-keys', {
@@ -153,7 +136,7 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${idToken}`
       },
-      body: JSON.stringify({ encryptedKey: keyToDecrypt })
+      body: JSON.stringify({ encryptedKey })
     });
     if (response.ok) {
       const data = await response.json();
@@ -163,7 +146,7 @@ export async function getDecryptedKey(encryptedKey: string): Promise<string> {
   } catch (e) {
     console.warn("Failed to decrypt key:", e);
   }
-  return cleanApiKey(process.env.GEMINI_API_KEY || '');
+  return '';
 }
 
 const FALLBACK_GEMINI_MODEL = 'gemini-3.5-flash';

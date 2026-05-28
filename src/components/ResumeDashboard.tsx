@@ -1784,158 +1784,162 @@ export default function ResumeDashboard({
                           </label>
                         </div>
 
-                        {/* API keys credentials & save under settings */}
+                        {/* Job Analysis: Select Target Audiences */}
                         <div className="pt-4 border-t border-white/5 space-y-3">
-                          <span className="block text-[9px] font-black uppercase tracking-widest text-emerald-400/80 mb-2">API Credentials</span>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-[9px] font-bold uppercase tracking-widest text-neutral-400 mb-1 font-black">Gemini Key</label>
-                              <input 
-                                type="password"
-                                placeholder={isApiKeySaved ? "••••••••••••" : "Gemini API key..."}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white focus:outline-none focus:border-emerald-500 transition-all"
-                                value={geminiApiKey}
-                                onChange={(e) => setGeminiApiKey(e.target.value)}
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[9px] font-bold uppercase tracking-widest text-neutral-400 mb-1 font-black">OpenAI Key</label>
-                              <input 
-                                type="password"
-                                placeholder={isApiKeySaved ? "••••••••••••" : "OpenAI API key..."}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white focus:outline-none focus:border-emerald-500 transition-all"
-                                value={openaiApiKey}
-                                onChange={(e) => setOpenaiApiKey(e.target.value)}
-                              />
-                            </div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Users className="w-4 h-4 text-emerald-400" />
+                            <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-400 font-black">Job Analysis (Target Audiences)</span>
                           </div>
-                          <div className="flex gap-2 justify-end pt-1">
-                            {isApiKeySaved && (
-                              <button 
-                                onClick={handleResetKeys}
-                                className="px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 text-[10px] font-bold hover:bg-red-500/5 transition-all"
-                              >
-                                Reset Keys
-                              </button>
-                            )}
-                            <button 
-                              onClick={handleSaveProfile}
-                              disabled={isSavingProfile}
-                              className="px-4 py-1.5 rounded-lg bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 disabled:opacity-50 transition-all flex items-center gap-1.5"
+                          
+                          <div className="relative" ref={audienceDropdownRef}>
+                            <label className="block text-[9px] font-bold uppercase tracking-widest text-white/40 mb-2 font-black">Audience Scope</label>
+                            <button
+                              onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
+                              className="w-full px-3 py-2 text-xs bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition-all"
                             >
-                              {isSavingProfile ? 'Saving...' : 'Save Settings & Keys'}
+                              <span className="font-bold text-white text-[11px]">
+                                {selectedAudiences.length === 0 ? 'Select Audiences...' : `${selectedAudiences.length} Scope(s) Active`}
+                              </span>
+                              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isAudienceDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                              {isAudienceDropdownOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -10 }}
+                                  className="absolute left-0 right-0 mt-2 p-2 rounded-xl border border-white/10 bg-neutral-950 shadow-2xl z-50 space-y-1 max-h-60 overflow-y-auto"
+                                >
+                                  {AUDIENCES.map((aud) => (
+                                    <button
+                                      key={aud.id}
+                                      onClick={() => {
+                                        if (selectedAudiences.includes(aud.id)) {
+                                          setSelectedAudiences(selectedAudiences.filter((a: string) => a !== aud.id));
+                                        } else {
+                                          setSelectedAudiences([...selectedAudiences, aud.id]);
+                                        }
+                                      }}
+                                      className={`w-full p-2 rounded-lg flex items-center gap-3 transition-all text-left ${
+                                        selectedAudiences.includes(aud.id) 
+                                          ? 'bg-emerald-500/10 text-emerald-400 font-bold' 
+                                          : 'hover:bg-white/5 text-white/70'
+                                      }`}
+                                    >
+                                      <input 
+                                        type="checkbox"
+                                        checked={selectedAudiences.includes(aud.id)}
+                                        readOnly
+                                        className="accent-emerald-500 w-3.5 h-3.5 rounded border-white/10 pointer-events-none"
+                                      />
+                                      <span className="text-[11px] flex-1">{aud.label}</span>
+                                      {selectedAudiences.includes(aud.id) && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            {selectedAudiences.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-3">
+                                {selectedAudiences.map((audId) => {
+                                  const aud = AUDIENCES.find(a => a.id === audId);
+                                  return (
+                                    <div 
+                                      key={audId} 
+                                      className="px-2.5 py-1 rounded-full text-[10px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 flex items-center gap-1.5 font-bold"
+                                    >
+                                      <span>{aud ? aud.label : audId}</span>
+                                      <button 
+                                        onClick={() => setSelectedAudiences(selectedAudiences.filter(a => a !== audId))}
+                                        className="text-emerald-400/60 hover:text-emerald-400 font-black transition-colors"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => setSelectedAudiences([])}
+                              className="flex-1 py-1.5 text-[10px] font-bold rounded-lg border border-white/10 text-white/60 hover:bg-white/5 transition-all uppercase tracking-wider"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              onClick={handleAutoSelectAudiences}
+                              disabled={isAutoSelectingAudiences || !jobDescription}
+                              className="flex-1 py-1.5 text-[10px] font-bold rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5"
+                            >
+                              {isAutoSelectingAudiences ? (
+                                <>
+                                  <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                  Analyzing...
+                                </>
+                              ) : (
+                                'Auto-Select'
+                              )}
                             </button>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Job Analysis: Select Target Audiences Card */}
+                    {/* API keys credentials & save under settings */}
                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                          <Users className="w-5 h-5" />
+                          <Key className="w-5 h-5" />
                         </div>
                         <div>
-                          <h2 className="text-sm font-black uppercase tracking-widest text-emerald-400">Job Analysis (Target Audiences)</h2>
-                          <p className="text-[10px] opacity-40">Choose which sector profiles to auto-optimize during pipeline runs.</p>
+                          <h2 className="text-sm font-black uppercase tracking-widest text-emerald-400">API Credentials</h2>
+                          <p className="text-[10px] opacity-40">Manage API keys securely. Saved keys are encrypted locally.</p>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="relative" ref={audienceDropdownRef}>
-                          <label className="block text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2 font-black">Audience Scope</label>
-                          <button
-                            onClick={() => setIsAudienceDropdownOpen(!isAudienceDropdownOpen)}
-                            className="w-full px-4 py-3 text-xs bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition-all"
-                          >
-                            <span className="font-bold text-white">
-                              {selectedAudiences.length === 0 ? 'Select Audiences...' : `${selectedAudiences.length} Scope(s) Active`}
-                            </span>
-                            <ChevronDown className={`w-4 h-4 transition-transform ${isAudienceDropdownOpen ? 'rotate-180' : ''}`} />
-                          </button>
-
-                          <AnimatePresence>
-                            {isAudienceDropdownOpen && (
-                              <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="absolute left-0 right-0 mt-2 p-2 rounded-xl border border-white/10 bg-neutral-950 shadow-2xl z-50 space-y-1 max-h-60 overflow-y-auto"
-                              >
-                                {AUDIENCES.map((aud) => (
-                                  <button
-                                    key={aud.id}
-                                    onClick={() => {
-                                      if (selectedAudiences.includes(aud.id)) {
-                                        setSelectedAudiences(selectedAudiences.filter((a: string) => a !== aud.id));
-                                      } else {
-                                        setSelectedAudiences([...selectedAudiences, aud.id]);
-                                      }
-                                    }}
-                                    className={`w-full p-2.5 rounded-lg flex items-center gap-3 transition-all text-left ${
-                                      selectedAudiences.includes(aud.id) 
-                                        ? 'bg-emerald-500/10 text-emerald-400 font-bold' 
-                                        : 'hover:bg-white/5 text-white/70'
-                                    }`}
-                                  >
-                                    <input 
-                                      type="checkbox"
-                                      checked={selectedAudiences.includes(aud.id)}
-                                      readOnly
-                                      className="accent-emerald-500 w-3.5 h-3.5 rounded border-white/10 pointer-events-none"
-                                    />
-                                    <span className="text-xs flex-1">{aud.label}</span>
-                                    {selectedAudiences.includes(aud.id) && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                                  </button>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-
-                          {selectedAudiences.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
-                              {selectedAudiences.map((audId) => {
-                                const aud = AUDIENCES.find(a => a.id === audId);
-                                return (
-                                  <div 
-                                    key={audId} 
-                                    className="px-2.5 py-1 rounded-full text-[10px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 flex items-center gap-1.5 font-bold"
-                                  >
-                                    <span>{aud ? aud.label : audId}</span>
-                                    <button 
-                                      onClick={() => setSelectedAudiences(selectedAudiences.filter(a => a !== audId))}
-                                      className="text-emerald-400/60 hover:text-emerald-400 font-black transition-colors"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[9px] font-bold uppercase tracking-widest text-neutral-400 mb-1 font-black">Gemini Key</label>
+                            <input 
+                              type="password"
+                              placeholder={isApiKeySaved ? "••••••••••••" : "Gemini API key..."}
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white focus:outline-none focus:border-emerald-500 transition-all"
+                              value={geminiApiKey}
+                              onChange={(e) => setGeminiApiKey(e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold uppercase tracking-widest text-neutral-400 mb-1 font-black">OpenAI Key</label>
+                            <input 
+                              type="password"
+                              placeholder={isApiKeySaved ? "••••••••••••" : "OpenAI API key..."}
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white focus:outline-none focus:border-emerald-500 transition-all"
+                              value={openaiApiKey}
+                              onChange={(e) => setOpenaiApiKey(e.target.value)}
+                            />
+                          </div>
                         </div>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setSelectedAudiences([])}
-                            className="flex-1 py-2 text-[10px] font-bold rounded-lg border border-white/10 text-white/60 hover:bg-white/5 transition-all uppercase tracking-wider"
+                        <div className="flex gap-2 justify-end pt-1">
+                          {isApiKeySaved && (
+                            <button 
+                              onClick={handleResetKeys}
+                              className="px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 text-[10px] font-bold hover:bg-red-500/5 transition-all"
+                            >
+                              Reset Keys
+                            </button>
+                          )}
+                          <button 
+                            onClick={handleSaveProfile}
+                            disabled={isSavingProfile}
+                            className="px-4 py-1.5 rounded-lg bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 disabled:opacity-50 transition-all flex items-center gap-1.5"
                           >
-                            Clear
-                          </button>
-                          <button
-                            onClick={handleAutoSelectAudiences}
-                            disabled={isAutoSelectingAudiences || !jobDescription}
-                            className="flex-1 py-2 text-[10px] font-bold rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5"
-                          >
-                            {isAutoSelectingAudiences ? (
-                              <>
-                                <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                                Analyzing...
-                              </>
-                            ) : (
-                              'Auto-Select'
-                            )}
+                            {isSavingProfile ? 'Saving...' : 'Save Settings & Keys'}
                           </button>
                         </div>
                       </div>

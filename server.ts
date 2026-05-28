@@ -785,21 +785,42 @@ async function startServer() {
   });
 
   // API Endpoint to decrypt API keys for frontend use
-  app.post("/api/decrypt-keys", (req, res) => {
+  app.post("/api/decrypt-keys", async (req, res) => {
     const { encryptedKey } = req.body;
-    if (!encryptedKey) {
-      return res.status(400).json({ error: "Encrypted key is required" });
-    }
     try {
-      const decryptedString = decrypt(encryptedKey);
-      let keys: any = {};
-      try {
-        keys = JSON.parse(decryptedString);
-      } catch (e) {
-        // For backwards compatibility if it was a single raw key
-        keys = { gemini: decryptedString };
+      let keyToDecrypt = encryptedKey;
+      if (!keyToDecrypt) {
+        try {
+          const firestore = requireFirestoreDb("API key lookup");
+          const adminDoc = await firestore.collection("users").doc("admin").get();
+          if (adminDoc.exists) {
+            const adminData = adminDoc.data();
+            if (adminData && adminData.encryptedApiKey) {
+              keyToDecrypt = adminData.encryptedApiKey;
+            }
+          }
+        } catch (e) {
+          console.warn("[Server Decrypt] Failed to fetch admin fallback key:", e);
+        }
       }
-      res.json({ keys });
+
+      if (keyToDecrypt) {
+        const decryptedString = decrypt(keyToDecrypt);
+        let keys: any = {};
+        try {
+          keys = JSON.parse(decryptedString);
+        } catch (e) {
+          keys = { gemini: decryptedString };
+        }
+        return res.json({ keys });
+      }
+
+      res.json({
+        keys: {
+          gemini: process.env.GEMINI_API_KEY || "",
+          openai: process.env.OPENAI_API_KEY || ""
+        }
+      });
     } catch (error: any) {
       console.error("Decryption Error:", error);
       res.status(500).json({ error: "Failed to decrypt API keys" });
