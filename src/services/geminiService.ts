@@ -191,15 +191,15 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
       const getFallbackChain = (startModel: string): string[] => {
         switch (startModel) {
           case 'gemini-3.1-pro-preview':
-            return ['gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-3.1-flash-lite'];
+            return ['gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
           case 'gemini-3.1-flash-lite':
-            return ['gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+            return ['gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
           case 'gemini-3.5-flash':
-            return ['gemini-3.5-flash', 'gemini-3.1-flash-lite'];
+            return ['gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
           case 'gemini-3.5-flash-lite':
-            return ['gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+            return ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
           default:
-            return [startModel, 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+            return [startModel, 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
         }
       };
 
