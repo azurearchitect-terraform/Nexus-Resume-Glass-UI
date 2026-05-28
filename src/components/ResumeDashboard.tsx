@@ -1261,7 +1261,7 @@ export default function ResumeDashboard({
               >
                 <div 
                   id="optimizer-container"
-                  className="flex flex-col lg:flex-row gap-5 relative items-stretch"
+                  className="flex flex-col lg:flex-row gap-5 relative items-start"
                 >
                   {/* Left Column */}
                   <div 
