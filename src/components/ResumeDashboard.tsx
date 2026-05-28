@@ -409,8 +409,7 @@ export default function ResumeDashboard({
             }
             const name = cert.name || '';
             const issuer = cert.issuer ? ` (${cert.issuer})` : '';
-            const date = cert.date ? ` - ${cert.date}` : '';
-            return `<div style="font-size: 10.5px; color: #333;">• <strong>${name}</strong>${issuer}${date}</div>`;
+            return `<div style="font-size: 10.5px; color: #333;">• <strong>${name}</strong>${issuer}</div>`;
           }).join("")}
         </div>
       </div>
@@ -1602,7 +1601,7 @@ export default function ResumeDashboard({
                   {/* Right Column */}
                   <div 
                     style={{ width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `calc(${100 - optimizerLeftWidth}% - 20px)` : '100%' }}
-                    className="space-y-6 transition-all duration-75 shrink-0"
+                    className="space-y-6 transition-all duration-75 shrink-0 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-2 custom-scrollbar lg:sticky lg:top-24"
                   >
                     {/* AI Engine Selection Card */}
                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-4">
