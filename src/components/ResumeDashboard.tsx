@@ -2185,7 +2185,13 @@ export default function ResumeDashboard({
               >
                 <SkillExtractor 
                   isDarkMode={isDarkMode} 
-                  resumeData={results[activeAudience] || (resumeText ? JSON.parse(resumeText) : {})} 
+                  resumeData={results[activeAudience] || (() => {
+                    try {
+                      return resumeText ? JSON.parse(resumeText) : {};
+                    } catch {
+                      return { rawText: resumeText };
+                    }
+                  })()} 
                   onBack={() => setActiveNav('dashboard')} 
                   engineConfig={engineConfig} 
                   initialJd={jobDescription} 

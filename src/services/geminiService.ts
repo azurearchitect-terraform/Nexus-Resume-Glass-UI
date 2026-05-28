@@ -964,7 +964,7 @@ export async function extractSkillsFromJD(
     return JSON.parse(resultText || '{"matching":[], "missing":[], "priority":[]}');
   } catch (error) {
     console.error('Skill extraction AI error:', error);
-    return { matching: [], missing: [], priority: [] };
+    throw error;
   }
 }
 

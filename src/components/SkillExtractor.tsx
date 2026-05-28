@@ -87,8 +87,8 @@ export const SkillExtractor: React.FC<SkillExtractorProps> = ({ isDarkMode, resu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-inherit overflow-hidden">
-      <div className={`sticky top-0 z-10 flex items-center justify-between p-6 border-b ${isDarkMode ? 'glass-thin border-white/5' : 'bg-white border-black/5'} pt-16`}>
+    <div className="absolute inset-0 z-30 flex flex-col bg-[#04050b] dark:bg-[#04050b] bg-slate-50 overflow-hidden">
+      <div className={`sticky top-0 z-10 flex items-center justify-between p-6 border-b ${isDarkMode ? 'glass-thin border-white/5 bg-[#04050b]/80 backdrop-blur-md' : 'bg-white border-black/5'} pt-6`}>
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
