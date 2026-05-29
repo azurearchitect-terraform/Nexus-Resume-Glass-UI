@@ -24,7 +24,7 @@ Return structured JSON.
 `;
 
     try {
-      const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview"];
+      const modelChain = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"];
       let res: any = null;
       let lastError: any = null;
       for (const model of modelChain) {

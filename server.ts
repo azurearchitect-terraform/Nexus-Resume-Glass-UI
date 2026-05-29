@@ -1325,7 +1325,7 @@ async function startServer() {
         const genAI = new GoogleGenAI(geminiKey ? { apiKey: geminiKey } : {});
         const { response: checkResult, modelUsed } = await generateContentWithFallback(
           genAI,
-          ["gemini-3.5-flash", "gemini-3-flash-preview"],
+          ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"],
           checkPrompt,
           { responseMimeType: "application/json" }
         );
@@ -1349,7 +1349,7 @@ async function startServer() {
           const genAI = new GoogleGenAI(geminiKey ? { apiKey: geminiKey } : {});
           const { response: boosterResult, modelUsed } = await generateContentWithFallback(
             genAI,
-            ["gemini-3.5-flash", "gemini-3-flash-preview"],
+            ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"],
             boosterPrompt
           );
           faangDnaTips = boosterResult.text || "";
@@ -1699,7 +1699,7 @@ async function startServer() {
         const [metaResponseInfo, roleResults] = await Promise.all([
           generateContentWithFallback(
             genAI,
-            ["gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3-flash-preview"],
+            ["gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"],
             metaPrompt,
             { responseMimeType: "application/json" }
           ),
@@ -1833,7 +1833,7 @@ async function startServer() {
           const genAIObj = new GoogleGenAI(geminiKey ? { apiKey: geminiKey } : {});
           const correctionResponse = await generateContentWithFallback(
             genAIObj,
-            ["gemini-3.5-flash", "gemini-3-flash-preview"],
+            ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"],
             selfCorrectionPrompt,
             { responseMimeType: "application/json" }
           );
@@ -2132,8 +2132,7 @@ async function startServer() {
         format: "A4",
         printBackground: true,
         displayHeaderFooter: false,
-        preferCSSPageSize: true,
-        pageRanges: "1-2"
+        preferCSSPageSize: true
       });
 
       console.log(`PDF generated. Size: ${pdfBuffer.length} bytes`);

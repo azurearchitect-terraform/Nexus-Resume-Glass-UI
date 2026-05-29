@@ -1222,28 +1222,32 @@ export default function ResumeDashboard({
                                   return <span className="opacity-30">-</span>;
                                 })()}
                               </td>
-                              <td className="py-3.5 text-right space-x-2">
-                                <button 
-                                  onClick={() => {
-                                    const resumeData = v.data?.results?.[v.data?.activeAudience] || v.data?.results?.[Object.keys(v.data?.results || {})[0]] || v.data;
-                                    setActivePreviewResume(resumeData);
-                                    setPreviewModalOpen(true);
-                                    setPreviewTab('formatted');
-                                  }}
-                                  className="px-3 py-1.5 rounded bg-emerald-500 text-black text-[10px] font-black uppercase tracking-wider hover:bg-emerald-400 transition-all inline-flex items-center gap-1"
-                                >
-                                  <Eye className="w-3.5 h-3.5" /> Preview & Export
-                                </button>
-                                <button 
-                                  onClick={() => {
-                                    if (window.confirm("Are you sure you want to delete this optimization version? This will sync and remove any corresponding backup files from Google Drive as well.")) {
-                                      handleDeleteVersion && handleDeleteVersion(v.id, v.name);
-                                    }
-                                  }}
-                                  className="px-2.5 py-1.5 rounded bg-rose-500/10 border border-rose-500/25 text-rose-400 text-[10px] font-black uppercase tracking-wider hover:bg-rose-500 hover:text-white transition-all inline-flex items-center gap-1"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" /> Delete
-                                </button>
+                              <td className="py-2.5 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button 
+                                    title="Preview & Export Resume"
+                                    onClick={() => {
+                                      const resumeData = v.data?.results?.[v.data?.activeAudience] || v.data?.results?.[Object.keys(v.data?.results || {})[0]] || v.data;
+                                      setActivePreviewResume(resumeData);
+                                      setPreviewModalOpen(true);
+                                      setPreviewTab('formatted');
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-black transition-all inline-flex items-center justify-center"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button 
+                                    title="Delete this optimization"
+                                    onClick={() => {
+                                      if (window.confirm("Are you sure you want to delete this optimization version? This will sync and remove any corresponding backup files from Google Drive as well.")) {
+                                        handleDeleteVersion && handleDeleteVersion(v.id, v.name);
+                                      }
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 hover:bg-rose-500 hover:text-white transition-all inline-flex items-center justify-center"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}

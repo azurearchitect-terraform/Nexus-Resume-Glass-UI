@@ -396,10 +396,19 @@ export default function App() {
                   if (resData.keys) {
                     if (resData.keys.gemini) setGeminiApiKey(resData.keys.gemini);
                     if (resData.keys.openai) setOpenaiApiKey(resData.keys.openai);
+                    showToast('✅ API keys loaded from your profile.', 'success');
+                  }
+                } else {
+                  const errData = await response.json().catch(() => ({}));
+                  if (errData?.error?.includes('DECRYPTION_FAILED') || errData?.error?.includes('decrypt')) {
+                    showToast('⚠️ API key decryption failed. Please re-save your keys in Profile settings.', 'error');
+                  } else {
+                    showToast('⚠️ Could not load saved API keys. Please re-enter them in Profile.', 'error');
                   }
                 }
               } catch (e) {
                 console.error("Failed to auto-decrypt API keys on login:", e);
+                showToast('⚠️ Failed to load API keys. Please re-enter them in Profile.', 'error');
               }
             }
             if (data.driveAccessToken) {
@@ -2169,7 +2178,7 @@ export default function App() {
     // If there are multiple resumes in Nexus Master, help the user pick the right base
     if (masterResumes.length > 1) {
       setOptimizationStep(0);
-      setOptimizationStatus("Selecting Best Master Resume profile...");
+      setOptimizationStatus("🧠 AI is selecting the best profile for this job...");
       try {
         const bestId = await selectBestMasterResume(
           masterResumes,
@@ -2189,7 +2198,9 @@ export default function App() {
               
             finalResumeText = masterData;
             setResumeText(masterData);
-            showToast(`Auto-selected Profile: ${selectedMaster.name}`, 'success');
+            setOptimizationStatus(`✨ Auto-selected: "${selectedMaster.name}" — Best match for this role`);
+            showToast(`✨ Auto-selected Profile: ${selectedMaster.name}`, 'success');
+            await new Promise(resolve => setTimeout(resolve, 1200)); // Let user see the selection
           }
         }
         setOptimizationStep(1);
@@ -2203,11 +2214,18 @@ export default function App() {
       const finalTargetRole = targetRole || "Professional Candidate";
       
       const routerConfig = getRouterConfig();
-      let completedAudiences = 0;
       const totalAudiences = currentAudiences.length;
       const engineName = engineNameMap[selectedEngine as keyof typeof engineNameMap] || selectedEngine.toUpperCase();
 
       // Run all audience optimizations in parallel
+      // Show a combined status message — individual audience calls run in parallel so
+      // we cannot show per-audience progress without races. Show count instead.
+      const completedRef = { count: 0 };
+      if (!selectedEngine.includes('hybrid')) {
+        setOptimizationStatus(`⚡ Optimizing for ${totalAudiences} audience${totalAudiences > 1 ? 's' : ''} in parallel...`);
+        setOptimizationStep(1);
+      }
+
       const optimizationPromises = currentAudiences.map(async (audienceId) => {
         const audienceLabel = AUDIENCES.find(a => a.id === audienceId)?.label || audienceId;
         
@@ -2221,15 +2239,6 @@ export default function App() {
           }, 3000);
           setTimeout(() => {
             setOptimizationStatus(`Step 3: Final Synthesis with ${selectedEngine.includes('openai') ? 'OpenAI' : 'Gemini 3.1 Pro'}...`);
-            setOptimizationStep(3);
-          }, 6000);
-        } else {
-          setOptimizationStatus(`Optimizing for ${audienceLabel}...`);
-          setOptimizationStep(1);
-          setTimeout(() => {
-            setOptimizationStep(2);
-          }, 3000);
-          setTimeout(() => {
             setOptimizationStep(3);
           }, 6000);
         }
@@ -2256,8 +2265,12 @@ export default function App() {
         
         setOptimizationStep(4);
         setOptimizationStatus("Quality Audit & Score Assessment...");
-        completedAudiences++;
-        setOptimizationProgress(Math.min(95, (completedAudiences / currentAudiences.length) * 100));
+        completedRef.count++;
+        const completed = completedRef.count;
+        setOptimizationProgress(Math.min(95, (completed / currentAudiences.length) * 100));
+        if (!selectedEngine.includes('hybrid') && completed < currentAudiences.length) {
+          setOptimizationStatus(`✅ ${completed}/${totalAudiences} audiences complete — still optimizing...`);
+        }
         
         // Update token usage
         if (data._engine === 'hybrid-v2') {
@@ -2771,7 +2784,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
           });
           
           if (driveSaveResponse.ok) {
-            showToast('Resume saved to Google Drive!', 'success');
+            showToast(`💻 PDF saved to Google Drive: ${driveFileName}`, 'success');
           } else {
             const driveError = await driveSaveResponse.json();
             console.error('Drive save error:', driveError);
@@ -2792,7 +2805,7 @@ ${(res.education || [] as any[]).map(edu => typeof edu === 'string' ? edu : `${e
 
       // Trigger download
       saveAs(blob, downloadFileName);
-      showToast('PDF Downloaded successfully!', 'success');
+      showToast('✅ PDF downloaded! Saving backup to Google Drive...', 'success');
 
     } catch (err: any) {
       console.error('PDF Generation Error:', err);

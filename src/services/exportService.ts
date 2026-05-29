@@ -95,30 +95,39 @@ export const downloadDOCX = async (res: any, targetRole: string, companyName: st
               new Paragraph({ text: "", spacing: { after: 200 } }),
             ]),
 
-            // Projects
-            ...(res.projects && res.projects.length > 0 ? [
-              new Paragraph({
-                text: "STRATEGIC PROJECTS",
-                heading: HeadingLevel.HEADING_1,
-                spacing: { before: 200, after: 100 },
-              }),
-              ...res.projects.flatMap((proj: any) => [
+            // Projects (combined)
+            ...(() => {
+              const allProjects = [];
+              if (Array.isArray(res.projects) && res.projects.length > 0) {
+                allProjects.push(...res.projects);
+              }
+              if (Array.isArray(res.architecture_projects) && res.architecture_projects.length > 0) {
+                allProjects.push(...res.architecture_projects);
+              }
+              return (allProjects.length > 0 ? [
                 new Paragraph({
-                  children: [
-                    new TextRun({ text: typeof proj === 'string' ? proj : proj.title, bold: true }),
-                  ],
+                  text: "STRATEGIC PROJECTS",
+                  heading: HeadingLevel.HEADING_1,
+                  spacing: { before: 200, after: 100 },
                 }),
-                ...(typeof proj !== 'string' && proj.description ? [
+                ...allProjects.flatMap((proj: any) => [
                   new Paragraph({
-                    text: proj.description,
-                    bullet: { level: 0 },
-                    spacing: { after: 100 },
-                  })
-                ] : [
-                  new Paragraph({ text: "", spacing: { after: 100 } })
+                    children: [
+                      new TextRun({ text: typeof proj === 'string' ? proj : proj.title, bold: true }),
+                    ],
+                  }),
+                  ...(typeof proj !== 'string' && proj.description ? [
+                    new Paragraph({
+                      text: proj.description,
+                      bullet: { level: 0 },
+                      spacing: { after: 100 },
+                    })
+                  ] : [
+                    new Paragraph({ text: "", spacing: { after: 100 } })
+                  ]),
                 ]),
-              ]),
-            ] : []),
+              ] : []);
+            })(),
 
             // Certifications
             ...(res.certifications && res.certifications.length > 0 ? [

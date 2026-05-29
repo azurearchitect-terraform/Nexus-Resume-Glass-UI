@@ -178,12 +178,15 @@ async function callAI(prompt: string, model: string, engine: EngineType, encrypt
       const getFallbackChain = (startModel: string): string[] => {
         switch (startModel) {
           case 'gemini-3.1-pro-preview':
-          case 'gemini-3-flash-preview':
-            return ['gemini-3-flash-preview', 'gemini-3.5-flash'];
+            return ['gemini-3.1-pro-preview', 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
           case 'gemini-3.5-flash':
-            return ['gemini-3.5-flash', 'gemini-3-flash-preview'];
+            return ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
+          case 'gemini-3-flash-preview':
+            return ['gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
+          case 'gemini-3.1-flash-lite':
+            return ['gemini-3.1-flash-lite'];
           default:
-            return [startModel, 'gemini-3.5-flash', 'gemini-3-flash-preview'];
+            return [startModel, 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite'];
         }
       };
 
